@@ -140,8 +140,14 @@ async function apiRequest(path, options = {}) {
 
 function applyAuthState() {
   const loggedIn = Boolean(currentUser);
-  document.getElementById("loginScreen").classList.toggle("hidden", loggedIn);
-  document.getElementById("appShell").classList.toggle("app-locked", !loggedIn);
+  const loginScreen = document.getElementById("loginScreen");
+  const appShell = document.getElementById("appShell");
+
+  loginScreen.classList.toggle("hidden", loggedIn);
+  loginScreen.style.display = loggedIn ? "none" : "grid";
+  appShell.classList.toggle("app-locked", !loggedIn);
+  appShell.style.display = loggedIn ? "flex" : "none";
+
   document.getElementById("currentUserName").textContent = currentUser?.name || "-";
   document.getElementById("currentUserRole").textContent = currentUser ? (currentUser.role === "admin" ? "Admin" : "User") : "-";
 
@@ -183,7 +189,9 @@ async function login(event) {
     authToken = payload.data.token;
     currentUser = payload.data.user;
     localStorage.setItem("spap-auth-token", authToken);
+    currentPage = "dashboard";
     applyAuthState();
+    setPage(currentPage);
     await loadData();
     toast(`Selamat datang, ${currentUser.name}`);
   } catch (error) {
