@@ -3,6 +3,7 @@ $appTitle = 'SPAP App - Sistem Pelayanan dan Advokasi Publik';
 $brandName = 'SPAP PKS';
 $brandSubtitle = 'Sistem Pelayanan & Advokasi Publik';
 $apiBaseUrl = getenv('SPAP_API_BASE_URL') ?: 'http://localhost:3000';
+$assetVersion = getenv('RAILWAY_GIT_COMMIT_SHA') ?: (string) time();
 $menuItems = [
   ['page' => 'dashboard', 'icon' => 'D', 'label' => 'Dashboard', 'active' => true],
   ['page' => 'aspirasi', 'icon' => 'A', 'label' => 'Aspirasi Masyarakat'],
@@ -21,7 +22,7 @@ $menuItems = [
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= htmlspecialchars($appTitle, ENT_QUOTES, 'UTF-8') ?></title>
-  <link rel="stylesheet" href="assets/app.css">
+  <link rel="stylesheet" href="assets/app.css?v=<?= htmlspecialchars($assetVersion, ENT_QUOTES, 'UTF-8') ?>">
   <script>
     window.SPAP_CONFIG = {
       apiBaseUrl: <?= json_encode($apiBaseUrl, JSON_UNESCAPED_SLASHES) ?>
@@ -564,6 +565,6 @@ $menuItems = [
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="assets/app.js"></script>
+  <script src="assets/app.js?v=<?= htmlspecialchars($assetVersion, ENT_QUOTES, 'UTF-8') ?>"></script>
 </body>
 </html>

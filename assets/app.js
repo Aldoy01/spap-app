@@ -178,25 +178,36 @@ async function restoreSession() {
 
 async function login(event) {
   event.preventDefault();
+  let payload;
+
   try {
-    const payload = await apiRequest("/api/auth/login", {
+    payload = await apiRequest("/api/auth/login", {
       method: "POST",
       body: JSON.stringify({
         email: document.getElementById("loginEmail").value,
         password: document.getElementById("loginPassword").value
       })
     });
-    authToken = payload.data.token;
-    currentUser = payload.data.user;
-    localStorage.setItem("spap-auth-token", authToken);
-    currentPage = "dashboard";
-    applyAuthState();
-    setPage(currentPage);
-    await loadData();
-    toast(`Selamat datang, ${currentUser.name}`);
   } catch (error) {
+    console.error("Login request failed", error);
     toast("Login gagal. Periksa email dan password.");
+    return;
   }
+
+  authToken = payload.data.token;
+  currentUser = payload.data.user;
+  localStorage.setItem("spap-auth-token", authToken);
+  currentPage = "dashboard";
+  applyAuthState();
+  setPage(currentPage);
+
+  try {
+    await loadData();
+  } catch (error) {
+    console.error("Dashboard load after login failed", error);
+  }
+
+  toast(`Selamat datang, ${currentUser.name}`);
 }
 
 async function logout() {
