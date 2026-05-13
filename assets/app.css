@@ -131,17 +131,38 @@ button, input, select, textarea {
   border-bottom: 1px solid rgba(255, 255, 255, 0.22);
 }
 
-.brand-symbol {
+.pks-logo {
   width: 48px;
   height: 48px;
-  display: grid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   place-items: center;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, .22);
+  border-radius: 15px;
+  background: #fff;
   border: 1px solid rgba(255, 255, 255, .34);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 12px 24px rgba(130, 47, 0, .16);
-  font-weight: 900;
-  letter-spacing: .2px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 12px 24px rgba(130, 47, 0, .16);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-card .pks-logo {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 12px;
+  border-color: #ffe0c2;
+  box-shadow: 0 18px 36px rgba(240, 90, 40, .16);
+}
+
+.pks-logo img {
+  width: 88%;
+  height: 88%;
+  object-fit: contain;
+  display: block;
+}
+
+.pks-logo strong {
+  display: none;
 }
 
 .brand h1 {
@@ -198,9 +219,18 @@ button, input, select, textarea {
   place-items: center;
   border-radius: 9px;
   background: rgba(255, 255, 255, .18);
-  font-size: 12px;
-  font-weight: 800;
   opacity: .92;
+  flex: 0 0 28px;
+}
+
+.nav-icon svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .sidebar-footer {

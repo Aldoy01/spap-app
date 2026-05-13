@@ -5,16 +5,38 @@ $brandSubtitle = 'Sistem Pelayanan & Advokasi Publik';
 $apiBaseUrl = getenv('SPAP_API_BASE_URL') ?: 'http://localhost:3000';
 $assetVersion = getenv('RAILWAY_GIT_COMMIT_SHA') ?: (string) time();
 $menuItems = [
-  ['page' => 'dashboard', 'icon' => 'D', 'label' => 'Dashboard', 'active' => true],
-  ['page' => 'aspirasi', 'icon' => 'A', 'label' => 'Aspirasi Masyarakat'],
-  ['page' => 'pengaduan', 'icon' => 'P', 'label' => 'Pengaduan'],
-  ['page' => 'osint', 'icon' => 'O', 'label' => 'OSINT Monitoring'],
-  ['page' => 'analytics', 'icon' => 'N', 'label' => 'Analytics'],
-  ['page' => 'laporan', 'icon' => 'L', 'label' => 'Laporan'],
-  ['page' => 'infra', 'icon' => 'I', 'label' => 'Konsep Infra', 'hidden' => true],
-  ['page' => 'workflow', 'icon' => 'W', 'label' => 'Proses Bisnis', 'hidden' => true],
-  ['page' => 'settings', 'icon' => 'S', 'label' => 'Pengaturan'],
+  ['page' => 'dashboard', 'icon' => 'dashboard', 'label' => 'Dashboard', 'active' => true],
+  ['page' => 'aspirasi', 'icon' => 'aspirasi', 'label' => 'Aspirasi Masyarakat'],
+  ['page' => 'pengaduan', 'icon' => 'pengaduan', 'label' => 'Pengaduan'],
+  ['page' => 'osint', 'icon' => 'osint', 'label' => 'OSINT Monitoring'],
+  ['page' => 'analytics', 'icon' => 'analytics', 'label' => 'Analytics'],
+  ['page' => 'laporan', 'icon' => 'laporan', 'label' => 'Laporan'],
+  ['page' => 'infra', 'icon' => 'infra', 'label' => 'Konsep Infra', 'hidden' => true],
+  ['page' => 'workflow', 'icon' => 'workflow', 'label' => 'Proses Bisnis', 'hidden' => true],
+  ['page' => 'settings', 'icon' => 'settings', 'label' => 'Pengaturan'],
 ];
+
+function pks_logo(): string
+{
+  return '<div class="pks-logo" aria-label="Logo PKS"><img src="assets/logo-pks.svg" alt="Logo PKS"><strong>PKS</strong></div>';
+}
+
+function nav_icon(string $name): string
+{
+  $icons = [
+    'dashboard' => '<svg viewBox="0 0 24 24"><path d="M4 13h6V4H4v9Zm10 7h6V4h-6v16ZM4 20h6v-4H4v4Z"/></svg>',
+    'aspirasi' => '<svg viewBox="0 0 24 24"><path d="M4 6.5A3.5 3.5 0 0 1 7.5 3h9A3.5 3.5 0 0 1 20 6.5v5A3.5 3.5 0 0 1 16.5 15H11l-5 4v-4.2A3.5 3.5 0 0 1 4 11.5v-5Z"/></svg>',
+    'pengaduan' => '<svg viewBox="0 0 24 24"><path d="M12 3 3 20h18L12 3Zm0 5v6m0 3h.01"/></svg>',
+    'osint' => '<svg viewBox="0 0 24 24"><path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm0-12v4l3 2M4 12h3m10 0h3m-8-8v3m0 10v3"/></svg>',
+    'analytics' => '<svg viewBox="0 0 24 24"><path d="M4 19V5m0 14h16M7 16l3-4 3 2 5-7"/></svg>',
+    'laporan' => '<svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7V3Zm7 0v5h5M9 13h6M9 17h6M9 9h2"/></svg>',
+    'infra' => '<svg viewBox="0 0 24 24"><path d="M5 5h14v5H5V5Zm0 9h14v5H5v-5Zm3-6h.01M8 17h.01M12 10v4"/></svg>',
+    'workflow' => '<svg viewBox="0 0 24 24"><path d="M6 6h5v5H6V6Zm7 7h5v5h-5v-5ZM8.5 11v2A2.5 2.5 0 0 0 11 15.5h2"/></svg>',
+    'settings' => '<svg viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Zm7-3.5 2-1.4-2-3.5-2.4 1a7.8 7.8 0 0 0-1.5-.9L14.8 4h-4l-.3 3.2c-.5.2-1 .5-1.5.9l-2.4-1-2 3.5 2 1.4a8 8 0 0 0 0 1.8l-2 1.4 2 3.5 2.4-1c.5.4 1 .7 1.5.9l.3 3.2h4l.3-3.2c.5-.2 1-.5 1.5-.9l2.4 1 2-3.5-2-1.4a8 8 0 0 0 0-1.8Z"/></svg>',
+  ];
+
+  return $icons[$name] ?? $icons['dashboard'];
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -32,7 +54,7 @@ $menuItems = [
 <body>
   <section class="login-screen" id="loginScreen">
     <div class="login-card">
-      <div class="brand-symbol">SP</div>
+      <?= pks_logo() ?>
       <p class="eyebrow">Login SPAP App</p>
       <h1>Masuk ke Sistem</h1>
       <p class="login-copy">Gunakan akun admin atau user untuk mengakses dashboard pelayanan dan advokasi publik.</p>
@@ -55,7 +77,7 @@ $menuItems = [
   <div class="app-shell app-locked" id="appShell">
     <aside class="sidebar" aria-label="Navigasi utama">
       <div class="brand">
-        <div class="brand-symbol">SP</div>
+        <?= pks_logo() ?>
         <div>
           <h1><?= htmlspecialchars($brandName, ENT_QUOTES, 'UTF-8') ?></h1>
           <p><?= htmlspecialchars($brandSubtitle, ENT_QUOTES, 'UTF-8') ?></p>
@@ -69,7 +91,7 @@ $menuItems = [
             if (!empty($item['hidden'])) $classes .= ' nav-hidden';
           ?>
           <button class="<?= htmlspecialchars($classes, ENT_QUOTES, 'UTF-8') ?>" data-page="<?= htmlspecialchars($item['page'], ENT_QUOTES, 'UTF-8') ?>" title="<?= htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8') ?>">
-            <span class="nav-icon"><?= htmlspecialchars($item['icon'], ENT_QUOTES, 'UTF-8') ?></span>
+            <span class="nav-icon" aria-hidden="true"><?= nav_icon($item['icon']) ?></span>
             <span><?= htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8') ?></span>
           </button>
         <?php endforeach; ?>
