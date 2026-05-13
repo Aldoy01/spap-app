@@ -583,7 +583,7 @@ function nav_icon(string $name): string
     <form id="ticketForm" class="modal">
       <div class="modal-head">
         <h3 id="dialogTitle"><span class="modal-title-icon">+</span> Tambah Aspirasi Baru</h3>
-        <button class="icon-btn" id="closeTicketBtn" type="button" aria-label="Tutup">x</button>
+        <button class="icon-btn close-btn" id="closeTicketBtn" type="button" aria-label="Tutup"></button>
       </div>
       <div class="form-grid">
         <label class="full hidden-field">Tipe
@@ -671,7 +671,7 @@ function nav_icon(string $name): string
     <div class="modal">
       <div class="modal-head">
         <h3 id="detailTitle">Detail Tiket</h3>
-        <button class="icon-btn" id="closeDetailBtn" aria-label="Tutup">x</button>
+        <button class="icon-btn close-btn" id="closeDetailBtn" type="button" aria-label="Tutup"></button>
       </div>
       <div id="detailContent"></div>
     </div>
@@ -681,7 +681,7 @@ function nav_icon(string $name): string
     <div class="modal compact-modal">
       <div class="modal-head">
         <h3>Notifikasi SLA & Eskalasi</h3>
-        <button class="icon-btn" id="closeNotificationBtn" aria-label="Tutup">x</button>
+        <button class="icon-btn close-btn" id="closeNotificationBtn" type="button" aria-label="Tutup"></button>
       </div>
       <div id="notificationCenterList" class="notification-center"></div>
     </div>

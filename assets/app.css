@@ -413,6 +413,56 @@ select:focus, input:focus, textarea:focus {
   cursor: pointer;
 }
 
+.close-btn {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background: #fff;
+  color: #64748b;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, .08);
+  transition: background .18s ease, border-color .18s ease, color .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+
+.close-btn::before,
+.close-btn::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.close-btn::before {
+  transform: rotate(45deg);
+}
+
+.close-btn::after {
+  transform: rotate(-45deg);
+}
+
+.close-btn:hover {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: var(--brand);
+  box-shadow: 0 10px 24px rgba(249, 115, 22, .18);
+  transform: translateY(-1px);
+}
+
+.close-btn:focus-visible {
+  outline: 3px solid rgba(249, 115, 22, .25);
+  outline-offset: 3px;
+}
+
+.close-btn:active {
+  transform: translateY(0) scale(.96);
+}
+
 .page {
   display: none;
 }
