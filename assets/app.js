@@ -339,8 +339,12 @@ function toast(message) {
 }
 
 function activeNotifications() {
+  const selectedRegion = document.getElementById("regionFilter")?.value || "Semua";
   const source = state.notifications?.length ? state.notifications : localNotifications();
-  return source.filter(item => !acknowledgedNotifications.has(item.id));
+  return source.filter(item => {
+    const matchesRegion = selectedRegion === "Semua" || item.region === selectedRegion || item.description?.includes(selectedRegion);
+    return matchesRegion && !acknowledgedNotifications.has(item.id);
+  });
 }
 
 function renderMetrics() {
@@ -497,6 +501,7 @@ function localNotifications() {
         severity,
         title,
         description: `${ticket.judul} - ${ticket.wilayah}`,
+        region: ticket.wilayah,
         assignedUnit: ticket.pic,
         slaDueAt: ticket.slaDueAt
       };

@@ -1057,6 +1057,7 @@ function list_notifications(): void
         return [
             'id' => $row['public_id'],
             'type' => $row['type'],
+            'region' => $row['region'],
             'severity' => $row['severity'],
             'title' => $title,
             'description' => $row['subject'] . ' - ' . $row['region'],
