@@ -90,6 +90,7 @@ let authToken = localStorage.getItem("spap-auth-token") || "";
 let currentUser = null;
 let adminData = { users: [], permissions: [] };
 let ticketEvents = {};
+let acknowledgedNotifications = new Set(JSON.parse(localStorage.getItem("spap-ack-notifications") || "[]"));
 const API_BASE = window.SPAP_CONFIG?.apiBaseUrl || (window.location.port === "3000" ? "" : "http://localhost:3000");
 const manageableMenus = ["dashboard", "aspirasi", "pengaduan", "osint", "analytics", "laporan", "settings"];
 const manageableRoles = ["admin", "operator", "verifikator", "koordinator"];
@@ -337,6 +338,11 @@ function toast(message) {
   setTimeout(() => el.classList.remove("show"), 2200);
 }
 
+function activeNotifications() {
+  const source = state.notifications?.length ? state.notifications : localNotifications();
+  return source.filter(item => !acknowledgedNotifications.has(item.id));
+}
+
 function renderMetrics() {
   const tickets = scopedTickets();
   const selesai = tickets.filter(t => t.status === "Selesai").length;
@@ -500,7 +506,7 @@ function localNotifications() {
 }
 
 function renderSlaNotifications() {
-  const notifications = (state.notifications?.length ? state.notifications : localNotifications()).slice(0, 8);
+  const notifications = activeNotifications().slice(0, 8);
   const target = document.getElementById("slaNotificationList");
   if (!target) return;
 
@@ -525,6 +531,39 @@ function renderSlaNotifications() {
       `;
     }).join("")
     : '<div class="warning positif"><strong>SLA aman</strong><p>Tidak ada tiket kritis atau terlambat saat ini.</p></div>';
+}
+
+function renderNotificationCenter() {
+  const notifications = activeNotifications();
+  const count = document.getElementById("notificationCount");
+  const list = document.getElementById("notificationCenterList");
+  if (count) count.textContent = notifications.length;
+  if (!list) return;
+
+  list.innerHTML = notifications.length
+    ? notifications.map(item => {
+      const hours = hoursUntil(item.slaDueAt);
+      const eta = hours === null
+        ? "SLA belum ditentukan"
+        : hours < 0
+          ? `Terlambat ${Math.abs(hours)} jam`
+          : `Sisa ${hours} jam`;
+      return `
+        <article class="notification-card ${item.severity}">
+          <div>
+            <span class="eyebrow">${item.id} - ${item.type}</span>
+            <strong>${item.title}</strong>
+            <p>${item.description}</p>
+            <small>${item.assignedUnit || "Triage SPAP"} - ${eta}</small>
+          </div>
+          <div class="notification-actions">
+            <button class="btn ghost" onclick="openDetail('${item.type}','${item.id}')">Detail</button>
+            <button class="btn primary" onclick="acknowledgeNotification('${item.id}', '${item.type}')">Tandai Ditindaklanjuti</button>
+          </div>
+        </article>
+      `;
+    }).join("")
+    : '<div class="warning positif"><strong>Tidak ada notifikasi aktif</strong><p>Semua notifikasi sudah ditindaklanjuti.</p></div>';
 }
 
 function renderPipeline() {
@@ -572,6 +611,7 @@ function renderDashboard() {
   renderDashboardActivities();
   renderDashboardAlerts();
   renderSlaNotifications();
+  renderNotificationCenter();
   renderPipeline();
   renderCategoryBars();
   renderWarnings();
@@ -1008,6 +1048,38 @@ async function assignComplaint(id, status) {
   toast(`Pengaduan ${id} diperbarui`);
 }
 
+async function acknowledgeNotification(id, type) {
+  const note = "Notifikasi SLA/eskalasi sudah ditindaklanjuti dari pusat notifikasi";
+  if (apiAvailable) {
+    try {
+      await apiRequest(`/api/notifications/${id}/ack`, {
+        method: "POST",
+        body: JSON.stringify({
+          note,
+          status: "Diproses",
+          actorName: currentUser?.name || "Operator SPAP"
+        })
+      });
+      await loadTicketEvents(type, id);
+    } catch (error) {
+      toast("Notifikasi disimpan lokal karena API tidak merespon");
+    }
+  }
+
+  acknowledgedNotifications.add(id);
+  localStorage.setItem("spap-ack-notifications", JSON.stringify([...acknowledgedNotifications]));
+
+  const collection = type === "aspirasi" ? state.aspirasi : state.pengaduan;
+  const item = collection.find(ticket => ticket.id === id);
+  if (item && item.status === "Baru") {
+    item.status = "Diproses";
+  }
+
+  saveState();
+  renderAll();
+  toast(`Notifikasi ${id} ditandai ditindaklanjuti`);
+}
+
 async function createUser(event) {
   event.preventDefault();
   if (!apiAvailable || currentUser?.role !== "admin") {
@@ -1107,6 +1179,8 @@ function bindEvents() {
     if (event.target.id === "ticketDialog") closeTicketDialog();
   });
   document.getElementById("closeDetailBtn").addEventListener("click", () => document.getElementById("detailDialog").close());
+  document.getElementById("notificationBtn").addEventListener("click", () => document.getElementById("notificationDialog").showModal());
+  document.getElementById("closeNotificationBtn").addEventListener("click", () => document.getElementById("notificationDialog").close());
   document.getElementById("refreshBtn").addEventListener("click", async () => { await loadData(); toast("Data dashboard diperbarui"); });
   ["aspirasiSearch", "aspirasiStatus", "aspirasiPriority"].forEach(id => document.getElementById(id).addEventListener("input", renderAspirasi));
   ["pengaduanSearch", "pengaduanStatus", "pengaduanPriority"].forEach(id => document.getElementById(id).addEventListener("input", renderPengaduan));

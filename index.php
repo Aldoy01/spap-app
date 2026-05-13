@@ -118,6 +118,10 @@ function nav_icon(string $name): string
           <select id="regionFilter" aria-label="Filter wilayah">
             <option value="Semua">Semua Wilayah</option>
           </select>
+          <button class="notification-btn" id="notificationBtn" type="button" aria-label="Buka notifikasi">
+            <span>Notifikasi</span>
+            <strong id="notificationCount">0</strong>
+          </button>
           <button class="btn primary" id="newTicketBtn">Tambah Aspirasi</button>
         </div>
       </header>
@@ -645,6 +649,16 @@ function nav_icon(string $name): string
         <button class="icon-btn" id="closeDetailBtn" aria-label="Tutup">x</button>
       </div>
       <div id="detailContent"></div>
+    </div>
+  </dialog>
+
+  <dialog id="notificationDialog">
+    <div class="modal compact-modal">
+      <div class="modal-head">
+        <h3>Notifikasi SLA & Eskalasi</h3>
+        <button class="icon-btn" id="closeNotificationBtn" aria-label="Tutup">x</button>
+      </div>
+      <div id="notificationCenterList" class="notification-center"></div>
     </div>
   </dialog>
 

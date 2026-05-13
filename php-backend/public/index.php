@@ -111,6 +111,11 @@ function route_request(): void
         return;
     }
 
+    if ($method === 'POST' && preg_match('#^/api/notifications/([^/]+)/ack$#', $path, $matches)) {
+        acknowledge_notification($matches[1]);
+        return;
+    }
+
     if ($method === 'GET' && $path === '/api/reports/summary') {
         report_summary();
         return;
@@ -1062,6 +1067,47 @@ function list_notifications(): void
     }, $statement->fetchAll());
 
     json_response(['data' => $items]);
+}
+
+function acknowledge_notification(string $publicId): void
+{
+    $ticket = ticket_by_public_id($publicId);
+    if (!$ticket) {
+        json_response(['error' => 'Ticket not found'], 404);
+        return;
+    }
+
+    $actor = require_permission($ticket['type'] === 'pengaduan' ? 'pengaduan' : 'aspirasi', 'update');
+    if (!$actor) {
+        return;
+    }
+
+    $input = input_json();
+    $note = trim($input['note'] ?? 'Notifikasi SLA ditandai sudah ditindaklanjuti');
+
+    $event = db()->prepare(
+        "INSERT INTO ticket_events (ticket_id, event_type, note, actor_name)
+         VALUES (?, 'notification_acknowledged', ?, ?)"
+    );
+    $event->execute([
+        $ticket['id'],
+        $note,
+        $input['actorName'] ?? ($actor['name'] ?? 'Operator SPAP'),
+    ]);
+
+    $status = $input['status'] ?? null;
+    if ($status) {
+        $update = db()->prepare(
+            "UPDATE tickets
+             SET status = ?,
+                 updated_at = now()
+             WHERE id = ?"
+        );
+        $update->execute([$status, $ticket['id']]);
+        cache_invalidate('tickets:');
+    }
+
+    json_response(['data' => ['id' => $publicId, 'acknowledged' => true]]);
 }
 
 function report_summary(): void
