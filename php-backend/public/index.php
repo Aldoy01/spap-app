@@ -232,13 +232,24 @@ function cache(): ?Redis
         return null;
     }
 
-    $url = parse_url(getenv_value('REDIS_URL', 'redis://redis:6379'));
-    $host = $url['host'] ?? 'redis';
+    $redisUrl = getenv('REDIS_URL');
+    if ($redisUrl === false || trim($redisUrl) === '') {
+        $redis = null;
+        return null;
+    }
+
+    $url = parse_url($redisUrl);
+    $host = $url['host'] ?? '';
     $port = $url['port'] ?? 6379;
+
+    if (!$host) {
+        $redis = null;
+        return null;
+    }
 
     try {
         $client = new Redis();
-        $client->connect($host, (int) $port, 1.5);
+        @$client->connect($host, (int) $port, 1.5);
         $redis = $client;
         return $redis;
     } catch (Throwable $error) {
