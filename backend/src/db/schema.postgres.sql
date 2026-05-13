@@ -83,12 +83,12 @@ VALUES
 ON CONFLICT (email) DO NOTHING;
 
 UPDATE users
-SET password_hash = '$2y$10$VcLO8mS6TV3dv87gS4XQlOLBIik7V6PjClVYrx5tai27LdO1LuFiS',
+SET password_hash = '$2y$10$XjdRzaG9nJAORl4ek5m3LuLXJpCaSW29f3niYRrSH2ObViR8rIqa2',
     status = 'active'
 WHERE email = 'admin@spap.local';
 
 UPDATE users
-SET password_hash = '$2y$10$NHPyEAEuKonsAijbIOXw0erBKAJl50znr/3A6uvvIZ1deV7ksCGkq',
+SET password_hash = '$2y$10$CynqGjenPLMJnhh33m.nLepJRQvpo/BuJZr60ZWo5dj5WERsIUXqe',
     status = 'active'
 WHERE email = 'operator@spap.local';
 
