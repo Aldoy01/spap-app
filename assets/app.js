@@ -188,7 +188,7 @@ function populateProvinceOptions() {
 
 function setSelectOptions(select, values, placeholder) {
   select.innerHTML = `<option value="">${placeholder}</option>`;
-  values.forEach(value => select.appendChild(new Option(value, value)));
+  (values || []).forEach(value => select.appendChild(new Option(value, value)));
 }
 
 function currentRecipientDirectory() {
@@ -203,23 +203,45 @@ function updateRecipientFields() {
   const provinceInput = document.getElementById("ticketTargetProvince");
   const dapilSelect = document.getElementById("ticketTargetDapil");
   const citySelect = document.getElementById("ticketTargetCity");
-  const nameSelect = document.getElementById("ticketTargetName");
-  if (!provinceInput || !dapilSelect || !citySelect || !nameSelect) return;
+  if (!provinceInput || !dapilSelect || !citySelect) return;
 
   provinceInput.value = province;
   const dapils = level === "DPR RI" ? directory.dprRi : directory.dprdProvinsi;
   setSelectOptions(dapilSelect, dapils, "Pilih Dapil");
   setSelectOptions(citySelect, directory.cities, "Pilih Kota/Kabupaten");
-  setSelectOptions(nameSelect, directory.names[level] || recipientDirectory.default.names[level], "Pilih Nama Tujuan");
+  updateRecipientNameOptions();
 
   citySelect.disabled = level !== "DPRD Kab/Kota";
   if (citySelect.disabled) citySelect.value = "";
 }
 
+function buildPksDprRiNames(directory, selectedDapil) {
+  const byDapil = directory.pksDprRi || {};
+  if (selectedDapil && byDapil[selectedDapil]?.length) {
+    return byDapil[selectedDapil].map(name => `${name} - PKS ${selectedDapil}`);
+  }
+
+  return Object.entries(byDapil).flatMap(([dapil, names]) =>
+    (names || []).map(name => `${name} - PKS ${dapil}`)
+  );
+}
+
+function updateRecipientNameOptions() {
+  const level = document.getElementById("ticketTargetLevel")?.value || "DPR RI";
+  const selectedDapil = document.getElementById("ticketTargetDapil")?.value || "";
+  const nameSelect = document.getElementById("ticketTargetName");
+  if (!nameSelect) return;
+
+  const directory = currentRecipientDirectory();
+  const pksDprRiNames = level === "DPR RI" ? buildPksDprRiNames(directory, selectedDapil) : [];
+  const fallbackNames = directory.names?.[level] || recipientDirectory.default.names[level];
+  setSelectOptions(nameSelect, pksDprRiNames.length ? pksDprRiNames : fallbackNames, "Pilih Nama Tujuan");
+}
+
 function buildRecipientNames(level, dapils, province) {
   const suffix = province ? ` ${province}` : "";
   return dapils.length
-    ? dapils.map(dapil => `${level} - ${dapil}`)
+    ? dapils.map(dapil => `Fraksi PKS ${level} - ${dapil}`)
     : [`${level}${suffix}`];
 }
 
@@ -234,6 +256,7 @@ async function loadKpuDapilForProvince(province) {
       dprRi,
       dprdProvinsi,
       cities: data.cities || [],
+      pksDprRi: data.pksDprRi || {},
       names: {
         "DPR RI": data.names?.["DPR RI"]?.length ? data.names["DPR RI"] : buildRecipientNames("DPR RI", dprRi, province),
         "DPRD Provinsi": data.names?.["DPRD Provinsi"]?.length ? data.names["DPRD Provinsi"] : buildRecipientNames("DPRD Provinsi", dprdProvinsi, province),
@@ -1354,6 +1377,7 @@ function bindEvents() {
   document.getElementById("regionFilter").addEventListener("change", renderAll);
   document.getElementById("ticketRegion").addEventListener("change", refreshRecipientFieldsFromKpu);
   document.getElementById("ticketTargetLevel").addEventListener("change", updateRecipientFields);
+  document.getElementById("ticketTargetDapil").addEventListener("change", updateRecipientNameOptions);
   document.getElementById("newTicketBtn").addEventListener("click", openTicketDialog);
   document.getElementById("ticketForm").addEventListener("submit", addTicket);
   document.getElementById("closeTicketBtn").addEventListener("click", closeTicketDialog);

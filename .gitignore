@@ -7,5 +7,7 @@ vendor/
 __MACOSX/
 *.log
 *.tmp
+data/*.pdf
+data/*.xlsx
 spap-app_postgres_data/
 spap-app_redis_data/
