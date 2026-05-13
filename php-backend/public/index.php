@@ -315,13 +315,14 @@ function cache_set(string $key, array $payload, int $ttl = 60): void
         return;
     }
 
+    $expiresAt = gmdate('c', time() + $ttl);
     $statement = db()->prepare(
         "INSERT INTO app_cache (cache_key, payload, expires_at)
-         VALUES (?, ?::jsonb, now() + (? * interval '1 second'))
+         VALUES (?, CAST(? AS jsonb), CAST(? AS timestamptz))
          ON CONFLICT (cache_key) DO UPDATE
          SET payload = EXCLUDED.payload, expires_at = EXCLUDED.expires_at"
     );
-    $statement->execute([$key, json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), $ttl]);
+    $statement->execute([$key, json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), $expiresAt]);
 }
 
 function cache_delete(string $key): void
