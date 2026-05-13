@@ -1356,6 +1356,10 @@ dialog::backdrop {
   padding: 12px;
 }
 
+.detail-box small {
+  color: var(--muted);
+}
+
 .panel-head.compact {
   margin: 22px 0 12px;
   padding-bottom: 12px;

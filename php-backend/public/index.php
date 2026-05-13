@@ -192,11 +192,21 @@ function ensure_schema(): void
             description TEXT NOT NULL,
             assigned_unit VARCHAR(120),
             assigned_user_id UUID REFERENCES users(id),
+            target_level VARCHAR(80),
+            target_dapil VARCHAR(120),
+            target_province VARCHAR(120),
+            target_city VARCHAR(120),
+            target_name VARCHAR(160),
             sla_due_at TIMESTAMPTZ,
             resolved_at TIMESTAMPTZ,
             created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
             updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
         )",
+        'ALTER TABLE tickets ADD COLUMN IF NOT EXISTS target_level VARCHAR(80)',
+        'ALTER TABLE tickets ADD COLUMN IF NOT EXISTS target_dapil VARCHAR(120)',
+        'ALTER TABLE tickets ADD COLUMN IF NOT EXISTS target_province VARCHAR(120)',
+        'ALTER TABLE tickets ADD COLUMN IF NOT EXISTS target_city VARCHAR(120)',
+        'ALTER TABLE tickets ADD COLUMN IF NOT EXISTS target_name VARCHAR(160)',
         "CREATE TABLE IF NOT EXISTS ticket_events (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             ticket_id UUID NOT NULL REFERENCES tickets(id) ON DELETE CASCADE,
@@ -808,7 +818,8 @@ function list_tickets(): void
     }
 
     $sql = 'SELECT public_id, type, reporter_name, reporter_contact, channel, region, category, priority, status,
-                   subject, description, assigned_unit, sla_due_at, resolved_at, created_at, updated_at
+                   subject, description, assigned_unit, target_level, target_dapil, target_province, target_city, target_name,
+                   sla_due_at, resolved_at, created_at, updated_at
             FROM tickets';
     if ($where) {
         $sql .= ' WHERE ' . implode(' AND ', $where);
@@ -839,9 +850,10 @@ function create_ticket(): void
 
     $statement = db()->prepare(
         "INSERT INTO tickets
-          (public_id, type, reporter_name, reporter_contact, channel, region, category, priority, status, subject, description, assigned_unit, sla_due_at)
+          (public_id, type, reporter_name, reporter_contact, channel, region, category, priority, status, subject, description, assigned_unit,
+           target_level, target_dapil, target_province, target_city, target_name, sla_due_at)
          VALUES
-          (?, ?, ?, ?, ?, ?, ?, ?, 'Baru', ?, ?, ?, now() + (? * interval '1 hour'))
+          (?, ?, ?, ?, ?, ?, ?, ?, 'Baru', ?, ?, ?, ?, ?, ?, ?, ?, now() + (? * interval '1 hour'))
          RETURNING *"
     );
     $slaHours = sla_hours_for_priority($ticket['priority'] ?? 'Sedang');
@@ -857,6 +869,11 @@ function create_ticket(): void
         $ticket['subject'] ?? 'Tiket baru',
         $ticket['description'] ?? '-',
         $ticket['assignedUnit'] ?? 'Triage SPAP',
+        $ticket['targetLevel'] ?? null,
+        $ticket['targetDapil'] ?? null,
+        $ticket['targetProvince'] ?? ($ticket['region'] ?? null),
+        $ticket['targetCity'] ?? null,
+        $ticket['targetName'] ?? null,
         $slaHours,
     ]);
     $created = $statement->fetch();
@@ -884,6 +901,11 @@ function update_ticket_status(string $publicId): void
     $input = input_json();
     $status = $input['status'] ?? 'Diproses';
     $assignedUnit = $input['assignedUnit'] ?? null;
+    $targetLevel = $input['targetLevel'] ?? null;
+    $targetDapil = $input['targetDapil'] ?? null;
+    $targetProvince = $input['targetProvince'] ?? null;
+    $targetCity = $input['targetCity'] ?? null;
+    $targetName = $input['targetName'] ?? null;
     $typeStatement = db()->prepare('SELECT type FROM tickets WHERE public_id = ? LIMIT 1');
     $typeStatement->execute([$publicId]);
     $type = $typeStatement->fetchColumn();
@@ -901,12 +923,17 @@ function update_ticket_status(string $publicId): void
         "UPDATE tickets
          SET status = ?,
              assigned_unit = COALESCE(?, assigned_unit),
+             target_level = COALESCE(?, target_level),
+             target_dapil = COALESCE(?, target_dapil),
+             target_province = COALESCE(?, target_province),
+             target_city = COALESCE(?, target_city),
+             target_name = COALESCE(?, target_name),
              resolved_at = CASE WHEN ? = 'Selesai' THEN now() ELSE resolved_at END,
              updated_at = now()
          WHERE public_id = ?
          RETURNING *"
     );
-    $statement->execute([$status, $assignedUnit, $status, $publicId]);
+    $statement->execute([$status, $assignedUnit, $targetLevel, $targetDapil, $targetProvince, $targetCity, $targetName, $status, $publicId]);
     $ticket = $statement->fetch();
 
     if (!$ticket) {

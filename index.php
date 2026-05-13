@@ -606,6 +606,31 @@ function nav_icon(string $name): string
             <option value="">Pilih Wilayah</option>
           </select>
         </label>
+        <label>Ditujukan Kepada:
+          <select id="ticketTargetLevel">
+            <option value="DPR RI">DPR RI</option>
+            <option value="DPRD Provinsi">DPRD Provinsi</option>
+            <option value="DPRD Kab/Kota">DPRD Kab/Kota</option>
+          </select>
+        </label>
+        <label>Provinsi Tujuan:
+          <input id="ticketTargetProvince" readonly>
+        </label>
+        <label>Dapil:
+          <select id="ticketTargetDapil">
+            <option value="">Pilih Dapil</option>
+          </select>
+        </label>
+        <label>Kota/Kabupaten:
+          <select id="ticketTargetCity">
+            <option value="">Pilih Kota/Kabupaten</option>
+          </select>
+        </label>
+        <label class="full">Nama Tujuan:
+          <select id="ticketTargetName">
+            <option value="">Pilih Nama Tujuan</option>
+          </select>
+        </label>
         <label class="full">Kategori:
           <select id="ticketCategory">
             <option value="">Pilih Kategori</option>

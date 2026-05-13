@@ -83,6 +83,79 @@ const escalation = [
   ["Nasional", "Isu strategis, hukum, krisis reputasi, atau kebijakan pusat", "DPP/Fraksi", "7 hari kerja"]
 ];
 
+const recipientDirectory = {
+  default: {
+    dprRi: ["Dapil DPR RI Nasional"],
+    dprdProvinsi: ["Dapil Provinsi Utama"],
+    cities: ["Kabupaten/Kota Utama"],
+    names: {
+      "DPR RI": ["Fraksi PKS DPR RI - Koordinator Aspirasi"],
+      "DPRD Provinsi": ["Fraksi PKS DPRD Provinsi - Koordinator Wilayah"],
+      "DPRD Kab/Kota": ["Fraksi PKS DPRD Kab/Kota - Koordinator Pengaduan"]
+    }
+  },
+  "DKI Jakarta": {
+    dprRi: ["DKI Jakarta I", "DKI Jakarta II", "DKI Jakarta III"],
+    dprdProvinsi: ["DKI Jakarta 1", "DKI Jakarta 2", "DKI Jakarta 3", "DKI Jakarta 4"],
+    cities: ["Jakarta Pusat", "Jakarta Utara", "Jakarta Barat", "Jakarta Selatan", "Jakarta Timur", "Kepulauan Seribu"],
+    names: {
+      "DPR RI": ["Anggota DPR RI PKS Dapil DKI Jakarta I", "Anggota DPR RI PKS Dapil DKI Jakarta II", "Anggota DPR RI PKS Dapil DKI Jakarta III"],
+      "DPRD Provinsi": ["Fraksi PKS DPRD DKI Jakarta", "Ketua Fraksi PKS DPRD DKI"],
+      "DPRD Kab/Kota": ["Koordinator DPD PKS Jakarta Pusat", "Koordinator DPD PKS Jakarta Selatan", "Koordinator DPD PKS Jakarta Timur"]
+    }
+  },
+  "Jawa Barat": {
+    dprRi: ["Jawa Barat I", "Jawa Barat II", "Jawa Barat III", "Jawa Barat IV", "Jawa Barat V"],
+    dprdProvinsi: ["Jabar 1", "Jabar 2", "Jabar 3", "Jabar 4", "Jabar 5"],
+    cities: ["Kota Bandung", "Kabupaten Bandung", "Kota Bekasi", "Kabupaten Bekasi", "Kota Depok", "Kabupaten Bogor", "Kota Bogor", "Kota Cimahi"],
+    names: {
+      "DPR RI": ["Anggota DPR RI PKS Dapil Jawa Barat I", "Anggota DPR RI PKS Dapil Jawa Barat II", "Anggota DPR RI PKS Dapil Jawa Barat V"],
+      "DPRD Provinsi": ["Fraksi PKS DPRD Jawa Barat", "Koordinator Fraksi PKS DPRD Jabar"],
+      "DPRD Kab/Kota": ["Fraksi PKS DPRD Kota Bandung", "Fraksi PKS DPRD Kota Bekasi", "Fraksi PKS DPRD Kabupaten Bogor"]
+    }
+  },
+  "Jawa Tengah": {
+    dprRi: ["Jawa Tengah I", "Jawa Tengah II", "Jawa Tengah III", "Jawa Tengah IV"],
+    dprdProvinsi: ["Jateng 1", "Jateng 2", "Jateng 3", "Jateng 4"],
+    cities: ["Kota Semarang", "Kabupaten Semarang", "Kota Surakarta", "Kabupaten Banyumas", "Kabupaten Kudus", "Kabupaten Klaten"],
+    names: {
+      "DPR RI": ["Anggota DPR RI PKS Dapil Jawa Tengah I", "Anggota DPR RI PKS Dapil Jawa Tengah V"],
+      "DPRD Provinsi": ["Fraksi PKS DPRD Jawa Tengah"],
+      "DPRD Kab/Kota": ["Fraksi PKS DPRD Kota Semarang", "Fraksi PKS DPRD Kota Surakarta"]
+    }
+  },
+  "Jawa Timur": {
+    dprRi: ["Jawa Timur I", "Jawa Timur II", "Jawa Timur III", "Jawa Timur IV"],
+    dprdProvinsi: ["Jatim 1", "Jatim 2", "Jatim 3", "Jatim 4"],
+    cities: ["Kota Surabaya", "Kabupaten Sidoarjo", "Kabupaten Malang", "Kota Malang", "Kabupaten Gresik", "Kabupaten Jember"],
+    names: {
+      "DPR RI": ["Anggota DPR RI PKS Dapil Jawa Timur I", "Anggota DPR RI PKS Dapil Jawa Timur V"],
+      "DPRD Provinsi": ["Fraksi PKS DPRD Jawa Timur"],
+      "DPRD Kab/Kota": ["Fraksi PKS DPRD Kota Surabaya", "Fraksi PKS DPRD Kabupaten Sidoarjo"]
+    }
+  },
+  "Sumatera Utara": {
+    dprRi: ["Sumatera Utara I", "Sumatera Utara II", "Sumatera Utara III"],
+    dprdProvinsi: ["Sumut 1", "Sumut 2", "Sumut 3"],
+    cities: ["Kota Medan", "Kota Binjai", "Kabupaten Deli Serdang", "Kabupaten Langkat", "Kota Pematangsiantar"],
+    names: {
+      "DPR RI": ["Anggota DPR RI PKS Dapil Sumatera Utara I", "Anggota DPR RI PKS Dapil Sumatera Utara III"],
+      "DPRD Provinsi": ["Fraksi PKS DPRD Sumatera Utara"],
+      "DPRD Kab/Kota": ["Fraksi PKS DPRD Kota Medan", "Fraksi PKS DPRD Deli Serdang"]
+    }
+  },
+  "Sulawesi Selatan": {
+    dprRi: ["Sulawesi Selatan I", "Sulawesi Selatan II", "Sulawesi Selatan III"],
+    dprdProvinsi: ["Sulsel 1", "Sulsel 2", "Sulsel 3"],
+    cities: ["Kota Makassar", "Kabupaten Gowa", "Kabupaten Maros", "Kota Parepare", "Kabupaten Bone"],
+    names: {
+      "DPR RI": ["Anggota DPR RI PKS Dapil Sulawesi Selatan I", "Anggota DPR RI PKS Dapil Sulawesi Selatan II"],
+      "DPRD Provinsi": ["Fraksi PKS DPRD Sulawesi Selatan"],
+      "DPRD Kab/Kota": ["Fraksi PKS DPRD Kota Makassar", "Fraksi PKS DPRD Kabupaten Gowa"]
+    }
+  }
+};
+
 let state = loadState();
 let currentPage = "dashboard";
 let apiAvailable = false;
@@ -109,6 +182,37 @@ function populateProvinceOptions() {
   });
 
   ticketRegion.value = "";
+  updateRecipientFields();
+}
+
+function setSelectOptions(select, values, placeholder) {
+  select.innerHTML = `<option value="">${placeholder}</option>`;
+  values.forEach(value => select.appendChild(new Option(value, value)));
+}
+
+function currentRecipientDirectory() {
+  const province = document.getElementById("ticketRegion")?.value || "";
+  return recipientDirectory[province] || recipientDirectory.default;
+}
+
+function updateRecipientFields() {
+  const level = document.getElementById("ticketTargetLevel")?.value || "DPR RI";
+  const province = document.getElementById("ticketRegion")?.value || "";
+  const directory = currentRecipientDirectory();
+  const provinceInput = document.getElementById("ticketTargetProvince");
+  const dapilSelect = document.getElementById("ticketTargetDapil");
+  const citySelect = document.getElementById("ticketTargetCity");
+  const nameSelect = document.getElementById("ticketTargetName");
+  if (!provinceInput || !dapilSelect || !citySelect || !nameSelect) return;
+
+  provinceInput.value = province;
+  const dapils = level === "DPR RI" ? directory.dprRi : directory.dprdProvinsi;
+  setSelectOptions(dapilSelect, dapils, "Pilih Dapil");
+  setSelectOptions(citySelect, directory.cities, "Pilih Kota/Kabupaten");
+  setSelectOptions(nameSelect, directory.names[level] || recipientDirectory.default.names[level], "Pilih Nama Tujuan");
+
+  citySelect.disabled = level !== "DPRD Kab/Kota";
+  if (citySelect.disabled) citySelect.value = "";
 }
 
 function setConnectionStatus(text, online) {
@@ -247,6 +351,11 @@ function normalizeTicket(row) {
     kanal: row.channel || row.kanal || "API",
     pic: row.assigned_unit || row.pic || "Triage SPAP",
     lokasi: row.region || row.lokasi || row.wilayah,
+    targetLevel: row.target_level || row.targetLevel || "",
+    targetDapil: row.target_dapil || row.targetDapil || "",
+    targetProvince: row.target_province || row.targetProvince || row.region || row.wilayah || "",
+    targetCity: row.target_city || row.targetCity || "",
+    targetName: row.target_name || row.targetName || "",
     slaDueAt: row.sla_due_at || row.slaDueAt || null,
     resolvedAt: row.resolved_at || row.resolvedAt || null,
     updatedAt: row.updated_at || row.updatedAt || null
@@ -682,6 +791,8 @@ function renderDetailContent(type, item) {
       <div class="detail-box"><strong>PIC</strong><br>${item.pic}</div>
       <div class="detail-box"><strong>Prioritas</strong><br>${badge(item.prioritas)}</div>
       <div class="detail-box"><strong>Status</strong><br>${badge(item.status)}</div>
+      <div class="detail-box"><strong>Ditujukan Kepada</strong><br>${item.targetLevel || "-"}<br><small>${item.targetName || "-"}</small></div>
+      <div class="detail-box"><strong>Wilayah Tujuan</strong><br>${item.targetDapil || "-"}<br><small>${[item.targetProvince, item.targetCity].filter(Boolean).join(" - ") || "-"}</small></div>
     </div>
     <h4>${item.judul}</h4>
     <p>${item.deskripsi}</p>
@@ -950,8 +1061,17 @@ async function addTicket(event) {
   const region = document.getElementById("ticketRegion").value;
   const category = document.getElementById("ticketCategory").value;
   const priority = document.getElementById("ticketPriority").value;
+  const targetLevel = document.getElementById("ticketTargetLevel").value;
+  const targetDapil = document.getElementById("ticketTargetDapil").value;
+  const targetProvince = document.getElementById("ticketTargetProvince").value;
+  const targetCity = document.getElementById("ticketTargetCity").value;
+  const targetName = document.getElementById("ticketTargetName").value;
   if (!region || !category || !priority) {
     toast("Lengkapi wilayah, kategori, dan prioritas");
+    return;
+  }
+  if (type === "pengaduan" && (!targetLevel || !targetDapil || !targetName)) {
+    toast("Lengkapi tujuan pengaduan, dapil, dan nama tujuan");
     return;
   }
   const prefix = type === "aspirasi" ? "ASP" : "PEN";
@@ -970,6 +1090,11 @@ async function addTicket(event) {
     kanal: "Input Operator",
     pic: "Triage SPAP",
     lokasi: region,
+    targetLevel,
+    targetDapil,
+    targetProvince,
+    targetCity,
+    targetName,
     email,
     phone
   };
@@ -988,7 +1113,12 @@ async function addTicket(event) {
           priority: item.prioritas,
           subject: item.judul,
           description: item.deskripsi,
-          assignedUnit: item.pic
+          assignedUnit: item.pic,
+          targetLevel,
+          targetDapil,
+          targetProvince,
+          targetCity,
+          targetName
         })
       });
       Object.assign(item, normalizeTicket(payload.data));
@@ -1017,6 +1147,7 @@ function closeTicketDialog() {
 function openTicketDialog() {
   const type = currentPage === "pengaduan" ? "pengaduan" : "aspirasi";
   document.getElementById("ticketType").value = type;
+  updateRecipientFields();
   document.getElementById("dialogTitle").innerHTML = type === "pengaduan"
     ? '<span class="modal-title-icon">+</span> Tambah Pengaduan Baru'
     : '<span class="modal-title-icon">+</span> Tambah Aspirasi Baru';
@@ -1037,6 +1168,11 @@ async function assignComplaint(id, status) {
         body: JSON.stringify({
           status,
           assignedUnit,
+          targetLevel: item.targetLevel,
+          targetDapil: item.targetDapil,
+          targetProvince: item.targetProvince,
+          targetCity: item.targetCity,
+          targetName: item.targetName,
           note: `Pengaduan didisposisikan ke ${assignedUnit} dengan status ${status}`,
           actorName: currentUser?.name || "Admin SPAP"
         })
@@ -1176,6 +1312,8 @@ function bindEvents() {
     });
   });
   document.getElementById("regionFilter").addEventListener("change", renderAll);
+  document.getElementById("ticketRegion").addEventListener("change", updateRecipientFields);
+  document.getElementById("ticketTargetLevel").addEventListener("change", updateRecipientFields);
   document.getElementById("newTicketBtn").addEventListener("click", openTicketDialog);
   document.getElementById("ticketForm").addEventListener("submit", addTicket);
   document.getElementById("closeTicketBtn").addEventListener("click", closeTicketDialog);
