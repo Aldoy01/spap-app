@@ -485,28 +485,81 @@ function nav_icon(string $name): string
             <div class="panel-head">
               <div>
                 <h3>Status Sistem</h3>
-                <p>Pengaturan operasional mockup</p>
+                <p>Kondisi layanan dan database Railway</p>
               </div>
             </div>
             <div class="warning-list">
               <div class="warning positif"><strong>Backend PHP 7 aktif</strong><p>Endpoint health tersedia di port 3000.</p></div>
               <div class="warning positif"><strong>PostgreSQL sehat</strong><p>Data tiket dan OSINT tersimpan di database utama.</p></div>
-              <div class="warning positif"><strong>Redis sehat</strong><p>Cache tersedia untuk mempercepat query.</p></div>
+              <div class="warning positif"><strong>Session fallback aktif</strong><p>Redis opsional; session bisa memakai PostgreSQL.</p></div>
             </div>
           </section>
           <section class="panel span-2">
             <div class="panel-head">
               <div>
-                <h3>Preferensi Aplikasi</h3>
-                <p>Contoh pengaturan seperti halaman mockup</p>
+                <h3>Tambah User</h3>
+                <p>Admin dapat membuat akun operator, verifikator, koordinator, atau admin</p>
               </div>
             </div>
-            <div class="form-grid">
-              <label>Nama Sistem<input value="SPAP PKS"></label>
-              <label>Zona Waktu<input value="Asia/Jakarta"></label>
-              <label>Bahasa<select><option>Bahasa Indonesia</option></select></label>
-              <label>Mode Data<select><option>API Backend PHP 7</option><option>Mode Lokal</option></select></label>
+            <form id="userForm" class="form-grid">
+              <label>Nama<input id="userName" required></label>
+              <label>Email<input id="userEmail" type="email" required></label>
+              <label>Role
+                <select id="userRole">
+                  <option value="operator">Operator</option>
+                  <option value="verifikator">Verifikator</option>
+                  <option value="koordinator">Koordinator</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </label>
+              <label>Unit/Struktur<input id="userUnit" value="Unit SPAP"></label>
+              <label>Password awal<input id="userPassword" value="user123"></label>
+              <label>Status
+                <select id="userStatus">
+                  <option value="active">Aktif</option>
+                  <option value="inactive">Nonaktif</option>
+                </select>
+              </label>
+              <button class="btn primary" type="submit">Simpan User</button>
+            </form>
+          </section>
+          <section class="panel span-3">
+            <div class="panel-head">
+              <div>
+                <h3>Manajemen User</h3>
+                <p>Daftar akun dan role operasional SPAP</p>
+              </div>
             </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Nama</th><th>Email</th><th>Role</th><th>Unit</th><th>Status</th></tr></thead>
+                <tbody id="userManagementRows"></tbody>
+              </table>
+            </div>
+          </section>
+          <section class="panel span-3">
+            <div class="panel-head">
+              <div>
+                <h3>Manajemen Menu & Hak Akses</h3>
+                <p>Atur menu yang bisa dilihat dan dikelola setiap role</p>
+              </div>
+              <button class="btn primary" id="savePermissionBtn" type="button">Simpan Akses</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Role</th><th>Menu</th><th>Lihat</th><th>Tambah</th><th>Ubah</th><th>Hapus</th></tr></thead>
+                <tbody id="permissionRows"></tbody>
+              </table>
+            </div>
+          </section>
+          <section class="panel span-3">
+            <div class="panel-head">
+              <div>
+                <h3>Pengelolaan Pengaduan</h3>
+                <p>Disposisi, proses, eskalasi, dan penyelesaian pengaduan publik</p>
+              </div>
+            </div>
+            <div id="complaintManagement" class="management-list"></div>
           </section>
         </div>
       </section>

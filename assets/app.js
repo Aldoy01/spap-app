@@ -87,7 +87,12 @@ let currentPage = "dashboard";
 let apiAvailable = false;
 let authToken = localStorage.getItem("spap-auth-token") || "";
 let currentUser = null;
+let adminData = { users: [], permissions: [] };
 const API_BASE = window.SPAP_CONFIG?.apiBaseUrl || (window.location.port === "3000" ? "" : "http://localhost:3000");
+const manageableMenus = ["dashboard", "aspirasi", "pengaduan", "osint", "analytics", "laporan", "settings"];
+const manageableRoles = ["admin", "operator", "verifikator", "koordinator"];
+const roleLabels = { admin: "Admin", operator: "Operator", verifikator: "Verifikator", koordinator: "Koordinator" };
+const menuLabels = { dashboard: "Dashboard", aspirasi: "Aspirasi", pengaduan: "Pengaduan", osint: "OSINT", analytics: "Analytics", laporan: "Laporan", settings: "Pengaturan" };
 
 function populateProvinceOptions() {
   const regionFilter = document.getElementById("regionFilter");
@@ -151,8 +156,11 @@ function applyAuthState() {
   document.getElementById("currentUserName").textContent = currentUser?.name || "-";
   document.getElementById("currentUserRole").textContent = currentUser ? (currentUser.role === "admin" ? "Admin" : "User") : "-";
 
-  document.querySelectorAll('[data-page="settings"]').forEach(item => {
-    item.classList.toggle("nav-hidden", currentUser?.role !== "admin");
+  document.querySelectorAll(".nav-item").forEach(item => {
+    const page = item.dataset.page;
+    const permission = currentUser?.permissions?.[page];
+    const hiddenByPermission = currentUser && currentUser.role !== "admin" && permission && permission.view === false;
+    item.classList.toggle("nav-hidden", page === "settings" ? currentUser?.role !== "admin" : Boolean(hiddenByPermission));
   });
 
   if (loggedIn && currentPage === "settings" && currentUser.role !== "admin") {
@@ -272,9 +280,26 @@ async function loadRemoteState() {
   saveState();
 }
 
+async function loadAdminData() {
+  if (currentUser?.role !== "admin" || !apiAvailable) {
+    return;
+  }
+  try {
+    const [usersPayload, permissionsPayload] = await Promise.all([
+      apiRequest("/api/admin/users"),
+      apiRequest("/api/admin/menu-permissions")
+    ]);
+    adminData.users = usersPayload.data || [];
+    adminData.permissions = permissionsPayload.data || [];
+  } catch (error) {
+    console.error("Admin data load failed", error);
+  }
+}
+
 async function loadData() {
   try {
     await loadRemoteState();
+    await loadAdminData();
   } catch (error) {
     apiAvailable = false;
     setConnectionStatus("Mode lokal aktif", false);
@@ -616,6 +641,73 @@ function renderReport() {
   `;
 }
 
+function renderSettings() {
+  const userRows = document.getElementById("userManagementRows");
+  const permissionRows = document.getElementById("permissionRows");
+  const complaintBox = document.getElementById("complaintManagement");
+  if (!userRows || !permissionRows || !complaintBox) return;
+
+  userRows.innerHTML = adminData.users.length
+    ? adminData.users.map(user => `
+      <tr>
+        <td><strong>${user.name}</strong></td>
+        <td>${user.email}</td>
+        <td><span class="role-pill">${roleLabels[user.role] || user.role}</span></td>
+        <td>${user.organization_unit || "-"}</td>
+        <td>
+          <select class="compact-select" onchange="updateUserStatus('${user.id}', this.value)">
+            <option value="active" ${user.status === "active" ? "selected" : ""}>Aktif</option>
+            <option value="inactive" ${user.status !== "active" ? "selected" : ""}>Nonaktif</option>
+          </select>
+        </td>
+      </tr>
+    `).join("")
+    : '<tr><td colspan="5">Data user akan tampil setelah API admin aktif.</td></tr>';
+
+  const permissionMap = new Map(adminData.permissions.map(item => [`${item.role}:${item.menu_key}`, item]));
+  permissionRows.innerHTML = manageableRoles.flatMap(role => manageableMenus.map(menu => {
+    const item = permissionMap.get(`${role}:${menu}`) || {};
+    const adminLock = role === "admin";
+    return `
+      <tr data-role="${role}" data-menu="${menu}">
+        <td>${roleLabels[role]}</td>
+        <td>${menuLabels[menu]}</td>
+        <td><input type="checkbox" data-perm="canView" ${adminLock || item.can_view ? "checked" : ""} ${adminLock ? "disabled" : ""}></td>
+        <td><input type="checkbox" data-perm="canCreate" ${adminLock || item.can_create ? "checked" : ""} ${adminLock ? "disabled" : ""}></td>
+        <td><input type="checkbox" data-perm="canUpdate" ${adminLock || item.can_update ? "checked" : ""} ${adminLock ? "disabled" : ""}></td>
+        <td><input type="checkbox" data-perm="canDelete" ${adminLock || item.can_delete ? "checked" : ""} ${adminLock ? "disabled" : ""}></td>
+      </tr>
+    `;
+  })).join("");
+
+  const activeComplaints = state.pengaduan.filter(item => item.status !== "Selesai");
+  complaintBox.innerHTML = activeComplaints.length
+    ? activeComplaints.map(item => `
+      <article class="management-card">
+        <div>
+          <span class="eyebrow">${item.id} - ${item.wilayah}</span>
+          <h4>${item.judul}</h4>
+          <p>${item.deskripsi}</p>
+          <small>PIC saat ini: ${item.pic || "Triage SPAP"}</small>
+        </div>
+        <div class="management-actions">
+          ${badge(item.prioritas)}
+          ${badge(item.status)}
+          <select id="assign-${item.id}">
+            <option value="Triage SPAP" ${item.pic === "Triage SPAP" ? "selected" : ""}>Triage SPAP</option>
+            <option value="Unit Pengaduan" ${item.pic === "Unit Pengaduan" ? "selected" : ""}>Unit Pengaduan</option>
+            <option value="Tim Advokasi Hukum" ${item.pic === "Tim Advokasi Hukum" ? "selected" : ""}>Tim Advokasi Hukum</option>
+            <option value="Koordinator Wilayah" ${item.pic === "Koordinator Wilayah" ? "selected" : ""}>Koordinator Wilayah</option>
+          </select>
+          <button class="btn" onclick="assignComplaint('${item.id}', 'Diproses')">Disposisi</button>
+          <button class="btn" onclick="assignComplaint('${item.id}', 'Eskalasi')">Eskalasi</button>
+          <button class="btn primary" onclick="assignComplaint('${item.id}', 'Selesai')">Selesai</button>
+        </div>
+      </article>
+    `).join("")
+    : '<div class="warning positif"><strong>Semua pengaduan selesai</strong><p>Tidak ada pengaduan aktif yang perlu ditindaklanjuti.</p></div>';
+}
+
 function renderAll() {
   renderDashboard();
   renderAspirasi();
@@ -623,6 +715,7 @@ function renderAll() {
   renderOsint();
   renderWorkflow();
   renderReport();
+  renderSettings();
 }
 
 function setPage(page) {
@@ -733,6 +826,101 @@ function openTicketDialog() {
   document.getElementById("ticketDialog").showModal();
 }
 
+async function assignComplaint(id, status) {
+  const item = state.pengaduan.find(ticket => ticket.id === id);
+  const select = document.getElementById(`assign-${id}`);
+  const assignedUnit = select?.value || item?.pic || "Unit Pengaduan";
+  if (!item) return;
+
+  if (apiAvailable) {
+    try {
+      await apiRequest(`/api/tickets/${id}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          status,
+          assignedUnit,
+          note: `Pengaduan didisposisikan ke ${assignedUnit} dengan status ${status}`,
+          actorName: currentUser?.name || "Admin SPAP"
+        })
+      });
+    } catch (error) {
+      toast("API tidak merespon, perubahan disimpan lokal");
+    }
+  }
+
+  item.status = status;
+  item.pic = assignedUnit;
+  saveState();
+  renderAll();
+  toast(`Pengaduan ${id} diperbarui`);
+}
+
+async function createUser(event) {
+  event.preventDefault();
+  if (!apiAvailable || currentUser?.role !== "admin") {
+    toast("Manajemen user membutuhkan akses admin dan API aktif");
+    return;
+  }
+
+  const payload = await apiRequest("/api/admin/users", {
+    method: "POST",
+    body: JSON.stringify({
+      name: document.getElementById("userName").value,
+      email: document.getElementById("userEmail").value,
+      role: document.getElementById("userRole").value,
+      organizationUnit: document.getElementById("userUnit").value,
+      password: document.getElementById("userPassword").value,
+      status: document.getElementById("userStatus").value
+    })
+  });
+  adminData.users = [payload.data, ...adminData.users.filter(user => user.email !== payload.data.email)];
+  document.getElementById("userForm").reset();
+  document.getElementById("userPassword").value = "user123";
+  renderSettings();
+  toast("User berhasil disimpan");
+}
+
+async function updateUserStatus(id, status) {
+  if (!apiAvailable || currentUser?.role !== "admin") return;
+  const payload = await apiRequest(`/api/admin/users/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ status })
+  });
+  adminData.users = adminData.users.map(user => user.id === id ? payload.data : user);
+  renderSettings();
+  toast("Status user diperbarui");
+}
+
+async function savePermissions() {
+  if (!apiAvailable || currentUser?.role !== "admin") {
+    toast("Hanya admin yang dapat menyimpan akses menu");
+    return;
+  }
+
+  const permissions = [...document.querySelectorAll("#permissionRows tr")].map(row => ({
+    role: row.dataset.role,
+    menuKey: row.dataset.menu,
+    canView: row.querySelector('[data-perm="canView"]').checked,
+    canCreate: row.querySelector('[data-perm="canCreate"]').checked,
+    canUpdate: row.querySelector('[data-perm="canUpdate"]').checked,
+    canDelete: row.querySelector('[data-perm="canDelete"]').checked
+  }));
+
+  await apiRequest("/api/admin/menu-permissions", {
+    method: "POST",
+    body: JSON.stringify({ permissions })
+  });
+  adminData.permissions = permissions.map(item => ({
+    role: item.role,
+    menu_key: item.menuKey,
+    can_view: item.canView,
+    can_create: item.canCreate,
+    can_update: item.canUpdate,
+    can_delete: item.canDelete
+  }));
+  toast("Hak akses menu tersimpan");
+}
+
 function bindEvents() {
   document.getElementById("loginForm").addEventListener("submit", login);
   document.getElementById("logoutBtn").addEventListener("click", logout);
@@ -759,6 +947,8 @@ function bindEvents() {
   ["pengaduanSearch", "pengaduanStatus", "pengaduanPriority"].forEach(id => document.getElementById(id).addEventListener("input", renderPengaduan));
   ["reportType", "reportPeriod", "reportRegion", "reportFormat"].forEach(id => document.getElementById(id).addEventListener("change", renderReport));
   document.getElementById("reportForm").addEventListener("submit", event => { event.preventDefault(); renderReport(); toast("Preview laporan dibuat"); });
+  document.getElementById("userForm").addEventListener("submit", createUser);
+  document.getElementById("savePermissionBtn").addEventListener("click", savePermissions);
   document.getElementById("simulateOsintBtn").addEventListener("click", () => {
     state.osint.topics.forEach(topic => topic.mentions += Math.floor(Math.random() * 900));
     saveState();

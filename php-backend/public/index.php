@@ -45,6 +45,31 @@ function route_request(): void
         return;
     }
 
+    if ($method === 'GET' && $path === '/api/admin/users') {
+        list_users();
+        return;
+    }
+
+    if ($method === 'POST' && $path === '/api/admin/users') {
+        create_user();
+        return;
+    }
+
+    if ($method === 'PATCH' && preg_match('#^/api/admin/users/([^/]+)$#', $path, $matches)) {
+        update_user($matches[1]);
+        return;
+    }
+
+    if ($method === 'GET' && $path === '/api/admin/menu-permissions') {
+        list_menu_permissions();
+        return;
+    }
+
+    if ($method === 'POST' && $path === '/api/admin/menu-permissions') {
+        save_menu_permissions();
+        return;
+    }
+
     if ($path === '/api/tickets') {
         if ($method === 'GET') {
             list_tickets();
@@ -182,6 +207,15 @@ function ensure_schema(): void
             payload JSONB NOT NULL,
             expires_at TIMESTAMPTZ NOT NULL
         )",
+        "CREATE TABLE IF NOT EXISTS menu_permissions (
+            role VARCHAR(40) NOT NULL,
+            menu_key VARCHAR(80) NOT NULL,
+            can_view BOOLEAN NOT NULL DEFAULT true,
+            can_create BOOLEAN NOT NULL DEFAULT false,
+            can_update BOOLEAN NOT NULL DEFAULT false,
+            can_delete BOOLEAN NOT NULL DEFAULT false,
+            PRIMARY KEY (role, menu_key)
+        )",
         'CREATE INDEX IF NOT EXISTS tickets_type_status_idx ON tickets(type, status)',
         'CREATE INDEX IF NOT EXISTS tickets_region_category_idx ON tickets(region, category)',
         'CREATE INDEX IF NOT EXISTS ticket_events_ticket_idx ON ticket_events(ticket_id, created_at DESC)',
@@ -189,8 +223,30 @@ function ensure_schema(): void
         "INSERT INTO users (name, email, role, organization_unit)
          VALUES
             ('Admin SPAP', 'admin@spap.local', 'admin', 'DPP'),
-            ('Operator SPAP', 'operator@spap.local', 'operator', 'Triage SPAP')
+            ('Operator SPAP', 'operator@spap.local', 'operator', 'Triage SPAP'),
+            ('Verifikator SPAP', 'verifikator@spap.local', 'verifikator', 'Validasi Data'),
+            ('Koordinator Pengaduan', 'koordinator@spap.local', 'koordinator', 'Unit Pengaduan')
          ON CONFLICT (email) DO NOTHING",
+        "INSERT INTO menu_permissions (role, menu_key, can_view, can_create, can_update, can_delete)
+         VALUES
+            ('admin', 'dashboard', true, true, true, true),
+            ('admin', 'aspirasi', true, true, true, true),
+            ('admin', 'pengaduan', true, true, true, true),
+            ('admin', 'osint', true, true, true, true),
+            ('admin', 'analytics', true, true, true, true),
+            ('admin', 'laporan', true, true, true, true),
+            ('admin', 'settings', true, true, true, true),
+            ('operator', 'dashboard', true, false, false, false),
+            ('operator', 'aspirasi', true, true, true, false),
+            ('operator', 'pengaduan', true, true, true, false),
+            ('operator', 'laporan', true, false, false, false),
+            ('verifikator', 'dashboard', true, false, false, false),
+            ('verifikator', 'aspirasi', true, false, true, false),
+            ('verifikator', 'pengaduan', true, false, true, false),
+            ('koordinator', 'dashboard', true, false, false, false),
+            ('koordinator', 'pengaduan', true, false, true, false),
+            ('koordinator', 'laporan', true, false, false, false)
+         ON CONFLICT (role, menu_key) DO NOTHING",
         "INSERT INTO tickets (public_id, type, reporter_name, channel, region, category, priority, status, subject, description, assigned_unit, sla_due_at)
          VALUES
             ('ASP-2026-001', 'aspirasi', 'Ahmad Rizki', 'WhatsApp', 'DKI Jakarta', 'Infrastruktur', 'Tinggi', 'Baru', 'Perbaikan jalan rusak di Cengkareng', 'Jalan utama rusak dan membahayakan pengendara saat jam padat.', 'DPC Jakarta Barat', now() + interval '2 days'),
@@ -211,6 +267,8 @@ function ensure_schema(): void
 
     seed_user_password('admin@spap.local', '$2y$10$XjdRzaG9nJAORl4ek5m3LuLXJpCaSW29f3niYRrSH2ObViR8rIqa2');
     seed_user_password('operator@spap.local', '$2y$10$CynqGjenPLMJnhh33m.nLepJRQvpo/BuJZr60ZWo5dj5WERsIUXqe');
+    seed_user_password('verifikator@spap.local', '$2y$10$CynqGjenPLMJnhh33m.nLepJRQvpo/BuJZr60ZWo5dj5WERsIUXqe');
+    seed_user_password('koordinator@spap.local', '$2y$10$CynqGjenPLMJnhh33m.nLepJRQvpo/BuJZr60ZWo5dj5WERsIUXqe');
 
     $ready = true;
 }
@@ -300,7 +358,53 @@ function public_user(array $user): array
         'email' => $user['email'],
         'role' => $user['role'],
         'organizationUnit' => $user['organization_unit'] ?? null,
+        'permissions' => permissions_for_role($user['role']),
     ];
+}
+
+function permissions_for_role(string $role): array
+{
+    $statement = db()->prepare(
+        'SELECT menu_key, can_view, can_create, can_update, can_delete
+         FROM menu_permissions
+         WHERE role = ?
+         ORDER BY menu_key'
+    );
+    $statement->execute([$role]);
+    $permissions = [];
+    foreach ($statement->fetchAll() as $row) {
+        $permissions[$row['menu_key']] = [
+            'view' => filter_var($row['can_view'], FILTER_VALIDATE_BOOLEAN),
+            'create' => filter_var($row['can_create'], FILTER_VALIDATE_BOOLEAN),
+            'update' => filter_var($row['can_update'], FILTER_VALIDATE_BOOLEAN),
+            'delete' => filter_var($row['can_delete'], FILTER_VALIDATE_BOOLEAN),
+        ];
+    }
+    return $permissions;
+}
+
+function session_user(): ?array
+{
+    $token = bearer_token();
+    if (!$token) {
+        return null;
+    }
+    $session = cache_get(token_key($token));
+    return is_array($session) && !empty($session['user']) ? $session['user'] : null;
+}
+
+function require_admin(): ?array
+{
+    $user = session_user();
+    if (!$user) {
+        json_response(['error' => 'Unauthorized'], 401);
+        return null;
+    }
+    if (($user['role'] ?? '') !== 'admin') {
+        json_response(['error' => 'Forbidden'], 403);
+        return null;
+    }
+    return $user;
 }
 
 function cache_get(string $key): ?array
@@ -437,6 +541,139 @@ function current_user(): void
     json_response(['data' => $session['user']]);
 }
 
+function list_users(): void
+{
+    if (!require_admin()) {
+        return;
+    }
+
+    $statement = db()->query(
+        'SELECT id, name, email, role, organization_unit, status, created_at
+         FROM users
+         ORDER BY created_at DESC, name ASC'
+    );
+    json_response(['data' => $statement->fetchAll()]);
+}
+
+function create_user(): void
+{
+    if (!require_admin()) {
+        return;
+    }
+
+    $input = input_json();
+    $name = trim($input['name'] ?? '');
+    $email = strtolower(trim($input['email'] ?? ''));
+    $role = $input['role'] ?? 'operator';
+    $unit = $input['organizationUnit'] ?? 'SPAP';
+    $status = $input['status'] ?? 'active';
+    $password = $input['password'] ?? 'user123';
+
+    if (!$name || !$email) {
+        json_response(['error' => 'Nama dan email wajib diisi'], 422);
+        return;
+    }
+
+    $statement = db()->prepare(
+        'INSERT INTO users (name, email, password_hash, role, organization_unit, status)
+         VALUES (?, ?, ?, ?, ?, ?)
+         ON CONFLICT (email) DO UPDATE
+         SET name = EXCLUDED.name, role = EXCLUDED.role, organization_unit = EXCLUDED.organization_unit, status = EXCLUDED.status
+         RETURNING id, name, email, role, organization_unit, status, created_at'
+    );
+    $statement->execute([$name, $email, password_hash($password, PASSWORD_BCRYPT), $role, $unit, $status]);
+    json_response(['data' => $statement->fetch()], 201);
+}
+
+function update_user(string $id): void
+{
+    if (!require_admin()) {
+        return;
+    }
+
+    $input = input_json();
+    $statement = db()->prepare(
+        'UPDATE users
+         SET name = COALESCE(?, name),
+             role = COALESCE(?, role),
+             organization_unit = COALESCE(?, organization_unit),
+             status = COALESCE(?, status)
+         WHERE id = ?
+         RETURNING id, name, email, role, organization_unit, status, created_at'
+    );
+    $statement->execute([
+        $input['name'] ?? null,
+        $input['role'] ?? null,
+        $input['organizationUnit'] ?? null,
+        $input['status'] ?? null,
+        $id,
+    ]);
+    $user = $statement->fetch();
+    if (!$user) {
+        json_response(['error' => 'User not found'], 404);
+        return;
+    }
+    json_response(['data' => $user]);
+}
+
+function list_menu_permissions(): void
+{
+    if (!require_admin()) {
+        return;
+    }
+
+    $statement = db()->query(
+        'SELECT role, menu_key, can_view, can_create, can_update, can_delete
+         FROM menu_permissions
+         ORDER BY role, menu_key'
+    );
+    $rows = array_map(static function (array $row): array {
+        return [
+            'role' => $row['role'],
+            'menu_key' => $row['menu_key'],
+            'can_view' => filter_var($row['can_view'], FILTER_VALIDATE_BOOLEAN),
+            'can_create' => filter_var($row['can_create'], FILTER_VALIDATE_BOOLEAN),
+            'can_update' => filter_var($row['can_update'], FILTER_VALIDATE_BOOLEAN),
+            'can_delete' => filter_var($row['can_delete'], FILTER_VALIDATE_BOOLEAN),
+        ];
+    }, $statement->fetchAll());
+
+    json_response(['data' => $rows]);
+}
+
+function save_menu_permissions(): void
+{
+    if (!require_admin()) {
+        return;
+    }
+
+    $input = input_json();
+    $items = $input['permissions'] ?? [];
+    $statement = db()->prepare(
+        'INSERT INTO menu_permissions (role, menu_key, can_view, can_create, can_update, can_delete)
+         VALUES (?, ?, ?, ?, ?, ?)
+         ON CONFLICT (role, menu_key) DO UPDATE
+         SET can_view = EXCLUDED.can_view,
+             can_create = EXCLUDED.can_create,
+             can_update = EXCLUDED.can_update,
+             can_delete = EXCLUDED.can_delete'
+    );
+
+    foreach ($items as $item) {
+        $statement->execute([
+            $item['role'] ?? 'operator',
+            $item['menuKey'] ?? 'dashboard',
+            !empty($item['canView']),
+            !empty($item['canCreate']),
+            !empty($item['canUpdate']),
+            !empty($item['canDelete']),
+        ]);
+    }
+
+    cache_invalidate('permissions:');
+    json_response(['data' => ['saved' => count($items)]]);
+}
+
 function logout(): void
 {
     $token = bearer_token();
@@ -482,8 +719,8 @@ function list_tickets(): void
         $params[] = '%' . $q . '%';
     }
 
-    $sql = 'SELECT public_id, type, reporter_name, channel, region, category, priority, status,
-                   subject, description, assigned_unit, sla_due_at, created_at, updated_at
+    $sql = 'SELECT public_id, type, reporter_name, reporter_contact, channel, region, category, priority, status,
+                   subject, description, assigned_unit, sla_due_at, resolved_at, created_at, updated_at
             FROM tickets';
     if ($where) {
         $sql .= ' WHERE ' . implode(' AND ', $where);
@@ -541,16 +778,18 @@ function update_ticket_status(string $publicId): void
 {
     $input = input_json();
     $status = $input['status'] ?? 'Diproses';
+    $assignedUnit = $input['assignedUnit'] ?? null;
 
     $statement = db()->prepare(
         "UPDATE tickets
          SET status = ?,
+             assigned_unit = COALESCE(?, assigned_unit),
              resolved_at = CASE WHEN ? = 'Selesai' THEN now() ELSE resolved_at END,
              updated_at = now()
          WHERE public_id = ?
          RETURNING *"
     );
-    $statement->execute([$status, $status, $publicId]);
+    $statement->execute([$status, $assignedUnit, $status, $publicId]);
     $ticket = $statement->fetch();
 
     if (!$ticket) {

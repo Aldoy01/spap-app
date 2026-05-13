@@ -1233,6 +1233,63 @@ dialog::backdrop {
   padding: 12px;
 }
 
+.role-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: #eef6ff;
+  color: #175cd3;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.compact-select {
+  min-height: 34px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.management-list {
+  display: grid;
+  gap: 12px;
+}
+
+.management-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, .55fr);
+  gap: 16px;
+  align-items: center;
+  border: 1px solid var(--line);
+  background: #fbfcff;
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.management-card h4 {
+  margin: 6px 0;
+}
+
+.management-card p {
+  margin: 0 0 8px;
+  color: var(--muted);
+}
+
+.management-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+}
+
+.management-actions select {
+  min-width: 180px;
+}
+
 .toast {
   position: fixed;
   right: 22px;
