@@ -1,0 +1,4012 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPAP PKS - Complete Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: linear-gradient(135deg, #ff6b35 0%, #ff8c00 100%);
+            color: white;
+            width: 250px;
+            padding: 20px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .logo h1 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+
+        .logo p {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-menu li {
+            margin-bottom: 10px;
+        }
+
+        .nav-menu a {
+            display: block;
+            padding: 12px 15px;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .nav-menu a:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateX(5px);
+        }
+
+        .nav-menu a.active {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .nav-menu .icon {
+            margin-right: 10px;
+            font-size: 1.1em;
+        }
+
+        .content-area {
+            margin-left: 250px;
+            flex: 1;
+            min-height: 100vh;
+        }
+
+        /* Page sections - hidden by default */
+        .page-section {
+            display: none;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+
+            .content-area {
+                margin-left: 0;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: linear-gradient(135deg, #ff6b35 0%, #ff8c00 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .logo h1 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+
+        .logo p {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-menu li {
+            margin-bottom: 10px;
+        }
+
+        .nav-menu a {
+            display: block;
+            padding: 12px 15px;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .nav-menu a:hover,
+        .nav-menu a.active {
+            background: rgba(255,255,255,0.2);
+            transform: translateX(5px);
+        }
+
+        .nav-menu .icon {
+            margin-right: 10px;
+            font-size: 1.1em;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h2 {
+            color: #ff6b35;
+            font-size: 1.8em;
+        }
+
+        .header .date-time {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #ff8c00;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card .icon {
+            font-size: 2.5em;
+            color: #ff8c00;
+            margin-bottom: 15px;
+        }
+
+        .stat-card h3 {
+            color: #ff6b35;
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .stat-card .trend {
+            margin-top: 10px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .trend.up {
+            color: #28a745;
+        }
+
+        .trend.down {
+            color: #dc3545;
+        }
+
+        /* Charts Section */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .chart-container h3 {
+            color: #ff6b35;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Recent Activities */
+        .activities-section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .activities-section h3 {
+            color: #ff6b35;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #ff8c00;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 1.2em;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-content h4 {
+            color: #333;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .activity-content p {
+            color: #666;
+            font-size: 0.8em;
+        }
+
+        .activity-time {
+            color: #999;
+            font-size: 0.8em;
+        }
+
+        /* Geographic Heatmap */
+        .heatmap-section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .heatmap-section h3 {
+            color: #ff6b35;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .province-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .province-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #ff8c00;
+        }
+
+        .province-item.high {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        .province-item.medium {
+            border-left-color: #ffc107;
+            background: #fffbf0;
+        }
+
+        .province-item.low {
+            border-left-color: #28a745;
+            background: #f0fff4;
+        }
+
+        .province-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .province-count {
+            font-size: 1.5em;
+            color: #ff6b35;
+            font-weight: bold;
+        }
+
+        /* Alert System */
+        .alert-section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .alert-section h3 {
+            color: #ff6b35;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .alert-item {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid;
+        }
+
+        .alert-item.critical {
+            background: #fff5f5;
+            border-left-color: #dc3545;
+        }
+
+        .alert-item.warning {
+            background: #fffbf0;
+            border-left-color: #ffc107;
+        }
+
+        .alert-item.info {
+            background: #f0f8ff;
+            border-left-color: #17a2b8;
+        }
+
+        .alert-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .alert-message {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #ff8c00;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Filter Controls */
+        .filter-controls {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-controls select,
+        .filter-controls input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+
+        .filter-controls button {
+            background: #ff8c00;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background 0.3s;
+        }
+
+        .filter-controls button:hover {
+            background: #ff6b35;
+        }
+    
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <div class="sidebar">
+            <div class="logo">
+                <h1>SPAP PKS</h1>
+                <p>Sistem Pelayanan & Advokasi Publik</p>
+            </div>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="#" onclick="loadPage('dashboard'); return false;" class="active" data-page="dashboard">
+                        <span class="icon">📊</span>Dashboard</a></li>
+                    <li><a href="#" onclick="loadPage('aspirasi'); return false;" data-page="aspirasi">
+                        <span class="icon">💬</span>Aspirasi Masyarakat</a></li>
+                    <li><a href="#" onclick="loadPage('pengaduan'); return false;" data-page="pengaduan">
+                        <span class="icon">📝</span>Pengaduan</a></li>
+                    <li><a href="#" onclick="loadPage('osint'); return false;" data-page="osint">
+                        <span class="icon">🔍</span>OSINT Monitoring</a></li>
+                    <li><a href="#" onclick="loadPage('analytics'); return false;" data-page="analytics">
+                        <span class="icon">📈</span>Analytics</a></li>
+                    <li><a href="#" onclick="loadPage('reports'); return false;" data-page="reports">
+                        <span class="icon">📋</span>Laporan</a></li>
+                    <li><a href="#" onclick="loadPage('settings'); return false;" data-page="settings">
+                        <span class="icon">⚙️</span>Pengaturan</a></li>
+                </ul>
+            </nav>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Dashboard Page -->
+            <div id="page-dashboard" class="page-section active">
+<!-- Header -->
+            <div class="header">
+                <div>
+                    <h2>Dashboard SPAP PKS</h2>
+                    <div class="date-time" id="currentDateTime"></div>
+                </div>
+                <div>
+                    <span class="loading" id="statusIndicator"></span>
+                    <span style="margin-left: 10px; color: #28a745;">Sistem Aktif</span>
+                </div>
+            </div>
+
+            <!-- Filter Controls -->
+            <div class="filter-controls">
+                <select id="timeFilter">
+                    <option value="today">Hari Ini</option>
+                    <option value="week">Minggu Ini</option>
+                    <option value="month">Bulan Ini</option>
+                    <option value="year">Tahun Ini</option>
+                </select>
+                <select id="regionFilter">
+                    <option value="all">Semua Wilayah</option>
+                    <option value="jabodetabek">Jabodetabek</option>
+                    <option value="jawa">Jawa</option>
+                    <option value="sumatra">Sumatra</option>
+                    <option value="kalimantan">Kalimantan</option>
+                    <option value="sulawesi">Sulawesi</option>
+                    <option value="papua">Papua</option>
+                </select>
+                <select id="categoryFilter">
+                    <option value="all">Semua Kategori</option>
+                    <option value="infrastruktur">Infrastruktur</option>
+                    <option value="pendidikan">Pendidikan</option>
+                    <option value="kesehatan">Kesehatan</option>
+                    <option value="ekonomi">Ekonomi</option>
+                    <option value="sosial">Sosial</option>
+                </select>
+                <button onclick="refreshData()">🔄 Refresh Data</button>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="icon">💬</div>
+                    <h3 id="totalAspirasi">1,247</h3>
+                    <p>Total Aspirasi</p>
+                    <div class="trend up">↗ +12% dari minggu lalu</div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">📝</div>
+                    <h3 id="totalPengaduan">892</h3>
+                    <p>Total Pengaduan</p>
+                    <div class="trend down">↘ -5% dari minggu lalu</div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">✅</div>
+                    <h3 id="resolvedIssues">1,089</h3>
+                    <p>Issues Terselesaikan</p>
+                    <div class="trend up">↗ +18% dari minggu lalu</div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">⏱️</div>
+                    <h3 id="avgResponseTime">2.3</h3>
+                    <p>Rata-rata Response Time (jam)</p>
+                    <div class="trend down">↘ -0.5 jam dari minggu lalu</div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h3>📈 Trend Aspirasi & Pengaduan</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <h3>🎯 Kategori Aspirasi</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Geographic Heatmap -->
+            <div class="heatmap-section">
+                <h3>🗺️ Distribusi Geografis Aspirasi</h3>
+                <div class="province-grid" id="provinceGrid">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Recent Activities -->
+            <div class="activities-section">
+                <h3>🕒 Aktivitas Terbaru</h3>
+                <div id="recentActivities">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Alert System -->
+            <div class="alert-section">
+                <h3>🚨 Alert & Notifikasi</h3>
+                <div id="alertSystem">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock Data
+        const mockData = {
+            provinces: [
+                { name: 'DKI Jakarta', count: 245, level: 'high' },
+                { name: 'Jawa Barat', count: 189, level: 'high' },
+                { name: 'Jawa Tengah', count: 156, level: 'medium' },
+                { name: 'Jawa Timur', count: 134, level: 'medium' },
+                { name: 'Sumatra Utara', count: 98, level: 'low' },
+                { name: 'Sumatra Selatan', count: 87, level: 'low' },
+                { name: 'Kalimantan Timur', count: 76, level: 'low' },
+                { name: 'Sulawesi Selatan', count: 65, level: 'low' }
+            ],
+            activities: [
+                { icon: '💬', title: 'Aspirasi baru diterima', desc: 'Infrastruktur jalan di Depok', time: '5 menit lalu' },
+                { icon: '✅', title: 'Pengaduan terselesaikan', desc: 'Masalah air bersih di Bekasi', time: '15 menit lalu' },
+                { icon: '📊', title: 'Laporan mingguan generated', desc: 'Statistik periode 1-7 Jan 2024', time: '1 jam lalu' },
+                { icon: '🔍', title: 'OSINT alert detected', desc: 'Trending topic: #HargaSembako', time: '2 jam lalu' },
+                { icon: '📝', title: 'Pengaduan baru', desc: 'Fasilitas kesehatan di Bandung', time: '3 jam lalu' }
+            ],
+            alerts: [
+                { type: 'critical', title: 'Aspirasi Kritis', message: '15 aspirasi infrastruktur belum ditindaklanjuti > 48 jam' },
+                { type: 'warning', title: 'Volume Tinggi', message: 'Peningkatan 25% pengaduan di wilayah Jabodetabek' },
+                { type: 'info', title: 'Update Sistem', message: 'Maintenance terjadwal hari Minggu 02:00-04:00 WIB' }
+            ]
+        };
+
+        // Initialize Dashboard
+        function initDashboard() {
+            updateDateTime();
+            updateStats();
+            initCharts();
+            populateProvinces();
+            populateActivities();
+            populateAlerts();
+            startRealTimeUpdates();
+        }
+
+        // Update Date Time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('currentDateTime').textContent = 
+                now.toLocaleDateString('id-ID', options);
+        }
+
+        // Update Stats with Animation
+        function updateStats() {
+            const stats = [
+                { id: 'totalAspirasi', value: 1247 },
+                { id: 'totalPengaduan', value: 892 },
+                { id: 'resolvedIssues', value: 1089 },
+                { id: 'avgResponseTime', value: 2.3 }
+            ];
+
+            stats.forEach(stat => {
+                animateNumber(stat.id, stat.value);
+            });
+        }
+
+        // Animate Number Counter
+        function animateNumber(elementId, targetValue) {
+            const element = document.getElementById(elementId);
+            const duration = 2000;
+            const start = 0;
+            const increment = targetValue / (duration / 16);
+            let current = start;
+
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= targetValue) {
+                    current = targetValue;
+                    clearInterval(timer);
+                }
+                
+                if (elementId === 'avgResponseTime') {
+                    element.textContent = current.toFixed(1);
+                } else {
+                    element.textContent = Math.floor(current).toLocaleString('id-ID');
+                }
+            }, 16);
+        }
+
+        // Initialize Charts
+        function initCharts() {
+            // Trend Chart
+            const trendCtx = document.getElementById('trendChart').getContext('2d');
+            new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
+                    datasets: [{
+                        label: 'Aspirasi',
+                        data: [45, 52, 38, 67, 89, 34, 56],
+                        borderColor: '#ff8c00',
+                        backgroundColor: 'rgba(255, 140, 0, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Pengaduan',
+                        data: [32, 28, 45, 38, 52, 41, 29],
+                        borderColor: '#ff6b35',
+                        backgroundColor: 'rgba(255, 107, 53, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Category Chart
+            const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+            new Chart(categoryCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Infrastruktur', 'Pendidikan', 'Kesehatan', 'Ekonomi', 'Sosial'],
+                    datasets: [{
+                        data: [35, 25, 20, 15, 5],
+                        backgroundColor: [
+                            '#ff8c00',
+                            '#ff6b35',
+                            '#e55a2b',
+                            '#ffa500',
+                            '#ffb347'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+        }
+
+        // Populate Provinces
+        function populateProvinces() {
+            const grid = document.getElementById('provinceGrid');
+            grid.innerHTML = '';
+
+            mockData.provinces.forEach(province => {
+                const div = document.createElement('div');
+                div.className = `province-item ${province.level}`;
+                div.innerHTML = `
+                    <div class="province-name">${province.name}</div>
+                    <div class="province-count">${province.count}</div>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        // Populate Activities
+        function populateActivities() {
+            const container = document.getElementById('recentActivities');
+            container.innerHTML = '';
+
+            mockData.activities.forEach(activity => {
+                const div = document.createElement('div');
+                div.className = 'activity-item';
+                div.innerHTML = `
+                    <div class="activity-icon">${activity.icon}</div>
+                    <div class="activity-content">
+                        <h4>${activity.title}</h4>
+                        <p>${activity.desc}</p>
+                    </div>
+                    <div class="activity-time">${activity.time}            </div>
+
+            <!-- Aspirasi Masyarakat Page -->
+            <div id="page-aspirasi" class="page-section">
+<!-- Header -->
+            <div class="header">
+                <div>
+                    <h2>💬 Aspirasi Masyarakat</h2>
+                    <div class="date-time" id="currentDateTime"></div>
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="openModal('addAspirasiModal')">+ Tambah Aspirasi</button>
+                </div>
+            </div>
+
+            <!-- Filter Controls -->
+            <div class="filter-controls">
+                <select id="statusFilter">
+                    <option value="all">Semua Status</option>
+                    <option value="new">Baru</option>
+                    <option value="processing">Diproses</option>
+                    <option value="resolved">Selesai</option>
+                    <option value="rejected">Ditolak</option>
+                </select>
+                <select id="priorityFilter">
+                    <option value="all">Semua Prioritas</option>
+                    <option value="high">Tinggi</option>
+                    <option value="medium">Sedang</option>
+                    <option value="low">Rendah</option>
+                </select>
+                <select id="categoryFilter">
+                    <option value="all">Semua Kategori</option>
+                    <option value="infrastruktur">Infrastruktur</option>
+                    <option value="pendidikan">Pendidikan</option>
+                    <option value="kesehatan">Kesehatan</option>
+                    <option value="ekonomi">Ekonomi</option>
+                    <option value="sosial">Sosial</option>
+                </select>
+                <input type="text" id="searchInput" placeholder="Cari aspirasi...">
+                <button onclick="filterAspirasi()">🔍 Filter</button>
+                <button onclick="exportAspirasi()">📤 Export</button>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="icon">📥</div>
+                    <h3>1,247</h3>
+                    <p>Total Aspirasi</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">⏳</div>
+                    <h3>89</h3>
+                    <p>Menunggu Review</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">🔄</div>
+                    <h3>156</h3>
+                    <p>Sedang Diproses</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">✅</div>
+                    <h3>1,002</h3>
+                    <p>Telah Ditindaklanjuti</p>
+                </div>
+            </div>
+
+            <!-- Aspirasi Table -->
+            <div class="aspirasi-section">
+                <h3>📋 Daftar Aspirasi Masyarakat</h3>
+                <div class="table-container">
+                    <table id="aspirasiTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tanggal</th>
+                                <th>Nama</th>
+                                <th>Kategori</th>
+                                <th>Prioritas</th>
+                                <th>Status</th>
+                                <th>Wilayah</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="aspirasiTableBody">
+                            <!-- Data will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="pagination">
+                    <button onclick="changePage(-1)">« Previous</button>
+                    <button class="active">1</button>
+                    <button onclick="changePage(1)">2</button>
+                    <button onclick="changePage(1)">3</button>
+                    <button onclick="changePage(1)">Next »</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Aspirasi Modal -->
+    <div id="addAspirasiModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>➕ Tambah Aspirasi Baru</h3>
+                <span class="close" onclick="closeModal('addAspirasiModal')">&times;</span>
+            </div>
+            <form id="addAspirasiForm">
+                <div class="form-group">
+                    <label>Nama Pengirim:</label>
+                    <input type="text" id="namaPengirim" required>
+                </div>
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" id="emailPengirim" required>
+                </div>
+                <div class="form-group">
+                    <label>No. Telepon:</label>
+                    <input type="tel" id="teleponPengirim">
+                </div>
+                <div class="form-group">
+                    <label>Wilayah:</label>
+                    <select id="wilayahAspirasi" required>
+                        <option value="">Pilih Wilayah</option>
+                        <option value="dki-jakarta">DKI Jakarta</option>
+                        <option value="jawa-barat">Jawa Barat</option>
+                        <option value="jawa-tengah">Jawa Tengah</option>
+                        <option value="jawa-timur">Jawa Timur</option>
+                        <option value="sumatra-utara">Sumatra Utara</option>
+                        <option value="sumatra-selatan">Sumatra Selatan</option>
+                        <option value="kalimantan-timur">Kalimantan Timur</option>
+                        <option value="sulawesi-selatan">Sulawesi Selatan</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Kategori:</label>
+                    <select id="kategoriAspirasi" required>
+                        <option value="">Pilih Kategori</option>
+                        <option value="infrastruktur">Infrastruktur</option>
+                        <option value="pendidikan">Pendidikan</option>
+                        <option value="kesehatan">Kesehatan</option>
+                        <option value="ekonomi">Ekonomi</option>
+                        <option value="sosial">Sosial</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Prioritas:</label>
+                    <select id="prioritasAspirasi" required>
+                        <option value="">Pilih Prioritas</option>
+                        <option value="high">Tinggi</option>
+                        <option value="medium">Sedang</option>
+                        <option value="low">Rendah</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Judul Aspirasi:</label>
+                    <input type="text" id="judulAspirasi" required>
+                </div>
+                <div class="form-group">
+                    <label>Deskripsi Aspirasi:</label>
+                    <textarea id="deskripsiAspirasi" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Lampiran:</label>
+                    <input type="file" id="lampiranAspirasi" multiple>
+                </div>
+                <div style="text-align: right; margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('addAspirasiModal')">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan Aspirasi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Detail Aspirasi Modal -->
+    <div id="detailAspirasiModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📄 Detail Aspirasi</h3>
+                <span class="close" onclick="closeModal('detailAspirasiModal')">&times;</span>
+            </div>
+            <div id="detailAspirasiContent">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock Data
+        const mockAspirasi = [
+            {
+                id: 'ASP-2024-001',
+                tanggal: '2024-01-15',
+                nama: 'Ahmad Rizki',
+                kategori: 'Infrastruktur',
+                prioritas: 'high',
+                status: 'new',
+                wilayah: 'DKI Jakarta',
+                judul: 'Perbaikan Jalan Rusak di Cengkareng',
+                deskripsi: 'Jalan utama di Cengkareng sudah rusak parah dan membahayakan pengendara...'
+            },
+            {
+                id: 'ASP-2024-002',
+                tanggal: '2024-01-14',
+                nama: 'Siti Nurhaliza',
+                kategori: 'Pendidikan',
+                prioritas: 'medium',
+                status: 'processing',
+                wilayah: 'Jawa Barat',
+                judul: 'Kekurangan Guru di SD Negeri',
+                deskripsi: 'SD Negeri di daerah kami kekurangan guru, terutama untuk mata pelajaran...'
+            },
+            {
+                id: 'ASP-2024-003',
+                tanggal: '2024-01-13',
+                nama: 'Budi Santoso',
+                kategori: 'Kesehatan',
+                prioritas: 'high',
+                status: 'resolved',
+                wilayah: 'Jawa Tengah',
+                judul: 'Fasilitas Puskesmas Kurang Memadai',
+                deskripsi: 'Puskesmas di daerah kami membutuhkan peralatan medis yang lebih lengkap...'
+            },
+            {
+                id: 'ASP-2024-004',
+                tanggal: '2024-01-12',
+                nama: 'Maria Magdalena',
+                kategori: 'Ekonomi',
+                prioritas: 'low',
+                status: 'processing',
+                wilayah: 'Jawa Timur',
+                judul: 'Bantuan Modal UMKM',
+                deskripsi: 'Mohon bantuan modal untuk mengembangkan usaha kecil menengah...'
+            },
+            {
+                id: 'ASP-2024-005',
+                tanggal: '2024-01-11',
+                nama: 'Rahmat Hidayat',
+                kategori: 'Sosial',
+                prioritas: 'medium',
+                status: 'rejected',
+                wilayah: 'Sumatra Utara',
+                judul: 'Pembangunan Taman Bermain',
+                deskripsi: 'Diperlukan taman bermain untuk anak-anak di lingkungan kami...'
+            }
+        ];
+
+        // Initialize Page
+        function initPage() {
+            updateDateTime();
+            populateAspirasiTable();
+            setupEventListeners();
+        }
+
+        // Update Date Time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('currentDateTime').textContent = 
+                now.toLocaleDateString('id-ID', options);
+        }
+
+        // Populate Aspirasi Table
+        function populateAspirasiTable() {
+            const tbody = document.getElementById('aspirasiTableBody');
+            tbody.innerHTML = '';
+
+            mockAspirasi.forEach(aspirasi => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${aspirasi.id}</td>
+                    <td>${aspirasi.tanggal}</td>
+                    <td>${aspirasi.nama}</td>
+                    <td>${aspirasi.kategori}</td>
+                    <td class="priority-${aspirasi.prioritas}">${aspirasi.prioritas.toUpperCase()}</td>
+                    <td><span class="status-badge status-${aspirasi.status}">${getStatusText(aspirasi.status)}</span></td>
+                    <td>${aspirasi.wilayah}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-primary" onclick="viewAspirasi('${aspirasi.id}')">👁️</button>
+                            <button class="btn btn-success" onclick="processAspirasi('${aspirasi.id}')">✅</button>
+                            <button class="btn btn-secondary" onclick="editAspirasi('${aspirasi.id}')">✏️</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Get Status Text
+        function getStatusText(status) {
+            const statusMap = {
+                'new': 'Baru',
+                'processing': 'Diproses',
+                'resolved': 'Selesai',
+                'rejected': 'Ditolak'
+            };
+            return statusMap[status] || status;
+        }
+
+        // Setup Event Listeners
+        function setupEventListeners() {
+            // Add Aspirasi Form
+            document.getElementById('addAspirasiForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                addAspirasi();
+            });
+
+            // Search Input
+            document.getElementById('searchInput').addEventListener('input', function() {
+                filterAspirasi();
+            });
+        }
+
+        // Modal Functions
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // View Aspirasi Detail
+        function viewAspirasi(id) {
+            const aspirasi = mockAspirasi.find(a => a.id === id);
+            if (aspirasi) {
+                const content = document.getElementById('detailAspirasiContent');
+                content.innerHTML = `
+                    <div style="margin-bottom: 20px;">
+                        <h4>📋 Informasi Umum</h4>
+                        <p><strong>ID:</strong> ${aspirasi.id}</p>
+                        <p><strong>Tanggal:</strong> ${aspirasi.tanggal}</p>
+                        <p><strong>Nama:</strong> ${aspirasi.nama}</p>
+                        <p><strong>Wilayah:</strong> ${aspirasi.wilayah}</p>
+                        <p><strong>Kategori:</strong> ${aspirasi.kategori}</p>
+                        <p><strong>Prioritas:</strong> <span class="priority-${aspirasi.prioritas}">${aspirasi.prioritas.toUpperCase()}</span></p>
+                        <p><strong>Status:</strong> <span class="status-badge status-${aspirasi.status}">${getStatusText(aspirasi.status)}</span></p>            </div>
+
+            <!-- Pengaduan Page -->
+            <div id="page-pengaduan" class="page-section">
+<!-- Header -->
+            <div class="header">
+                <div>
+                    <h2>📝 Pengaduan Masyarakat</h2>
+                    <div class="date-time" id="currentDateTime"></div>
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="openModal('addPengaduanModal')">+ Tambah Pengaduan</button>
+                </div>
+            </div>
+
+            <!-- Filter Controls -->
+            <div class="filter-controls">
+                <select id="statusFilter">
+                    <option value="all">Semua Status</option>
+                    <option value="new">Baru</option>
+                    <option value="assigned">Ditugaskan</option>
+                    <option value="investigating">Sedang Diselidiki</option>
+                    <option value="resolved">Selesai</option>
+                    <option value="closed">Ditutup</option>
+                </select>
+                <select id="priorityFilter">
+                    <option value="all">Semua Prioritas</option>
+                    <option value="critical">Kritis</option>
+                    <option value="high">Tinggi</option>
+                    <option value="medium">Sedang</option>
+                    <option value="low">Rendah</option>
+                </select>
+                <select id="categoryFilter">
+                    <option value="all">Semua Kategori</option>
+                    <option value="korupsi">Korupsi</option>
+                    <option value="pelayanan">Pelayanan Publik</option>
+                    <option value="infrastruktur">Infrastruktur</option>
+                    <option value="lingkungan">Lingkungan</option>
+                    <option value="lainnya">Lainnya</option>
+                </select>
+                <input type="text" id="searchInput" placeholder="Cari pengaduan...">
+                <button onclick="filterPengaduan()">🔍 Filter</button>
+                <button onclick="exportPengaduan()">📤 Export</button>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="icon">📥</div>
+                    <h3>892</h3>
+                    <p>Total Pengaduan</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">🚨</div>
+                    <h3>23</h3>
+                    <p>Pengaduan Kritis</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">🔄</div>
+                    <h3>156</h3>
+                    <p>Sedang Diproses</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">✅</div>
+                    <h3>713</h3>
+                    <p>Telah Diselesaikan</p>
+                </div>
+            </div>
+
+            <!-- Pengaduan Cards -->
+            <div class="pengaduan-grid" id="pengaduanGrid">
+                <!-- Cards will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Pengaduan Modal -->
+    <div id="addPengaduanModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>➕ Tambah Pengaduan Baru</h3>
+                <span class="close" onclick="closeModal('addPengaduanModal')">&times;</span>
+            </div>
+            <form id="addPengaduanForm">
+                <div class="form-group">
+                    <label>Nama Pelapor:</label>
+                    <input type="text" id="namaPelapor" required>
+                </div>
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" id="emailPelapor" required>
+                </div>
+                <div class="form-group">
+                    <label>No. Telepon:</label>
+                    <input type="tel" id="teleponPelapor">
+                </div>
+                <div class="form-group">
+                    <label>Identitas (Opsional):</label>
+                    <input type="text" id="identitasPelapor" placeholder="NIK/KTP">
+                </div>
+                <div class="form-group">
+                    <label>Lokasi Kejadian:</label>
+                    <input type="text" id="lokasiKejadian" required>
+                </div>
+                <div class="form-group">
+                    <label>Kategori Pengaduan:</label>
+                    <select id="kategoriPengaduan" required>
+                        <option value="">Pilih Kategori</option>
+                        <option value="korupsi">Korupsi</option>
+                        <option value="pelayanan">Pelayanan Publik</option>
+                        <option value="infrastruktur">Infrastruktur</option>
+                        <option value="lingkungan">Lingkungan</option>
+                        <option value="lainnya">Lainnya</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Prioritas:</label>
+                    <select id="prioritasPengaduan" required>
+                        <option value="">Pilih Prioritas</option>
+                        <option value="critical">Kritis</option>
+                        <option value="high">Tinggi</option>
+                        <option value="medium">Sedang</option>
+                        <option value="low">Rendah</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Judul Pengaduan:</label>
+                    <input type="text" id="judulPengaduan" required>
+                </div>
+                <div class="form-group">
+                    <label>Deskripsi Pengaduan:</label>
+                    <textarea id="deskripsiPengaduan" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Bukti/Dokumen:</label>
+                    <input type="file" id="buktiPengaduan" multiple>
+                </div>
+                <div style="text-align: right; margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('addPengaduanModal')">Batal</button>
+                    <button type="submit" class="btn btn-primary">Kirim Pengaduan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Detail Pengaduan Modal -->
+    <div id="detailPengaduanModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📄 Detail Pengaduan</h3>
+                <span class="close" onclick="closeModal('detailPengaduanModal')">&times;</span>
+            </div>
+            <div id="detailPengaduanContent">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock Data
+        const mockPengaduan = [
+            {
+                id: 'PEN-2024-001',
+                tanggal: '2024-01-15',
+                nama: 'Budi Santoso',
+                kategori: 'Korupsi',
+                prioritas: 'critical',
+                status: 'new',
+                lokasi: 'Kantor Bupati Bogor',
+                judul: 'Dugaan Korupsi Proyek Jembatan',
+                deskripsi: 'Ada indikasi korupsi dalam proyek pembangunan jembatan yang menyebabkan kerugian negara...',
+                timeline: [
+                    { action: 'Pengaduan diterima', time: '2024-01-15 10:30', user: 'Sistem' },
+                    { action: 'Sedang dalam review', time: '2024-01-15 11:00', user: 'Admin' }
+                ]
+            },
+            {
+                id: 'PEN-2024-002',
+                tanggal: '2024-01-14',
+                nama: 'Siti Nurhaliza',
+                kategori: 'Pelayanan',
+                prioritas: 'high',
+                status: 'assigned',
+                lokasi: 'Dinas Kependudukan',
+                judul: 'Pelayanan Lambat di Dukcapil',
+                deskripsi: 'Pelayanan pembuatan KTP sangat lambat dan tidak transparan...',
+                timeline: [
+                    { action: 'Pengaduan diterima', time: '2024-01-14 14:20', user: 'Sistem' },
+                    { action: 'Ditugaskan ke tim investigasi', time: '2024-01-14 15:00', user: 'Manager' }
+                ]
+            },
+            {
+                id: 'PEN-2024-003',
+                tanggal: '2024-01-13',
+                nama: 'Ahmad Rizki',
+                kategori: 'Infrastruktur',
+                prioritas: 'medium',
+                status: 'investigating',
+                lokasi: 'Jalan Raya Depok',
+                judul: 'Jalan Rusak Parah Tidak Diperbaiki',
+                deskripsi: 'Jalan utama sudah rusak selama 6 bulan dan tidak ada tindakan dari pemerintah...',
+                timeline: [
+                    { action: 'Pengaduan diterima', time: '2024-01-13 09:15', user: 'Sistem' },
+                    { action: 'Ditugaskan ke tim investigasi', time: '2024-01-13 10:00', user: 'Manager' },
+                    { action: 'Tim investigasi melakukan survey', time: '2024-01-13 14:30', user: 'Investigator' }
+                ]
+            },
+            {
+                id: 'PEN-2024-004',
+                tanggal: '2024-01-12',
+                nama: 'Maria Magdalena',
+                kategori: 'Lingkungan',
+                prioritas: 'high',
+                status: 'resolved',
+                lokasi: 'Sungai Ciliwung',
+                judul: 'Pencemaran Sungai oleh Industri',
+                deskripsi: 'Sungai Ciliwung tercemar limbah industri yang membahayakan ekosistem...',
+                timeline: [
+                    { action: 'Pengaduan diterima', time: '2024-01-12 08:00', user: 'Sistem' },
+                    { action: 'Ditugaskan ke tim investigasi', time: '2024-01-12 09:00', user: 'Manager' },
+                    { action: 'Investigasi selesai', time: '2024-01-12 16:00', user: 'Investigator' },
+                    { action: 'Pengaduan diselesaikan', time: '2024-01-12 17:00', user: 'Manager' }
+                ]
+            },
+            {
+                id: 'PEN-2024-005',
+                tanggal: '2024-01-11',
+                nama: 'Rahmat Hidayat',
+                kategori: 'Lainnya',
+                prioritas: 'low',
+                status: 'closed',
+                lokasi: 'Pasar Tradisional',
+                judul: 'Ketidaknyamanan di Pasar',
+                deskripsi: 'Kondisi pasar yang tidak nyaman dan perlu perbaikan fasilitas...',
+                timeline: [
+                    { action: 'Pengaduan diterima', time: '2024-01-11 11:30', user: 'Sistem' },
+                    { action: 'Ditugaskan ke tim investigasi', time: '2024-01-11 12:00', user: 'Manager' },
+                    { action: 'Investigasi selesai', time: '2024-01-11 15:00', user: 'Investigator' },
+                    { action: 'Pengaduan ditutup', time: '2024-01-11 16:00', user: 'Manager' }
+                ]
+            }
+        ];
+
+        // Initialize Page
+        function initPage() {
+            updateDateTime();
+            populatePengaduanGrid();
+            setupEventListeners();
+        }
+
+        // Update Date Time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('currentDateTime').textContent = 
+                now.toLocaleDateString('id-ID', options);
+        }
+
+        // Populate Pengaduan Grid
+        function populatePengaduanGrid() {
+            const grid = document.getElementById('pengaduanGrid');
+            grid.innerHTML = '';
+
+            mockPengaduan.forEach(pengaduan => {
+                const card = document.createElement('div');
+                card.className = `pengaduan-card ${pengaduan.prioritas}`;
+                card.innerHTML = `
+                    <div class="pengaduan-header">
+                        <div class="pengaduan-id">${pengaduan.id}</div>
+                        <div class="pengaduan-date">${pengaduan.tanggal}</div>
+                    </div>
+                    <div class="pengaduan-title">${pengaduan.judul}</div>
+                    <div class="pengaduan-description">${pengaduan.deskripsi}</div>
+                    <div class="pengaduan-meta">
+                        <div class="pengaduan-category">${pengaduan.kategori}</div>
+                        <div class="pengaduan-priority priority-${pengaduan.prioritas}">${pengaduan.prioritas.toUpperCase()}</div>
+                    </div>
+                    <div class="pengaduan-status">
+                        <span class="status-badge status-${pengaduan.status}">${getStatusText(pengaduan.status)}</span>
+                        <span style="font-size: 0.8em; color: #666;">${pengaduan.lokasi}</span>
+                    </div>
+                    <div class="pengaduan-actions">
+                        <button class="btn btn-primary" onclick="viewPengaduan('${pengaduan.id}')">👁️ Detail</button>
+                        <button class="btn btn-success" onclick="assignPengaduan('${pengaduan.id}')">👤 Assign</button>
+                        <button class="btn btn-warning" onclick="updateStatus('${pengaduan.id}')">📝 Update</button>
+                        <button class="btn btn-secondary" onclick="addNote('${pengaduan.id}')">💬 Note</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Get Status Text
+        function getStatusText(status) {
+            const statusMap = {
+                'new': 'Baru',
+                'assigned': 'Ditugaskan',
+                'investigating': 'Diselidiki',
+                'resolved': 'Selesai',
+                'closed': 'Ditutup'
+            };
+            return statusMap[status] || status;
+        }
+
+        // Setup Event Listeners
+        function setupEventListeners() {
+            // Add Pengaduan Form
+            document.getElementById('addPengaduanForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                addPengaduan();
+            });
+
+            // Search Input
+            document.getElementById('searchInput').addEventListener('input', function() {
+                filterPengaduan();
+            });
+        }
+
+        // Modal Functions
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // View Pengaduan Detail
+        function viewPengaduan(id) {
+            const pengaduan = mockPengaduan.find(p => p.id === id);
+            if (pengaduan) {
+                const content = document.getElementById('detailPengaduanContent');
+                content.innerHTML = `
+                    <div style="margin-bottom: 20px;">
+                        <h4>📋 Informasi Umum</h4>
+                        <p><strong>ID:</strong> ${pengaduan.id}</p>
+                        <p><strong>Tanggal:</strong> ${pengaduan.tanggal}</p>
+                        <p><strong>Pelapor:</strong> ${pengaduan.nama}</p>
+                        <p><strong>Lokasi:</strong> ${pengaduan.lokasi}</p>
+                        <p><strong>Kategori:</strong> ${pengaduan.kategori}</p>
+                        <p><strong>Prioritas:</strong> <span class="pengaduan-priority priority-${pengaduan.prioritas}">${pengaduan.prioritas.toUpperCase()}</span></p>
+                        <p><strong>Status:</strong> <span class="status-badge status-${pengaduan.status}">${getStatusText(pengaduan.status)}</span></p>
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <h4>📄 Detail Pengaduan</h4>
+                        <p><strong>Judul:</strong> ${pengaduan.judul}</p>
+                        <p><strong>Deskripsi:</strong></p>
+                        <p style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-top: 10px;">${pengaduan.deskripsi}</p>
+                    </div>
+                    <div class="timeline">
+                        <h4>🕒 Timeline</h4>
+                        ${pengaduan.timeline.map(item => `
+                            <div class="timeline-item">
+                                <div class="timeline-icon">📝</div>
+                                <div class="timeline-content">
+                                    <h4>${item.action}</h4>
+                                    <p>Oleh: ${item.user}</p>
+                                    <div class="timeline-time">${item.time}</div>
+                                </div>            </div>
+
+            <!-- OSINT Monitoring Page -->
+            <div id="page-osint" class="page-section">
+<!-- Header -->
+            <div class="header">
+                <div>
+                    <h2>🔍 OSINT Monitoring</h2>
+                    <div class="date-time" id="currentDateTime"></div>
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="addKeyword()">+ Tambah Keyword</button>
+                </div>
+            </div>
+
+            <!-- Control Panel -->
+            <div class="control-panel">
+                <h3>🎛️ Control Panel Monitoring</h3>
+                <div class="control-grid">
+                    <div class="control-item active">
+                        <div class="control-icon">🐦</div>
+                        <div class="control-info">
+                            <h4>Twitter/X</h4>
+                            <p>Monitoring aktif</p>
+                        </div>
+                        <div class="control-toggle">
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="control-item active">
+                        <div class="control-icon">📘</div>
+                        <div class="control-info">
+                            <h4>Facebook</h4>
+                            <p>Monitoring aktif</p>
+                        </div>
+                        <div class="control-toggle">
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="control-item active">
+                        <div class="control-icon">📷</div>
+                        <div class="control-info">
+                            <h4>Instagram</h4>
+                            <p>Monitoring aktif</p>
+                        </div>
+                        <div class="control-toggle">
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="control-item inactive">
+                        <div class="control-icon">🎵</div>
+                        <div class="control-info">
+                            <h4>TikTok</h4>
+                            <p>Monitoring nonaktif</p>
+                        </div>
+                        <div class="control-toggle">
+                            <label class="toggle-switch">
+                                <input type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="control-item active">
+                        <div class="control-icon">📺</div>
+                        <div class="control-info">
+                            <h4>YouTube</h4>
+                            <p>Monitoring aktif</p>
+                        </div>
+                        <div class="control-toggle">
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="control-item active">
+                        <div class="control-icon">📰</div>
+                        <div class="control-info">
+                            <h4>News Sites</h4>
+                            <p>Monitoring aktif</p>
+                        </div>
+                        <div class="control-toggle">
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="icon">📊</div>
+                    <h3>15,247</h3>
+                    <p>Total Mentions</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">🔥</div>
+                    <h3>23</h3>
+                    <p>Trending Topics</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">⚠️</div>
+                    <h3>8</h3>
+                    <p>Alert Kritis</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">📈</div>
+                    <h3>+12%</h3>
+                    <p>Sentiment Positif</p>
+                </div>
+            </div>
+
+            <!-- Trending Topics -->
+            <div class="monitoring-section">
+                <h3>🔥 Trending Topics</h3>
+                <div class="trending-topics" id="trendingTopics">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Social Media Feed -->
+            <div class="monitoring-section">
+                <h3>📱 Social Media Feed</h3>
+                <div class="social-feed" id="socialFeed">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Alert System -->
+            <div class="monitoring-section">
+                <h3>🚨 Alert & Notifikasi</h3>
+                <div id="alertSystem">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Keyword Monitoring -->
+            <div class="monitoring-section">
+                <h3>🔑 Keyword Monitoring</h3>
+                <div class="keyword-grid" id="keywordGrid">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock Data
+        const mockData = {
+            trendingTopics: [
+                { hashtag: '#HargaSembako', mentions: 15420, sentiment: 'negative', trend: 'high' },
+                { hashtag: '#PKS', mentions: 8930, sentiment: 'positive', trend: 'medium' },
+                { hashtag: '#Infrastruktur', mentions: 6720, sentiment: 'neutral', trend: 'medium' },
+                { hashtag: '#PendidikanGratis', mentions: 5430, sentiment: 'positive', trend: 'low' },
+                { hashtag: '#Kesehatan', mentions: 4210, sentiment: 'negative', trend: 'low' },
+                { hashtag: '#EkonomiKerakyatan', mentions: 3890, sentiment: 'positive', trend: 'low' }
+            ],
+            socialFeed: [
+                { user: 'Ahmad Rizki', platform: 'Twitter', text: 'PKS harus lebih aktif dalam menyuarakan aspirasi rakyat terkait harga sembako yang terus naik #HargaSembako', time: '2 menit lalu', avatar: '👤' },
+                { user: 'Siti Nurhaliza', platform: 'Facebook', text: 'Terima kasih PKS atas program pendidikan gratis yang sudah membantu anak-anak kami', time: '5 menit lalu', avatar: '👩' },
+                { user: 'Budi Santoso', platform: 'Instagram', text: 'Infrastruktur di daerah kami masih sangat memprihatinkan, perlu perhatian serius', time: '8 menit lalu', avatar: '👨' },
+                { user: 'Maria Magdalena', platform: 'Twitter', text: 'PKS menunjukkan komitmen yang baik dalam memperjuangkan hak-hak rakyat kecil', time: '12 menit lalu', avatar: '👩‍💼' },
+                { user: 'Rahmat Hidayat', platform: 'Facebook', text: 'Harapan besar pada PKS untuk terus memperjuangkan keadilan sosial', time: '15 menit lalu', avatar: '👨‍💼' }
+            ],
+            alerts: [
+                { type: 'critical', title: 'Sentiment Negatif Tinggi', message: 'Hashtag #HargaSembako menunjukkan sentiment negatif 85% dalam 24 jam terakhir' },
+                { type: 'warning', title: 'Volume Mentions Meningkat', message: 'Mentions PKS meningkat 25% dibandingkan minggu lalu' },
+                { type: 'info', title: 'Trending Topic Baru', message: '#PendidikanGratis masuk trending dengan sentiment positif 78%' }
+            ],
+            keywords: [
+                { keyword: 'PKS', count: 8930, trend: 'up', change: '+15%' },
+                { keyword: 'Partai Keadilan Sejahtera', count: 3420, trend: 'up', change: '+8%' },
+                { keyword: 'Harga Sembako', count: 15420, trend: 'up', change: '+45%' },
+                { keyword: 'Infrastruktur', count: 6720, trend: 'down', change: '-5%' },
+                { keyword: 'Pendidikan Gratis', count: 5430, trend: 'up', change: '+22%' },
+                { keyword: 'Kesehatan', count: 4210, trend: 'down', change: '-12%' }
+            ]
+        };
+
+        // Initialize Page
+        function initPage() {
+            updateDateTime();
+            populateTrendingTopics();
+            populateSocialFeed();
+            populateAlerts();
+            populateKeywords();
+            startRealTimeUpdates();
+        }
+
+        // Update Date Time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('currentDateTime').textContent = 
+                now.toLocaleDateString('id-ID', options);
+        }
+
+        // Populate Trending Topics
+        function populateTrendingTopics() {
+            const container = document.getElementById('trendingTopics');
+            container.innerHTML = '';
+
+            mockData.trendingTopics.forEach(topic => {
+                const card = document.createElement('div');
+                card.className = `topic-card ${topic.trend}-trend`;
+                card.innerHTML = `
+                    <div class="topic-hashtag">${topic.hashtag}</div>
+                    <div class="topic-mentions">${topic.mentions.toLocaleString()} mentions</div>
+                    <div class="topic-sentiment sentiment-${topic.sentiment}">
+                        ${topic.sentiment === 'positive' ? '😊 Positif' : 
+                          topic.sentiment === 'negative' ? '😞 Negatif' : '😐 Netral'}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Populate Social Feed
+        function populateSocialFeed() {
+            const container = document.getElementById('socialFeed');
+            container.innerHTML = '';
+
+            mockData.socialFeed.forEach(post => {
+                const item = document.createElement('div');
+                item.className = 'feed-item';
+                item.innerHTML = `
+                    <div class="feed-avatar">${post.avatar}</div>
+                    <div class="feed-content">
+                        <div class="feed-header">
+                            <div class="feed-user">${post.user}</div>
+                            <div class="feed-platform">${post.platform}</div>
+                        </div>
+                        <div class="feed-text">${post.text}</div>
+                        <div class="feed-meta">
+                            <span>${post.time}</span>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // Populate Alerts
+        function populateAlerts() {
+            const container = document.getElementById('alertSystem');
+            container.innerHTML = '';
+
+            mockData.alerts.forEach(alert => {
+                const div = document.createElement('div');
+                div.className = `alert-item ${alert.type}`;
+                div.innerHTML = `
+                    <div class="alert-title">${alert.title}</div>
+                    <div class="alert-message">${alert.message}</div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Populate Keywords
+        function populateKeywords() {
+            const container = document.getElementById('keywordGrid');
+            container.innerHTML = '';
+
+            mockData.keywords.forEach(keyword => {
+                const item = document.createElement('div');
+                item.className = 'keyword-item';
+                item.innerHTML = `
+                    <div class="keyword-text">${keyword.keyword}            </div>
+
+            <!-- Analytics Page -->
+            <div id="page-analytics" class="page-section">
+<!-- Header -->
+            <div class="header">
+                <div>
+                    <h2>📈 Analytics & Insights</h2>
+                    <div class="date-time" id="currentDateTime"></div>
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="exportAnalytics()">📤 Export Data</button>
+                </div>
+            </div>
+
+            <!-- Filter Controls -->
+            <div class="filter-controls">
+                <select id="timeRange">
+                    <option value="7days">7 Hari Terakhir</option>
+                    <option value="30days">30 Hari Terakhir</option>
+                    <option value="90days">90 Hari Terakhir</option>
+                    <option value="1year">1 Tahun Terakhir</option>
+                </select>
+                <select id="dataType">
+                    <option value="all">Semua Data</option>
+                    <option value="aspirasi">Aspirasi</option>
+                    <option value="pengaduan">Pengaduan</option>
+                    <option value="osint">OSINT</option>
+                </select>
+                <select id="regionFilter">
+                    <option value="all">Semua Wilayah</option>
+                    <option value="jabodetabek">Jabodetabek</option>
+                    <option value="jawa">Jawa</option>
+                    <option value="sumatra">Sumatra</option>
+                    <option value="kalimantan">Kalimantan</option>
+                    <option value="sulawesi">Sulawesi</option>
+                    <option value="papua">Papua</option>
+                </select>
+                <button onclick="refreshAnalytics()">🔄 Refresh</button>
+                <button onclick="generateReport()">📊 Generate Report</button>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="icon">📊</div>
+                    <h3>2,139</h3>
+                    <p>Total Data Points</p>
+                    <div class="trend up">↗ +15% dari periode sebelumnya</div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">⚡</div>
+                    <h3>2.3</h3>
+                    <p>Avg Response Time (jam)</p>
+                    <div class="trend down">↘ -0.5 jam dari periode sebelumnya</div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">📈</div>
+                    <h3>87%</h3>
+                    <p>Satisfaction Rate</p>
+                    <div class="trend up">↗ +5% dari periode sebelumnya</div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">🎯</div>
+                    <h3>94%</h3>
+                    <p>Resolution Rate</p>
+                    <div class="trend up">↗ +3% dari periode sebelumnya</div>
+                </div>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <h4>📝 Target Aspirasi Bulanan</h4>
+                    <div class="kpi-value">1,247</div>
+                    <div class="kpi-target">Target: 1,500</div>
+                    <div class="kpi-progress">
+                        <div class="kpi-progress-bar" style="width: 83%"></div>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <h4>⏱️ Target Response Time</h4>
+                    <div class="kpi-value">2.3 jam</div>
+                    <div class="kpi-target">Target: < 2 jam</div>
+                    <div class="kpi-progress">
+                        <div class="kpi-progress-bar" style="width: 87%"></div>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <h4>✅ Target Resolution Rate</h4>
+                    <div class="kpi-value">94%</div>
+                    <div class="kpi-target">Target: > 95%</div>
+                    <div class="kpi-progress">
+                        <div class="kpi-progress-bar" style="width: 99%"></div>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <h4>😊 Target Satisfaction</h4>
+                    <div class="kpi-value">87%</div>
+                    <div class="kpi-target">Target: > 90%</div>
+                    <div class="kpi-progress">
+                        <div class="kpi-progress-bar" style="width: 97%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h3>📈 Trend Data Over Time</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <h3>🎯 Kategori Distribution</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <h3>🗺️ Geographic Distribution</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="geographicChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <h3>📊 Performance Metrics</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Tables -->
+            <div class="analytics-section">
+                <h3>📋 Top Performing Regions</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Wilayah</th>
+                                <th>Total Aspirasi</th>
+                                <th>Response Time</th>
+                                <th>Resolution Rate</th>
+                                <th>Satisfaction</th>
+                                <th>Trend</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>DKI Jakarta</td>
+                                <td class="metric-value">245</td>
+                                <td class="metric-value">1.8 jam</td>
+                                <td class="metric-value">96%</td>
+                                <td class="metric-value">89%</td>
+                                <td class="metric-change change-positive">↗ +12%</td>
+                            </tr>
+                            <tr>
+                                <td>Jawa Barat</td>
+                                <td class="metric-value">189</td>
+                                <td class="metric-value">2.1 jam</td>
+                                <td class="metric-value">94%</td>
+                                <td class="metric-value">87%</td>
+                                <td class="metric-change change-positive">↗ +8%</td>
+                            </tr>
+                            <tr>
+                                <td>Jawa Tengah</td>
+                                <td class="metric-value">156</td>
+                                <td class="metric-value">2.4 jam</td>
+                                <td class="metric-value">92%</td>
+                                <td class="metric-value">85%</td>
+                                <td class="metric-change change-positive">↗ +5%</td>
+                            </tr>
+                            <tr>
+                                <td>Jawa Timur</td>
+                                <td class="metric-value">134</td>
+                                <td class="metric-value">2.6 jam</td>
+                                <td class="metric-value">90%</td>
+                                <td class="metric-value">83%</td>
+                                <td class="metric-change change-negative">↘ -2%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Insights Section -->
+            <div class="insights-section">
+                <h3>💡 Key Insights & Recommendations</h3>
+                <div class="insight-item">
+                    <h4>🚀 Performance Improvement</h4>
+                    <p>Response time di Jawa Timur meningkat 15% dibandingkan bulan lalu. Rekomendasi: tambahkan lebih banyak staff di wilayah tersebut.</p>
+                    <div class="insight-impact">Impact: High | Priority: Critical</div>
+                </div>
+                <div class="insight-item">
+                    <h4>📈 Positive Trend</h4>
+                    <p>DKI Jakarta menunjukkan performa terbaik dengan satisfaction rate 89%. Model ini bisa direplikasi ke wilayah lain.</p>
+                    <div class="insight-impact">Impact: Medium | Priority: High</div>
+                </div>
+                <div class="insight-item">
+                    <h4>🎯 Category Focus</h4>
+                    <p>Infrastruktur menjadi kategori dengan volume tertinggi (35%). Perlu strategi khusus untuk menangani kategori ini.</p>
+                    <div class="insight-impact">Impact: Medium | Priority: Medium</div>
+                </div>
+                <div class="insight-item">
+                    <h4>⏰ Peak Hours Analysis</h4>
+                    <p>Volume aspirasi tertinggi terjadi pada jam 10-12 dan 14-16. Pertimbangkan penambahan staff pada jam-jam tersebut.</p>
+                    <div class="insight-impact">Impact: Low | Priority: Low</div>
+                </div>            </div>
+
+            <!-- Laporan Page -->
+            <div id="page-reports" class="page-section">
+<!-- Header -->
+            <div class="header">
+                <div>
+                    <h2>📋 Laporan & Report</h2>
+                    <div class="date-time" id="currentDateTime"></div>
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="generateCustomReport()">📊 Generate Report</button>
+                </div>
+            </div>
+
+            <!-- Report Generator -->
+            <div class="report-generator">
+                <h3>📊 Custom Report Generator</h3>
+                <form class="report-form" id="reportForm">
+                    <div class="form-group">
+                        <label>Jenis Laporan:</label>
+                        <select id="reportType">
+                            <option value="aspirasi">Laporan Aspirasi</option>
+                            <option value="pengaduan">Laporan Pengaduan</option>
+                            <option value="osint">Laporan OSINT</option>
+                            <option value="performance">Laporan Performance</option>
+                            <option value="comprehensive">Laporan Komprehensif</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Periode:</label>
+                        <select id="reportPeriod">
+                            <option value="daily">Harian</option>
+                            <option value="weekly">Mingguan</option>
+                            <option value="monthly">Bulanan</option>
+                            <option value="quarterly">Triwulan</option>
+                            <option value="yearly">Tahunan</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Format Output:</label>
+                        <select id="outputFormat">
+                            <option value="pdf">PDF</option>
+                            <option value="excel">Excel</option>
+                            <option value="csv">CSV</option>
+                            <option value="html">HTML</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Wilayah:</label>
+                        <select id="reportRegion">
+                            <option value="all">Semua Wilayah</option>
+                            <option value="jabodetabek">Jabodetabek</option>
+                            <option value="jawa">Jawa</option>
+                            <option value="sumatra">Sumatra</option>
+                            <option value="kalimantan">Kalimantan</option>
+                            <option value="sulawesi">Sulawesi</option>
+                            <option value="papua">Papua</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Tanggal Mulai:</label>
+                        <input type="date" id="startDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Tanggal Akhir:</label>
+                        <input type="date" id="endDate">
+                    </div>
+                </form>
+                <div style="text-align: right;">
+                    <button class="btn btn-secondary" onclick="resetForm()">Reset</button>
+                    <button class="btn btn-primary" onclick="previewReport()">Preview</button>
+                    <button class="btn btn-success" onclick="generateReport()">Generate</button>
+                </div>
+            </div>
+
+            <!-- Report Templates -->
+            <div class="report-templates">
+                <h3>📄 Report Templates</h3>
+                <div class="templates-grid">
+                    <div class="template-card">
+                        <h4>📊 Laporan Harian</h4>
+                        <p>Laporan ringkasan aktivitas harian termasuk volume aspirasi, pengaduan, dan OSINT mentions.</p>
+                        <div class="template-meta">
+                            <span class="template-type">Harian</span>
+                            <span class="template-frequency">Auto-generated</span>
+                        </div>
+                        <div class="template-actions">
+                            <button class="btn btn-primary" onclick="useTemplate('daily')">Gunakan</button>
+                            <button class="btn btn-secondary" onclick="previewTemplate('daily')">Preview</button>
+                        </div>
+                    </div>
+                    <div class="template-card">
+                        <h4>📈 Laporan Mingguan</h4>
+                        <p>Analisis trend mingguan dengan perbandingan performa dan rekomendasi strategis.</p>
+                        <div class="template-meta">
+                            <span class="template-type">Mingguan</span>
+                            <span class="template-frequency">Setiap Senin</span>
+                        </div>
+                        <div class="template-actions">
+                            <button class="btn btn-primary" onclick="useTemplate('weekly')">Gunakan</button>
+                            <button class="btn btn-secondary" onclick="previewTemplate('weekly')">Preview</button>
+                        </div>
+                    </div>
+                    <div class="template-card">
+                        <h4>📋 Laporan Bulanan</h4>
+                        <p>Laporan komprehensif bulanan dengan analisis mendalam dan KPI performance.</p>
+                        <div class="template-meta">
+                            <span class="template-type">Bulanan</span>
+                            <span class="template-frequency">Akhir bulan</span>
+                        </div>
+                        <div class="template-actions">
+                            <button class="btn btn-primary" onclick="useTemplate('monthly')">Gunakan</button>
+                            <button class="btn btn-secondary" onclick="previewTemplate('monthly')">Preview</button>
+                        </div>
+                    </div>
+                    <div class="template-card">
+                        <h4>🎯 Laporan Performance</h4>
+                        <p>Fokus pada metrik performance, response time, dan satisfaction rate.</p>
+                        <div class="template-meta">
+                            <span class="template-type">Performance</span>
+                            <span class="template-frequency">On-demand</span>
+                        </div>
+                        <div class="template-actions">
+                            <button class="btn btn-primary" onclick="useTemplate('performance')">Gunakan</button>
+                            <button class="btn btn-secondary" onclick="previewTemplate('performance')">Preview</button>
+                        </div>
+                    </div>
+                    <div class="template-card">
+                        <h4>🔍 Laporan OSINT</h4>
+                        <p>Analisis sentiment analysis, trending topics, dan social media monitoring.</p>
+                        <div class="template-meta">
+                            <span class="template-type">OSINT</span>
+                            <span class="template-frequency">On-demand</span>
+                        </div>
+                        <div class="template-actions">
+                            <button class="btn btn-primary" onclick="useTemplate('osint')">Gunakan</button>
+                            <button class="btn btn-secondary" onclick="previewTemplate('osint')">Preview</button>
+                        </div>
+                    </div>
+                    <div class="template-card">
+                        <h4>📊 Laporan Eksekutif</h4>
+                        <p>Laporan ringkasan untuk pimpinan dengan highlight dan rekomendasi strategis.</p>
+                        <div class="template-meta">
+                            <span class="template-type">Eksekutif</span>
+                            <span class="template-frequency">Triwulan</span>
+                        </div>
+                        <div class="template-actions">
+                            <button class="btn btn-primary" onclick="useTemplate('executive')">Gunakan</button>
+                            <button class="btn btn-secondary" onclick="previewTemplate('executive')">Preview</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Report History -->
+            <div class="report-history">
+                <h3>📚 History Generated Reports</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nama Laporan</th>
+                                <th>Jenis</th>
+                                <th>Periode</th>
+                                <th>Format</th>
+                                <th>Status</th>
+                                <th>Tanggal Dibuat</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Laporan Harian 15 Jan 2024</td>
+                                <td>Harian</td>
+                                <td>15 Jan 2024</td>
+                                <td>PDF</td>
+                                <td><span class="status-badge status-completed">Selesai</span></td>
+                                <td>15 Jan 2024 23:59</td>
+                                <td>
+                                    <button class="btn btn-primary" onclick="downloadReport('daily-15jan')">📥 Download</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Laporan Mingguan Week 2</td>
+                                <td>Mingguan</td>
+                                <td>8-14 Jan 2024</td>
+                                <td>Excel</td>
+                                <td><span class="status-badge status-completed">Selesai</span></td>
+                                <td>14 Jan 2024 23:59</td>
+                                <td>
+                                    <button class="btn btn-primary" onclick="downloadReport('weekly-week2')">📥 Download</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Laporan Bulanan Des 2023</td>
+                                <td>Bulanan</td>
+                                <td>1-31 Des 2023</td>
+                                <td>PDF</td>
+                                <td><span class="status-badge status-completed">Selesai</span></td>
+                                <td>31 Des 2023 23:59</td>
+                                <td>
+                                    <button class="btn btn-primary" onclick="downloadReport('monthly-dec2023')">📥 Download</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Performance Report Q4 2023</td>
+                                <td>Performance</td>
+                                <td>Oct-Dec 2023</td>
+                                <td>PDF</td>
+                                <td><span class="status-badge status-processing">Processing</span></td>
+                                <td>15 Jan 2024 10:30</td>
+                                <td>
+                                    <button class="btn btn-secondary" onclick="viewProgress('perf-q4')">👁️ Progress</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Scheduled Reports -->
+            <div class="scheduled-reports">
+                <h3>⏰ Scheduled Reports</h3>
+                <ul class="schedule-list">
+                    <li class="schedule-item">
+                        <div class="schedule-info">
+                            <h4>Laporan Harian</h4>
+                            <p>Setiap hari pukul 23:59 WIB</p>
+                        </div>
+                        <div class="schedule-actions">
+                            <button class="btn btn-primary" onclick="editSchedule('daily')">✏️ Edit</button>
+                            <button class="btn btn-secondary" onclick="toggleSchedule('daily')">⏸️ Pause</button>
+                        </div>
+                    </li>
+                    <li class="schedule-item">
+                        <div class="schedule-info">
+                            <h4>Laporan Mingguan</h4>
+                            <p>Setiap Senin pukul 08:00 WIB</p>
+                        </div>
+                        <div class="schedule-actions">
+                            <button class="btn btn-primary" onclick="editSchedule('weekly')">✏️ Edit</button>
+                            <button class="btn btn-secondary" onclick="toggleSchedule('weekly')">⏸️ Pause</button>
+                        </div>
+                    </li>
+                    <li class="schedule-item">
+                        <div class="schedule-info">
+                            <h4>Laporan Bulanan</h4>
+                            <p>Tanggal 1 setiap bulan pukul 09:00 WIB</p>
+                        </div>
+                        <div class="schedule-actions">
+                            <button class="btn btn-primary" onclick="editSchedule('monthly')">✏️ Edit</button>
+                            <button class="btn btn-secondary" onclick="toggleSchedule('monthly')">⏸️ Pause</button>
+                        </div>
+                    </li>
+                </ul>            </div>
+
+            <!-- Pengaturan Page -->
+            <div id="page-settings" class="page-section">
+<!-- Header -->
+            <div class="header">
+                <div>
+                    <h2>⚙️ Pengaturan Sistem</h2>
+                    <div class="date-time" id="currentDateTime"></div>
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="saveAllSettings()">💾 Simpan Semua</button>
+                </div>
+            </div>
+
+            <!-- System Status -->
+            <div class="settings-section">
+                <h3>📊 Status Sistem</h3>
+                <div class="status-grid">
+                    <div class="status-item online">
+                        <div class="status-icon">🟢</div>
+                        <div class="status-title">Database</div>
+                        <div class="status-value">Online</div>
+                    </div>
+                    <div class="status-item online">
+                        <div class="status-icon">🟢</div>
+                        <div class="status-title">API Services</div>
+                        <div class="status-value">Online</div>
+                    </div>
+                    <div class="status-item warning">
+                        <div class="status-icon">🟡</div>
+                        <div class="status-title">OSINT Monitoring</div>
+                        <div class="status-value">Partial</div>
+                    </div>
+                    <div class="status-item online">
+                        <div class="status-icon">🟢</div>
+                        <div class="status-title">Email Service</div>
+                        <div class="status-value">Online</div>
+                    </div>
+                    <div class="status-item online">
+                        <div class="status-icon">🟢</div>
+                        <div class="status-title">Storage</div>
+                        <div class="status-value">85% Used</div>
+                    </div>
+                    <div class="status-item online">
+                        <div class="status-icon">🟢</div>
+                        <div class="status-title">Backup</div>
+                        <div class="status-value">Last: 2 hours ago</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- General Settings -->
+            <div class="settings-section">
+                <h3>🔧 Pengaturan Umum</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nama Sistem:</label>
+                        <input type="text" value="SPAP PKS" id="systemName">
+                    </div>
+                    <div class="form-group">
+                        <label>Timezone:</label>
+                        <select id="timezone">
+                            <option value="WIB">WIB (UTC+7)</option>
+                            <option value="WITA">WITA (UTC+8)</option>
+                            <option value="WIT">WIT (UTC+9)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Bahasa Default:</label>
+                        <select id="defaultLanguage">
+                            <option value="id">Bahasa Indonesia</option>
+                            <option value="en">English</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Format Tanggal:</label>
+                        <select id="dateFormat">
+                            <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                            <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                            <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notification Settings -->
+            <div class="settings-section">
+                <h3>🔔 Pengaturan Notifikasi</h3>
+                <div class="settings-grid">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Email Notifications</h4>
+                            <p>Kirim notifikasi via email</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>SMS Notifications</h4>
+                            <p>Kirim notifikasi via SMS</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Push Notifications</h4>
+                            <p>Notifikasi push ke aplikasi mobile</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Alert Kritis</h4>
+                            <p>Notifikasi untuk alert kritis</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Management -->
+            <div class="settings-section">
+                <h3>👥 Manajemen User</h3>
+                <div style="text-align: right; margin-bottom: 20px;">
+                    <button class="btn btn-primary" onclick="addUser()">+ Tambah User</button>
+                </div>
+                <ul class="user-list">
+                    <li class="user-item">
+                        <div class="user-info">
+                            <div class="user-avatar">👤</div>
+                            <div class="user-details">
+                                <h4>Admin PKS</h4>
+                                <p>admin@pks.id</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <span class="user-role">Super Admin</span>
+                            <div class="user-actions">
+                                <button class="btn btn-warning" onclick="editUser('admin')">✏️ Edit</button>
+                                <button class="btn btn-danger" onclick="deleteUser('admin')">🗑️ Delete</button>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="user-item">
+                        <div class="user-info">
+                            <div class="user-avatar">👨‍💼</div>
+                            <div class="user-details">
+                                <h4>Manager Regional</h4>
+                                <p>manager@pks.id</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <span class="user-role">Manager</span>
+                            <div class="user-actions">
+                                <button class="btn btn-warning" onclick="editUser('manager')">✏️ Edit</button>
+                                <button class="btn btn-danger" onclick="deleteUser('manager')">🗑️ Delete</button>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="user-item">
+                        <div class="user-info">
+                            <div class="user-avatar">👩‍💻</div>
+                            <div class="user-details">
+                                <h4>Operator SPAP</h4>
+                                <p>operator@pks.id</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <span class="user-role">Operator</span>
+                            <div class="user-actions">
+                                <button class="btn btn-warning" onclick="editUser('operator')">✏️ Edit</button>
+                                <button class="btn btn-danger" onclick="deleteUser('operator')">🗑️ Delete</button>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Security Settings -->
+            <div class="settings-section">
+                <h3>🔒 Pengaturan Keamanan</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Session Timeout (menit):</label>
+                        <input type="number" value="30" id="sessionTimeout">
+                    </div>
+                    <div class="form-group">
+                        <label>Max Login Attempts:</label>
+                        <input type="number" value="5" id="maxLoginAttempts">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Password Min Length:</label>
+                        <input type="number" value="8" id="passwordMinLength">
+                    </div>
+                    <div class="form-group">
+                        <label>Password Expiry (hari):</label>
+                        <input type="number" value="90" id="passwordExpiry">
+                    </div>
+                </div>
+                <div class="settings-grid">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Two-Factor Authentication</h4>
+                            <p>Wajibkan 2FA untuk semua user</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>IP Whitelist</h4>
+                            <p>Batasi akses berdasarkan IP</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backup & Restore -->
+            <div class="settings-section">
+                <h3>💾 Backup & Restore</h3>
+                <div class="backup-section">
+                    <div class="backup-item">
+                        <h4>📦 Manual Backup</h4>
+                        <p>Buat backup manual dari semua data sistem</p>
+                        <button class="btn btn-primary" onclick="createBackup()">Buat Backup</button>
+                    </div>
+                    <div class="backup-item">
+                        <h4>🔄 Restore Data</h4>
+                        <p>Restore data dari file backup sebelumnya</p>
+                        <button class="btn btn-warning" onclick="restoreData()">Restore</button>
+                    </div>
+                    <div class="backup-item">
+                        <h4>🗑️ Cleanup Logs</h4>
+                        <p>Bersihkan log lama untuk menghemat storage</p>
+                        <button class="btn btn-secondary" onclick="cleanupLogs()">Cleanup</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Maintenance -->
+            <div class="settings-section">
+                <h3>🔧 System Maintenance</h3>
+                <div class="form-group">
+                    <label>Maintenance Mode:</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="maintenanceMode">
+                        <span class="slider"></span>
+                    </label>
+                    <p style="color: #666; font-size: 0.8em; margin-top: 5px;">Aktifkan untuk melakukan maintenance sistem</p>
+                </div>
+                <div class="form-group">
+                    <label>Maintenance Message:</label>
+                    <textarea id="maintenanceMessage" placeholder="Pesan yang akan ditampilkan saat maintenance mode aktif...">Sistem sedang dalam maintenance. Mohon maaf atas ketidaknyamanan ini.</textarea>
+                </div>
+                <div style="text-align: right;">
+                    <button class="btn btn-danger" onclick="restartSystem()">🔄 Restart System</button>
+                </div>            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Simple navigation function - mirip dengan pks_spap_mockup.html
+        function loadPage(pageName) {
+            // Hide all pages
+            const allPages = document.querySelectorAll('.page-section');
+            allPages.forEach(function(page) {
+                page.classList.remove('active');
+            });
+            
+            // Show selected page
+            const targetPage = document.getElementById('page-' + pageName);
+            if (targetPage) {
+                targetPage.classList.add('active');
+            }
+            
+            // Update navigation
+            const allLinks = document.querySelectorAll('.nav-menu a');
+            allLinks.forEach(function(link) {
+                link.classList.remove('active');
+            });
+            const activeLink = document.querySelector('[data-page="' + pageName + '"]');
+            if (activeLink) {
+                activeLink.classList.add('active');
+            }
+            
+            // Initialize page functions
+            setTimeout(function() {
+                if (pageName === 'dashboard' && typeof initDashboard === 'function') {
+                    initDashboard();
+                } else if (typeof initPage === 'function') {
+                    initPage();
+                }
+            }, 50);
+        }
+
+        // Load dashboard by default
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPage('dashboard');
+        });
+
+        // Dashboard JavaScript
+
+        // Mock Data
+        const mockData = {
+            provinces: [
+                { name: 'DKI Jakarta', count: 245, level: 'high' },
+                { name: 'Jawa Barat', count: 189, level: 'high' },
+                { name: 'Jawa Tengah', count: 156, level: 'medium' },
+                { name: 'Jawa Timur', count: 134, level: 'medium' },
+                { name: 'Sumatra Utara', count: 98, level: 'low' },
+                { name: 'Sumatra Selatan', count: 87, level: 'low' },
+                { name: 'Kalimantan Timur', count: 76, level: 'low' },
+                { name: 'Sulawesi Selatan', count: 65, level: 'low' }
+            ],
+            activities: [
+                { icon: '💬', title: 'Aspirasi baru diterima', desc: 'Infrastruktur jalan di Depok', time: '5 menit lalu' },
+                { icon: '✅', title: 'Pengaduan terselesaikan', desc: 'Masalah air bersih di Bekasi', time: '15 menit lalu' },
+                { icon: '📊', title: 'Laporan mingguan generated', desc: 'Statistik periode 1-7 Jan 2024', time: '1 jam lalu' },
+                { icon: '🔍', title: 'OSINT alert detected', desc: 'Trending topic: #HargaSembako', time: '2 jam lalu' },
+                { icon: '📝', title: 'Pengaduan baru', desc: 'Fasilitas kesehatan di Bandung', time: '3 jam lalu' }
+            ],
+            alerts: [
+                { type: 'critical', title: 'Aspirasi Kritis', message: '15 aspirasi infrastruktur belum ditindaklanjuti > 48 jam' },
+                { type: 'warning', title: 'Volume Tinggi', message: 'Peningkatan 25% pengaduan di wilayah Jabodetabek' },
+                { type: 'info', title: 'Update Sistem', message: 'Maintenance terjadwal hari Minggu 02:00-04:00 WIB' }
+            ]
+        };
+
+        // Initialize Dashboard
+        function initDashboard() {
+            updateDateTime();
+            updateStats();
+            initCharts();
+            populateProvinces();
+            populateActivities();
+            populateAlerts();
+            startRealTimeUpdates();
+        }
+
+        // Update Date Time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('currentDateTime').textContent = 
+                now.toLocaleDateString('id-ID', options);
+        }
+
+        // Update Stats with Animation
+        function updateStats() {
+            const stats = [
+                { id: 'totalAspirasi', value: 1247 },
+                { id: 'totalPengaduan', value: 892 },
+                { id: 'resolvedIssues', value: 1089 },
+                { id: 'avgResponseTime', value: 2.3 }
+            ];
+
+            stats.forEach(stat => {
+                animateNumber(stat.id, stat.value);
+            });
+        }
+
+        // Animate Number Counter
+        function animateNumber(elementId, targetValue) {
+            const element = document.getElementById(elementId);
+            const duration = 2000;
+            const start = 0;
+            const increment = targetValue / (duration / 16);
+            let current = start;
+
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= targetValue) {
+                    current = targetValue;
+                    clearInterval(timer);
+                }
+                
+                if (elementId === 'avgResponseTime') {
+                    element.textContent = current.toFixed(1);
+                } else {
+                    element.textContent = Math.floor(current).toLocaleString('id-ID');
+                }
+            }, 16);
+        }
+
+        // Initialize Charts
+        function initCharts() {
+            // Trend Chart
+            const trendCtx = document.getElementById('trendChart').getContext('2d');
+            new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
+                    datasets: [{
+                        label: 'Aspirasi',
+                        data: [45, 52, 38, 67, 89, 34, 56],
+                        borderColor: '#ff8c00',
+                        backgroundColor: 'rgba(255, 140, 0, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Pengaduan',
+                        data: [32, 28, 45, 38, 52, 41, 29],
+                        borderColor: '#ff6b35',
+                        backgroundColor: 'rgba(255, 107, 53, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Category Chart
+            const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+            new Chart(categoryCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Infrastruktur', 'Pendidikan', 'Kesehatan', 'Ekonomi', 'Sosial'],
+                    datasets: [{
+                        data: [35, 25, 20, 15, 5],
+                        backgroundColor: [
+                            '#ff8c00',
+                            '#ff6b35',
+                            '#e55a2b',
+                            '#ffa500',
+                            '#ffb347'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+        }
+
+        // Populate Provinces
+        function populateProvinces() {
+            const grid = document.getElementById('provinceGrid');
+            grid.innerHTML = '';
+
+            mockData.provinces.forEach(province => {
+                const div = document.createElement('div');
+                div.className = `province-item ${province.level}`;
+                div.innerHTML = `
+                    <div class="province-name">${province.name}</div>
+                    <div class="province-count">${province.count}</div>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        // Populate Activities
+        function populateActivities() {
+            const container = document.getElementById('recentActivities');
+            container.innerHTML = '';
+
+            mockData.activities.forEach(activity => {
+                const div = document.createElement('div');
+                div.className = 'activity-item';
+                div.innerHTML = `
+                    <div class="activity-icon">${activity.icon}</div>
+                    <div class="activity-content">
+                        <h4>${activity.title}</h4>
+                        <p>${activity.desc}</p>
+                    </div>
+                    <div class="activity-time">${activity.time}</div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Populate Alerts
+        function populateAlerts() {
+            const container = document.getElementById('alertSystem');
+            container.innerHTML = '';
+
+            mockData.alerts.forEach(alert => {
+                const div = document.createElement('div');
+                div.className = `alert-item ${alert.type}`;
+                div.innerHTML = `
+                    <div class="alert-title">${alert.title}</div>
+                    <div class="alert-message">${alert.message}</div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Real-time Updates
+        function startRealTimeUpdates() {
+            // Update time every minute
+            setInterval(updateDateTime, 60000);
+            
+            // Simulate real-time data updates
+            setInterval(() => {
+                // Randomly update some stats
+                const randomStat = Math.floor(Math.random() * 4);
+                const statIds = ['totalAspirasi', 'totalPengaduan', 'resolvedIssues', 'avgResponseTime'];
+                const currentValue = parseInt(document.getElementById(statIds[randomStat]).textContent.replace(/,/g, ''));
+                const newValue = currentValue + Math.floor(Math.random() * 5) - 2;
+                
+                if (newValue > 0) {
+                    animateNumber(statIds[randomStat], newValue);
+                }
+            }, 30000); // Update every 30 seconds
+        }
+
+        // Refresh Data
+        function refreshData() {
+            const indicator = document.getElementById('statusIndicator');
+            indicator.style.display = 'inline-block';
+            
+            setTimeout(() => {
+                indicator.style.display = 'none';
+                updateStats();
+                populateActivities();
+                populateAlerts();
+                
+                // Show refresh success message
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = '✅ Data Updated';
+                button.style.background = '#28a745';
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '#ff8c00';
+                }, 2000);
+            }, 1500);
+        }
+
+        // Filter Functions
+        document.getElementById('timeFilter').addEventListener('change', function() {
+            console.log('Time filter changed:', this.value);
+            // Implement time filtering logic
+        });
+
+        document.getElementById('regionFilter').addEventListener('change', function() {
+            console.log('Region filter changed:', this.value);
+            // Implement region filtering logic
+        });
+
+        document.getElementById('categoryFilter').addEventListener('change', function() {
+            console.log('Category filter changed:', this.value);
+            // Implement category filtering logic
+        });
+
+        // Initialize dashboard when page loads
+        
+        
+        // Hide sidebar if opened in iframe
+        if (window.location.search.includes('hideSidebar=true')) {
+            document.querySelector('.sidebar').style.display = 'none';
+            document.querySelector('.dashboard-container').style.gridTemplateColumns = '1fr';
+            document.querySelector('.main-content').style.padding = '20px';
+        }
+    
+        // Aspirasi Masyarakat JavaScript
+
+        // Mock Data
+        const mockAspirasi = [
+            {
+                id: 'ASP-2024-001',
+                tanggal: '2024-01-15',
+                nama: 'Ahmad Rizki',
+                kategori: 'Infrastruktur',
+                prioritas: 'high',
+                status: 'new',
+                wilayah: 'DKI Jakarta',
+                judul: 'Perbaikan Jalan Rusak di Cengkareng',
+                deskripsi: 'Jalan utama di Cengkareng sudah rusak parah dan membahayakan pengendara...'
+            },
+            {
+                id: 'ASP-2024-002',
+                tanggal: '2024-01-14',
+                nama: 'Siti Nurhaliza',
+                kategori: 'Pendidikan',
+                prioritas: 'medium',
+                status: 'processing',
+                wilayah: 'Jawa Barat',
+                judul: 'Kekurangan Guru di SD Negeri',
+                deskripsi: 'SD Negeri di daerah kami kekurangan guru, terutama untuk mata pelajaran...'
+            },
+            {
+                id: 'ASP-2024-003',
+                tanggal: '2024-01-13',
+                nama: 'Budi Santoso',
+                kategori: 'Kesehatan',
+                prioritas: 'high',
+                status: 'resolved',
+                wilayah: 'Jawa Tengah',
+                judul: 'Fasilitas Puskesmas Kurang Memadai',
+                deskripsi: 'Puskesmas di daerah kami membutuhkan peralatan medis yang lebih lengkap...'
+            },
+            {
+                id: 'ASP-2024-004',
+                tanggal: '2024-01-12',
+                nama: 'Maria Magdalena',
+                kategori: 'Ekonomi',
+                prioritas: 'low',
+                status: 'processing',
+                wilayah: 'Jawa Timur',
+                judul: 'Bantuan Modal UMKM',
+                deskripsi: 'Mohon bantuan modal untuk mengembangkan usaha kecil menengah...'
+            },
+            {
+                id: 'ASP-2024-005',
+                tanggal: '2024-01-11',
+                nama: 'Rahmat Hidayat',
+                kategori: 'Sosial',
+                prioritas: 'medium',
+                status: 'rejected',
+                wilayah: 'Sumatra Utara',
+                judul: 'Pembangunan Taman Bermain',
+                deskripsi: 'Diperlukan taman bermain untuk anak-anak di lingkungan kami...'
+            }
+        ];
+
+        // Initialize Page
+        function initPage() {
+            updateDateTime();
+            populateAspirasiTable();
+            setupEventListeners();
+        }
+
+        // Update Date Time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('currentDateTime').textContent = 
+                now.toLocaleDateString('id-ID', options);
+        }
+
+        // Populate Aspirasi Table
+        function populateAspirasiTable() {
+            const tbody = document.getElementById('aspirasiTableBody');
+            tbody.innerHTML = '';
+
+            mockAspirasi.forEach(aspirasi => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${aspirasi.id}</td>
+                    <td>${aspirasi.tanggal}</td>
+                    <td>${aspirasi.nama}</td>
+                    <td>${aspirasi.kategori}</td>
+                    <td class="priority-${aspirasi.prioritas}">${aspirasi.prioritas.toUpperCase()}</td>
+                    <td><span class="status-badge status-${aspirasi.status}">${getStatusText(aspirasi.status)}</span></td>
+                    <td>${aspirasi.wilayah}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-primary" onclick="viewAspirasi('${aspirasi.id}')">👁️</button>
+                            <button class="btn btn-success" onclick="processAspirasi('${aspirasi.id}')">✅</button>
+                            <button class="btn btn-secondary" onclick="editAspirasi('${aspirasi.id}')">✏️</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Get Status Text
+        function getStatusText(status) {
+            const statusMap = {
+                'new': 'Baru',
+                'processing': 'Diproses',
+                'resolved': 'Selesai',
+                'rejected': 'Ditolak'
+            };
+            return statusMap[status] || status;
+        }
+
+        // Setup Event Listeners
+        function setupEventListeners() {
+            // Add Aspirasi Form
+            document.getElementById('addAspirasiForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                addAspirasi();
+            });
+
+            // Search Input
+            document.getElementById('searchInput').addEventListener('input', function() {
+                filterAspirasi();
+            });
+        }
+
+        // Modal Functions
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // View Aspirasi Detail
+        function viewAspirasi(id) {
+            const aspirasi = mockAspirasi.find(a => a.id === id);
+            if (aspirasi) {
+                const content = document.getElementById('detailAspirasiContent');
+                content.innerHTML = `
+                    <div style="margin-bottom: 20px;">
+                        <h4>📋 Informasi Umum</h4>
+                        <p><strong>ID:</strong> ${aspirasi.id}</p>
+                        <p><strong>Tanggal:</strong> ${aspirasi.tanggal}</p>
+                        <p><strong>Nama:</strong> ${aspirasi.nama}</p>
+                        <p><strong>Wilayah:</strong> ${aspirasi.wilayah}</p>
+                        <p><strong>Kategori:</strong> ${aspirasi.kategori}</p>
+                        <p><strong>Prioritas:</strong> <span class="priority-${aspirasi.prioritas}">${aspirasi.prioritas.toUpperCase()}</span></p>
+                        <p><strong>Status:</strong> <span class="status-badge status-${aspirasi.status}">${getStatusText(aspirasi.status)}</span></p>
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <h4>📄 Detail Aspirasi</h4>
+                        <p><strong>Judul:</strong> ${aspirasi.judul}</p>
+                        <p><strong>Deskripsi:</strong></p>
+                        <p style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-top: 10px;">${aspirasi.deskripsi}</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <button class="btn btn-primary" onclick="processAspirasi('${aspirasi.id}')">Tindak Lanjuti</button>
+                        <button class="btn btn-secondary" onclick="closeModal('detailAspirasiModal')">Tutup</button>
+                    </div>
+                `;
+                openModal('detailAspirasiModal');
+            }
+        }
+
+        // Process Aspirasi
+        function processAspirasi(id) {
+            if (confirm('Apakah Anda yakin ingin menindaklanjuti aspirasi ini?')) {
+                alert('Aspirasi berhasil ditindaklanjuti!');
+                populateAspirasiTable();
+                closeModal('detailAspirasiModal');
+            }
+        }
+
+        // Edit Aspirasi
+        function editAspirasi(id) {
+            alert('Fitur edit akan segera tersedia!');
+        }
+
+        // Add Aspirasi
+        function addAspirasi() {
+            const formData = {
+                nama: document.getElementById('namaPengirim').value,
+                email: document.getElementById('emailPengirim').value,
+                telepon: document.getElementById('teleponPengirim').value,
+                wilayah: document.getElementById('wilayahAspirasi').value,
+                kategori: document.getElementById('kategoriAspirasi').value,
+                prioritas: document.getElementById('prioritasAspirasi').value,
+                judul: document.getElementById('judulAspirasi').value,
+                deskripsi: document.getElementById('deskripsiAspirasi').value
+            };
+
+            // Simulate adding aspirasi
+            alert('Aspirasi berhasil ditambahkan!');
+            closeModal('addAspirasiModal');
+            document.getElementById('addAspirasiForm').reset();
+            populateAspirasiTable();
+        }
+
+        // Filter Aspirasi
+        function filterAspirasi() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const priorityFilter = document.getElementById('priorityFilter').value;
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+
+            // Filter logic would go here
+            console.log('Filtering aspirasi:', { statusFilter, priorityFilter, categoryFilter, searchInput });
+            populateAspirasiTable();
+        }
+
+        // Export Aspirasi
+        function exportAspirasi() {
+            alert('Fitur export akan segera tersedia!');
+        }
+
+        // Change Page
+        function changePage(direction) {
+            console.log('Changing page:', direction);
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+
+        // Initialize page when loaded
+        
+        
+        // Hide sidebar if opened in iframe
+        
+    
+        // Pengaduan JavaScript
+
+        // Mock Data
+        const mockPengaduan = [
+            {
+                id: 'PEN-2024-001',
+                tanggal: '2024-01-15',
+                nama: 'Budi Santoso',
+                kategori: 'Korupsi',
+                prioritas: 'critical',
+                status: 'new',
+                lokasi: 'Kantor Bupati Bogor',
+                judul: 'Dugaan Korupsi Proyek Jembatan',
+                deskripsi: 'Ada indikasi korupsi dalam proyek pembangunan jembatan yang menyebabkan kerugian negara...',
+                timeline: [
+                    { action: 'Pengaduan diterima', time: '2024-01-15 10:30', user: 'Sistem' },
+                    { action: 'Sedang dalam review', time: '2024-01-15 11:00', user: 'Admin' }
+                ]
+            },
+            {
+                id: 'PEN-2024-002',
+                tanggal: '2024-01-14',
+                nama: 'Siti Nurhaliza',
+                kategori: 'Pelayanan',
+                prioritas: 'high',
+                status: 'assigned',
+                lokasi: 'Dinas Kependudukan',
+                judul: 'Pelayanan Lambat di Dukcapil',
+                deskripsi: 'Pelayanan pembuatan KTP sangat lambat dan tidak transparan...',
+                timeline: [
+                    { action: 'Pengaduan diterima', time: '2024-01-14 14:20', user: 'Sistem' },
+                    { action: 'Ditugaskan ke tim investigasi', time: '2024-01-14 15:00', user: 'Manager' }
+                ]
+            },
+            {
+                id: 'PEN-2024-003',
+                tanggal: '2024-01-13',
+                nama: 'Ahmad Rizki',
+                kategori: 'Infrastruktur',
+                prioritas: 'medium',
+                status: 'investigating',
+                lokasi: 'Jalan Raya Depok',
+                judul: 'Jalan Rusak Parah Tidak Diperbaiki',
+                deskripsi: 'Jalan utama sudah rusak selama 6 bulan dan tidak ada tindakan dari pemerintah...',
+                timeline: [
+                    { action: 'Pengaduan diterima', time: '2024-01-13 09:15', user: 'Sistem' },
+                    { action: 'Ditugaskan ke tim investigasi', time: '2024-01-13 10:00', user: 'Manager' },
+                    { action: 'Tim investigasi melakukan survey', time: '2024-01-13 14:30', user: 'Investigator' }
+                ]
+            },
+            {
+                id: 'PEN-2024-004',
+                tanggal: '2024-01-12',
+                nama: 'Maria Magdalena',
+                kategori: 'Lingkungan',
+                prioritas: 'high',
+                status: 'resolved',
+                lokasi: 'Sungai Ciliwung',
+                judul: 'Pencemaran Sungai oleh Industri',
+                deskripsi: 'Sungai Ciliwung tercemar limbah industri yang membahayakan ekosistem...',
+                timeline: [
+                    { action: 'Pengaduan diterima', time: '2024-01-12 08:00', user: 'Sistem' },
+                    { action: 'Ditugaskan ke tim investigasi', time: '2024-01-12 09:00', user: 'Manager' },
+                    { action: 'Investigasi selesai', time: '2024-01-12 16:00', user: 'Investigator' },
+                    { action: 'Pengaduan diselesaikan', time: '2024-01-12 17:00', user: 'Manager' }
+                ]
+            },
+            {
+                id: 'PEN-2024-005',
+                tanggal: '2024-01-11',
+                nama: 'Rahmat Hidayat',
+                kategori: 'Lainnya',
+                prioritas: 'low',
+                status: 'closed',
+                lokasi: 'Pasar Tradisional',
+                judul: 'Ketidaknyamanan di Pasar',
+                deskripsi: 'Kondisi pasar yang tidak nyaman dan perlu perbaikan fasilitas...',
+                timeline: [
+                    { action: 'Pengaduan diterima', time: '2024-01-11 11:30', user: 'Sistem' },
+                    { action: 'Ditugaskan ke tim investigasi', time: '2024-01-11 12:00', user: 'Manager' },
+                    { action: 'Investigasi selesai', time: '2024-01-11 15:00', user: 'Investigator' },
+                    { action: 'Pengaduan ditutup', time: '2024-01-11 16:00', user: 'Manager' }
+                ]
+            }
+        ];
+
+        // Initialize Page
+        function initPage() {
+            updateDateTime();
+            populatePengaduanGrid();
+            setupEventListeners();
+        }
+
+        // Update Date Time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('currentDateTime').textContent = 
+                now.toLocaleDateString('id-ID', options);
+        }
+
+        // Populate Pengaduan Grid
+        function populatePengaduanGrid() {
+            const grid = document.getElementById('pengaduanGrid');
+            grid.innerHTML = '';
+
+            mockPengaduan.forEach(pengaduan => {
+                const card = document.createElement('div');
+                card.className = `pengaduan-card ${pengaduan.prioritas}`;
+                card.innerHTML = `
+                    <div class="pengaduan-header">
+                        <div class="pengaduan-id">${pengaduan.id}</div>
+                        <div class="pengaduan-date">${pengaduan.tanggal}</div>
+                    </div>
+                    <div class="pengaduan-title">${pengaduan.judul}</div>
+                    <div class="pengaduan-description">${pengaduan.deskripsi}</div>
+                    <div class="pengaduan-meta">
+                        <div class="pengaduan-category">${pengaduan.kategori}</div>
+                        <div class="pengaduan-priority priority-${pengaduan.prioritas}">${pengaduan.prioritas.toUpperCase()}</div>
+                    </div>
+                    <div class="pengaduan-status">
+                        <span class="status-badge status-${pengaduan.status}">${getStatusText(pengaduan.status)}</span>
+                        <span style="font-size: 0.8em; color: #666;">${pengaduan.lokasi}</span>
+                    </div>
+                    <div class="pengaduan-actions">
+                        <button class="btn btn-primary" onclick="viewPengaduan('${pengaduan.id}')">👁️ Detail</button>
+                        <button class="btn btn-success" onclick="assignPengaduan('${pengaduan.id}')">👤 Assign</button>
+                        <button class="btn btn-warning" onclick="updateStatus('${pengaduan.id}')">📝 Update</button>
+                        <button class="btn btn-secondary" onclick="addNote('${pengaduan.id}')">💬 Note</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Get Status Text
+        function getStatusText(status) {
+            const statusMap = {
+                'new': 'Baru',
+                'assigned': 'Ditugaskan',
+                'investigating': 'Diselidiki',
+                'resolved': 'Selesai',
+                'closed': 'Ditutup'
+            };
+            return statusMap[status] || status;
+        }
+
+        // Setup Event Listeners
+        function setupEventListeners() {
+            // Add Pengaduan Form
+            document.getElementById('addPengaduanForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                addPengaduan();
+            });
+
+            // Search Input
+            document.getElementById('searchInput').addEventListener('input', function() {
+                filterPengaduan();
+            });
+        }
+
+        // Modal Functions
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // View Pengaduan Detail
+        function viewPengaduan(id) {
+            const pengaduan = mockPengaduan.find(p => p.id === id);
+            if (pengaduan) {
+                const content = document.getElementById('detailPengaduanContent');
+                content.innerHTML = `
+                    <div style="margin-bottom: 20px;">
+                        <h4>📋 Informasi Umum</h4>
+                        <p><strong>ID:</strong> ${pengaduan.id}</p>
+                        <p><strong>Tanggal:</strong> ${pengaduan.tanggal}</p>
+                        <p><strong>Pelapor:</strong> ${pengaduan.nama}</p>
+                        <p><strong>Lokasi:</strong> ${pengaduan.lokasi}</p>
+                        <p><strong>Kategori:</strong> ${pengaduan.kategori}</p>
+                        <p><strong>Prioritas:</strong> <span class="pengaduan-priority priority-${pengaduan.prioritas}">${pengaduan.prioritas.toUpperCase()}</span></p>
+                        <p><strong>Status:</strong> <span class="status-badge status-${pengaduan.status}">${getStatusText(pengaduan.status)}</span></p>
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <h4>📄 Detail Pengaduan</h4>
+                        <p><strong>Judul:</strong> ${pengaduan.judul}</p>
+                        <p><strong>Deskripsi:</strong></p>
+                        <p style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-top: 10px;">${pengaduan.deskripsi}</p>
+                    </div>
+                    <div class="timeline">
+                        <h4>🕒 Timeline</h4>
+                        ${pengaduan.timeline.map(item => `
+                            <div class="timeline-item">
+                                <div class="timeline-icon">📝</div>
+                                <div class="timeline-content">
+                                    <h4>${item.action}</h4>
+                                    <p>Oleh: ${item.user}</p>
+                                    <div class="timeline-time">${item.time}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div style="text-align: right; margin-top: 20px;">
+                        <button class="btn btn-primary" onclick="assignPengaduan('${pengaduan.id}')">Tugaskan</button>
+                        <button class="btn btn-success" onclick="updateStatus('${pengaduan.id}')">Update Status</button>
+                        <button class="btn btn-secondary" onclick="closeModal('detailPengaduanModal')">Tutup</button>
+                    </div>
+                `;
+                openModal('detailPengaduanModal');
+            }
+        }
+
+        // Assign Pengaduan
+        function assignPengaduan(id) {
+            alert('Fitur penugasan akan segera tersedia!');
+        }
+
+        // Update Status
+        function updateStatus(id) {
+            alert('Fitur update status akan segera tersedia!');
+        }
+
+        // Add Note
+        function addNote(id) {
+            alert('Fitur tambah catatan akan segera tersedia!');
+        }
+
+        // Add Pengaduan
+        function addPengaduan() {
+            const formData = {
+                nama: document.getElementById('namaPelapor').value,
+                email: document.getElementById('emailPelapor').value,
+                telepon: document.getElementById('teleponPelapor').value,
+                identitas: document.getElementById('identitasPelapor').value,
+                lokasi: document.getElementById('lokasiKejadian').value,
+                kategori: document.getElementById('kategoriPengaduan').value,
+                prioritas: document.getElementById('prioritasPengaduan').value,
+                judul: document.getElementById('judulPengaduan').value,
+                deskripsi: document.getElementById('deskripsiPengaduan').value
+            };
+
+            // Simulate adding pengaduan
+            alert('Pengaduan berhasil dikirim!');
+            closeModal('addPengaduanModal');
+            document.getElementById('addPengaduanForm').reset();
+            populatePengaduanGrid();
+        }
+
+        // Filter Pengaduan
+        function filterPengaduan() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const priorityFilter = document.getElementById('priorityFilter').value;
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+
+            // Filter logic would go here
+            console.log('Filtering pengaduan:', { statusFilter, priorityFilter, categoryFilter, searchInput });
+            populatePengaduanGrid();
+        }
+
+        // Export Pengaduan
+        function exportPengaduan() {
+            alert('Fitur export akan segera tersedia!');
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+
+        // Initialize page when loaded
+        
+        
+        // Hide sidebar if opened in iframe
+        
+    
+        // OSINT Monitoring JavaScript
+
+        // Mock Data
+        const mockData = {
+            trendingTopics: [
+                { hashtag: '#HargaSembako', mentions: 15420, sentiment: 'negative', trend: 'high' },
+                { hashtag: '#PKS', mentions: 8930, sentiment: 'positive', trend: 'medium' },
+                { hashtag: '#Infrastruktur', mentions: 6720, sentiment: 'neutral', trend: 'medium' },
+                { hashtag: '#PendidikanGratis', mentions: 5430, sentiment: 'positive', trend: 'low' },
+                { hashtag: '#Kesehatan', mentions: 4210, sentiment: 'negative', trend: 'low' },
+                { hashtag: '#EkonomiKerakyatan', mentions: 3890, sentiment: 'positive', trend: 'low' }
+            ],
+            socialFeed: [
+                { user: 'Ahmad Rizki', platform: 'Twitter', text: 'PKS harus lebih aktif dalam menyuarakan aspirasi rakyat terkait harga sembako yang terus naik #HargaSembako', time: '2 menit lalu', avatar: '👤' },
+                { user: 'Siti Nurhaliza', platform: 'Facebook', text: 'Terima kasih PKS atas program pendidikan gratis yang sudah membantu anak-anak kami', time: '5 menit lalu', avatar: '👩' },
+                { user: 'Budi Santoso', platform: 'Instagram', text: 'Infrastruktur di daerah kami masih sangat memprihatinkan, perlu perhatian serius', time: '8 menit lalu', avatar: '👨' },
+                { user: 'Maria Magdalena', platform: 'Twitter', text: 'PKS menunjukkan komitmen yang baik dalam memperjuangkan hak-hak rakyat kecil', time: '12 menit lalu', avatar: '👩‍💼' },
+                { user: 'Rahmat Hidayat', platform: 'Facebook', text: 'Harapan besar pada PKS untuk terus memperjuangkan keadilan sosial', time: '15 menit lalu', avatar: '👨‍💼' }
+            ],
+            alerts: [
+                { type: 'critical', title: 'Sentiment Negatif Tinggi', message: 'Hashtag #HargaSembako menunjukkan sentiment negatif 85% dalam 24 jam terakhir' },
+                { type: 'warning', title: 'Volume Mentions Meningkat', message: 'Mentions PKS meningkat 25% dibandingkan minggu lalu' },
+                { type: 'info', title: 'Trending Topic Baru', message: '#PendidikanGratis masuk trending dengan sentiment positif 78%' }
+            ],
+            keywords: [
+                { keyword: 'PKS', count: 8930, trend: 'up', change: '+15%' },
+                { keyword: 'Partai Keadilan Sejahtera', count: 3420, trend: 'up', change: '+8%' },
+                { keyword: 'Harga Sembako', count: 15420, trend: 'up', change: '+45%' },
+                { keyword: 'Infrastruktur', count: 6720, trend: 'down', change: '-5%' },
+                { keyword: 'Pendidikan Gratis', count: 5430, trend: 'up', change: '+22%' },
+                { keyword: 'Kesehatan', count: 4210, trend: 'down', change: '-12%' }
+            ]
+        };
+
+        // Initialize Page
+        function initPage() {
+            updateDateTime();
+            populateTrendingTopics();
+            populateSocialFeed();
+            populateAlerts();
+            populateKeywords();
+            startRealTimeUpdates();
+        }
+
+        // Update Date Time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('currentDateTime').textContent = 
+                now.toLocaleDateString('id-ID', options);
+        }
+
+        // Populate Trending Topics
+        function populateTrendingTopics() {
+            const container = document.getElementById('trendingTopics');
+            container.innerHTML = '';
+
+            mockData.trendingTopics.forEach(topic => {
+                const card = document.createElement('div');
+                card.className = `topic-card ${topic.trend}-trend`;
+                card.innerHTML = `
+                    <div class="topic-hashtag">${topic.hashtag}</div>
+                    <div class="topic-mentions">${topic.mentions.toLocaleString()} mentions</div>
+                    <div class="topic-sentiment sentiment-${topic.sentiment}">
+                        ${topic.sentiment === 'positive' ? '😊 Positif' : 
+                          topic.sentiment === 'negative' ? '😞 Negatif' : '😐 Netral'}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Populate Social Feed
+        function populateSocialFeed() {
+            const container = document.getElementById('socialFeed');
+            container.innerHTML = '';
+
+            mockData.socialFeed.forEach(post => {
+                const item = document.createElement('div');
+                item.className = 'feed-item';
+                item.innerHTML = `
+                    <div class="feed-avatar">${post.avatar}</div>
+                    <div class="feed-content">
+                        <div class="feed-header">
+                            <div class="feed-user">${post.user}</div>
+                            <div class="feed-platform">${post.platform}</div>
+                        </div>
+                        <div class="feed-text">${post.text}</div>
+                        <div class="feed-meta">
+                            <span>${post.time}</span>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // Populate Alerts
+        function populateAlerts() {
+            const container = document.getElementById('alertSystem');
+            container.innerHTML = '';
+
+            mockData.alerts.forEach(alert => {
+                const div = document.createElement('div');
+                div.className = `alert-item ${alert.type}`;
+                div.innerHTML = `
+                    <div class="alert-title">${alert.title}</div>
+                    <div class="alert-message">${alert.message}</div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Populate Keywords
+        function populateKeywords() {
+            const container = document.getElementById('keywordGrid');
+            container.innerHTML = '';
+
+            mockData.keywords.forEach(keyword => {
+                const item = document.createElement('div');
+                item.className = 'keyword-item';
+                item.innerHTML = `
+                    <div class="keyword-text">${keyword.keyword}</div>
+                    <div class="keyword-count">${keyword.count.toLocaleString()}</div>
+                    <div class="keyword-trend trend-${keyword.trend}">
+                        ${keyword.trend === 'up' ? '↗' : '↘'} ${keyword.change}
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // Real-time Updates
+        function startRealTimeUpdates() {
+            // Update time every minute
+            setInterval(updateDateTime, 60000);
+            
+            // Simulate real-time data updates
+            setInterval(() => {
+                // Randomly update some trending topics
+                const randomIndex = Math.floor(Math.random() * mockData.trendingTopics.length);
+                const topic = mockData.trendingTopics[randomIndex];
+                topic.mentions += Math.floor(Math.random() * 100) - 50;
+                
+                populateTrendingTopics();
+                populateSocialFeed();
+            }, 30000); // Update every 30 seconds
+        }
+
+        // Add Keyword
+        function addKeyword() {
+            const keyword = prompt('Masukkan keyword baru untuk dimonitor:');
+            if (keyword) {
+                mockData.keywords.push({
+                    keyword: keyword,
+                    count: Math.floor(Math.random() * 1000),
+                    trend: Math.random() > 0.5 ? 'up' : 'down',
+                    change: Math.random() > 0.5 ? '+' : '-' + Math.floor(Math.random() * 20) + '%'
+                });
+                populateKeywords();
+                alert('Keyword berhasil ditambahkan!');
+            }
+        }
+
+        // Initialize page when loaded
+        
+        
+        // Hide sidebar if opened in iframe
+        
+    
+        // Analytics JavaScript
+
+        // Initialize Page
+        function initPage() {
+            updateDateTime();
+            initCharts();
+            startRealTimeUpdates();
+        }
+
+        // Update Date Time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('currentDateTime').textContent = 
+                now.toLocaleDateString('id-ID', options);
+        }
+
+        // Initialize Charts
+        function initCharts() {
+            // Trend Chart
+            const trendCtx = document.getElementById('trendChart').getContext('2d');
+            new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                    datasets: [{
+                        label: 'Aspirasi',
+                        data: [1200, 1350, 1100, 1450, 1600, 1400, 1247],
+                        borderColor: '#ff8c00',
+                        backgroundColor: 'rgba(255, 140, 0, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Pengaduan',
+                        data: [800, 920, 750, 980, 1100, 950, 892],
+                        borderColor: '#ff6b35',
+                        backgroundColor: 'rgba(255, 107, 53, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'OSINT Mentions',
+                        data: [5000, 6200, 4800, 7800, 9200, 8500, 15247],
+                        borderColor: '#e55a2b',
+                        backgroundColor: 'rgba(229, 90, 43, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Category Chart
+            const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+            new Chart(categoryCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Infrastruktur', 'Pendidikan', 'Kesehatan', 'Ekonomi', 'Sosial'],
+                    datasets: [{
+                        data: [35, 25, 20, 15, 5],
+                        backgroundColor: [
+                            '#ff8c00',
+                            '#ff6b35',
+                            '#e55a2b',
+                            '#ffa500',
+                            '#ffb347'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+
+            // Geographic Chart
+            const geographicCtx = document.getElementById('geographicChart').getContext('2d');
+            new Chart(geographicCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['DKI Jakarta', 'Jawa Barat', 'Jawa Tengah', 'Jawa Timur', 'Sumatra Utara'],
+                    datasets: [{
+                        label: 'Volume Aspirasi',
+                        data: [245, 189, 156, 134, 98],
+                        backgroundColor: '#ff8c00'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Performance Chart
+            const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+            new Chart(performanceCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['Response Time', 'Resolution Rate', 'Satisfaction', 'Volume', 'Quality'],
+                    datasets: [{
+                        label: 'Current Performance',
+                        data: [85, 94, 87, 90, 88],
+                        borderColor: '#ff8c00',
+                        backgroundColor: 'rgba(255, 140, 0, 0.2)'
+                    }, {
+                        label: 'Target',
+                        data: [90, 95, 90, 95, 90],
+                        borderColor: '#ff6b35',
+                        backgroundColor: 'rgba(255, 107, 53, 0.2)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        // Real-time Updates
+        function startRealTimeUpdates() {
+            // Update time every minute
+            setInterval(updateDateTime, 60000);
+        }
+
+        // Refresh Analytics
+        function refreshAnalytics() {
+            alert('Data analytics berhasil di-refresh!');
+            // In real implementation, this would reload the data
+        }
+
+        // Export Analytics
+        function exportAnalytics() {
+            alert('Fitur export analytics akan segera tersedia!');
+        }
+
+        // Generate Report
+        function generateReport() {
+            alert('Report sedang dibuat...');
+            // In real implementation, this would generate a comprehensive report
+        }
+
+        // Initialize page when loaded
+        
+        
+        // Hide sidebar if opened in iframe
+        
+    
+        // Laporan JavaScript
+
+        // Initialize Page
+        function initPage() {
+            updateDateTime();
+            setDefaultDates();
+        }
+
+        // Update Date Time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('currentDateTime').textContent = 
+                now.toLocaleDateString('id-ID', options);
+        }
+
+        // Set Default Dates
+        function setDefaultDates() {
+            const today = new Date();
+            const lastWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+            
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+            document.getElementById('startDate').value = lastWeek.toISOString().split('T')[0];
+        }
+
+        // Generate Custom Report
+        function generateCustomReport() {
+            const formData = {
+                reportType: document.getElementById('reportType').value,
+                reportPeriod: document.getElementById('reportPeriod').value,
+                outputFormat: document.getElementById('outputFormat').value,
+                reportRegion: document.getElementById('reportRegion').value,
+                startDate: document.getElementById('startDate').value,
+                endDate: document.getElementById('endDate').value
+            };
+
+            console.log('Generating custom report:', formData);
+            alert('Custom report sedang dibuat...');
+        }
+
+        // Use Template
+        function useTemplate(templateType) {
+            alert(`Menggunakan template ${templateType}. Report sedang dibuat...`);
+        }
+
+        // Preview Template
+        function previewTemplate(templateType) {
+            alert(`Preview template ${templateType} akan segera tersedia!`);
+        }
+
+        // Generate Report
+        function generateReport() {
+            const formData = {
+                reportType: document.getElementById('reportType').value,
+                reportPeriod: document.getElementById('reportPeriod').value,
+                outputFormat: document.getElementById('outputFormat').value,
+                reportRegion: document.getElementById('reportRegion').value,
+                startDate: document.getElementById('startDate').value,
+                endDate: document.getElementById('endDate').value
+            };
+
+            console.log('Generating report:', formData);
+            alert('Report sedang dibuat...');
+        }
+
+        // Preview Report
+        function previewReport() {
+            alert('Preview report akan segera tersedia!');
+        }
+
+        // Reset Form
+        function resetForm() {
+            document.getElementById('reportForm').reset();
+            setDefaultDates();
+        }
+
+        // Download Report
+        function downloadReport(reportId) {
+            alert(`Downloading report ${reportId}...`);
+        }
+
+        // View Progress
+        function viewProgress(reportId) {
+            alert(`Progress report ${reportId}: 75% complete`);
+        }
+
+        // Edit Schedule
+        function editSchedule(scheduleType) {
+            alert(`Edit schedule untuk ${scheduleType} akan segera tersedia!`);
+        }
+
+        // Toggle Schedule
+        function toggleSchedule(scheduleType) {
+            alert(`Schedule ${scheduleType} telah di-pause/resume`);
+        }
+
+        // Initialize page when loaded
+        
+        
+        // Hide sidebar if opened in iframe
+        
+    
+        // Pengaturan JavaScript
+
+        // Initialize Page
+        function initPage() {
+            updateDateTime();
+        }
+
+        // Update Date Time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('currentDateTime').textContent = 
+                now.toLocaleDateString('id-ID', options);
+        }
+
+        // Save All Settings
+        function saveAllSettings() {
+            const settings = {
+                systemName: document.getElementById('systemName').value,
+                timezone: document.getElementById('timezone').value,
+                defaultLanguage: document.getElementById('defaultLanguage').value,
+                dateFormat: document.getElementById('dateFormat').value,
+                sessionTimeout: document.getElementById('sessionTimeout').value,
+                maxLoginAttempts: document.getElementById('maxLoginAttempts').value,
+                passwordMinLength: document.getElementById('passwordMinLength').value,
+                passwordExpiry: document.getElementById('passwordExpiry').value,
+                maintenanceMode: document.getElementById('maintenanceMode').checked,
+                maintenanceMessage: document.getElementById('maintenanceMessage').value
+            };
+
+            console.log('Saving settings:', settings);
+            alert('Semua pengaturan berhasil disimpan!');
+        }
+
+        // User Management
+        function addUser() {
+            alert('Form tambah user akan segera tersedia!');
+        }
+
+        function editUser(userId) {
+            alert(`Edit user ${userId} akan segera tersedia!`);
+        }
+
+        function deleteUser(userId) {
+            if (confirm(`Apakah Anda yakin ingin menghapus user ${userId}?`)) {
+                alert(`User ${userId} berhasil dihapus!`);
+            }
+        }
+
+        // Backup & Restore
+        function createBackup() {
+            alert('Backup sedang dibuat...');
+        }
+
+        function restoreData() {
+            alert('Fitur restore akan segera tersedia!');
+        }
+
+        function cleanupLogs() {
+            if (confirm('Apakah Anda yakin ingin membersihkan log lama?')) {
+                alert('Log berhasil dibersihkan!');
+            }
+        }
+
+        // System Maintenance
+        function restartSystem() {
+            if (confirm('Apakah Anda yakin ingin restart sistem? Ini akan mempengaruhi semua user yang sedang aktif.')) {
+                alert('Sistem akan restart dalam 30 detik...');
+            }
+        }
+
+        // Initialize page when loaded
+        
+        
+        // Hide sidebar if opened in iframe
+        
+        </script>
+</body>
+</html>

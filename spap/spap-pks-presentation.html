@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPAP PKS - Presentasi</title>
+    <style>
+        @page {
+            size: 1920px 1080px;
+            margin: 0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        .slide {
+            width: 1920px;
+            height: 1080px;
+            position: relative;
+            padding: 60px;
+            display: none;
+            page-break-after: always;
+            background: #fff;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        /* Print Styles */
+        @media print {
+            .slide {
+                display: block !important;
+                page-break-after: always;
+                margin: 0;
+                padding: 60px;
+            }
+        }
+
+        /* Header Styles */
+        .slide-header {
+            background: linear-gradient(135deg, #ff6b35 0%, #ff8c00 100%);
+            color: white;
+            padding: 40px 60px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 150px;
+        }
+
+        .slide-header h1 {
+            font-size: 3.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .slide-header .subtitle {
+            font-size: 1.5em;
+            opacity: 0.9;
+        }
+
+        /* Content Styles */
+        .slide-content {
+            margin-top: 150px;
+            height: calc(100% - 250px);
+            overflow-y: auto;
+        }
+
+        h2 {
+            color: #ff6b35;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #ff8c00;
+            padding-bottom: 15px;
+        }
+
+        h3 {
+            color: #e55a2b;
+            font-size: 2em;
+            margin: 30px 0 20px 0;
+        }
+
+        h4 {
+            color: #495057;
+            font-size: 1.5em;
+            margin: 20px 0 10px 0;
+        }
+
+        /* Two Column Layout */
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin: 30px 0;
+        }
+
+        .three-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        /* Cards */
+        .card {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            border-left: 6px solid #ff8c00;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .card h4 {
+            color: #ff6b35;
+            margin-bottom: 15px;
+            font-size: 1.6em;
+        }
+
+        /* Lists */
+        ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        ul li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+            font-size: 1.3em;
+            line-height: 1.6;
+        }
+
+        ul li:before {
+            content: "✓";
+            color: #28a745;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+            font-size: 1.2em;
+        }
+
+        /* Highlight Box */
+        .highlight-box {
+            background: linear-gradient(135deg, #ff8c00 0%, #ff6b35 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 15px;
+            margin: 30px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .highlight-box h3,
+        .highlight-box p {
+            color: white;
+        }
+
+        /* Footer */
+        .slide-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: #ff6b35;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 60px;
+            font-size: 1.2em;
+        }
+
+        .slide-number {
+            font-weight: bold;
+        }
+
+
+        /* Workflow Diagram */
+        .workflow {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .workflow-step {
+            display: inline-block;
+            background: #ff8c00;
+            color: white;
+            padding: 20px 35px;
+            margin: 10px;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 1.3em;
+        }
+
+        .workflow-arrow {
+            color: #ff8c00;
+            font-size: 2em;
+            margin: 0 15px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .stat-box {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            border-left: 6px solid #ff8c00;
+        }
+
+        .stat-icon {
+            font-size: 3em;
+            color: #ff8c00;
+            margin-bottom: 15px;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #ff6b35;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <!-- Slide 1: Cover -->
+    <div class="slide active" id="slide1">
+        <div class="slide-content" style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; text-align: center;">
+            <h1 style="font-size: 5em; color: #ff6b35; margin-bottom: 30px;">SPAP PKS</h1>
+            <p style="font-size: 2.5em; color: #ff8c00; margin-bottom: 40px;">Sistem Pelayanan dan Advokasi Publik</p>
+            <div class="highlight-box" style="max-width: 900px; margin: 0 auto;">
+                <h3 style="font-size: 2.2em; margin-bottom: 20px;">Jantung Interaksi Digital PKS-Masyarakat</h3>
+                <p style="font-size: 1.5em;">Platform Pelayanan Publik Berbasis AI</p>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <div>Partai Keadilan Sejahtera</div>
+            <div class="slide-number">1 / 15</div>
+        </div>
+    </div>
+
+    <!-- Slide 2: Agenda -->
+    <div class="slide" id="slide2">
+        <div class="slide-content">
+            <h2>📋 Agenda Presentasi</h2>
+            <ul style="font-size: 1.8em; line-height: 2.2;">
+                <li>Visi dan Tujuan Strategis</li>
+                <li>Arsitektur Dual-Kanal</li>
+                <li>Integrasi AI dan Analytics</li>
+                <li>Alur Data dan Processing</li>
+                <li>Implementasi Berkelanjutan</li>
+                <li>Value Proposition</li>
+            </ul>
+        </div>
+        <div class="slide-footer">
+            <div>SPAP PKS</div>
+            <div class="slide-number">2 / 15</div>
+        </div>
+    </div>
+
+    <!-- Slide 3: Visi -->
+    <div class="slide" id="slide3">
+        <div class="slide-content">
+            <h2>🎯 Visi dan Misi</h2>
+            <div class="highlight-box">
+                <h3 style="font-size: 2.5em; margin-bottom: 30px;">Visi SPAP PKS</h3>
+                <p style="font-size: 2em;">Menjadi jantung interaksi digital PKS-masyarakat yang memperkuat peran PKS sebagai <strong>"party of service"</strong></p>
+            </div>
+            
+            <div class="two-column" style="margin-top: 50px;">
+                <div class="card">
+                    <h4>🎯 Tujuan Strategis</h4>
+                    <ul>
+                        <li>Menghubungkan struktur partai di semua tingkatan dengan masyarakat</li>
+                        <li>Memfasilitasi tindak lanjut aspirasi rakyat secara cepat dan transparan</li>
+                        <li>Menghasilkan data untuk kebijakan berbasis bukti</li>
+                        <li>Memperkuat kepercayaan publik dan loyalitas konstituen</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4>💡 Konsep Utama</h4>
+                    <ul>
+                        <li>Pelayanan Publik Digital</li>
+                        <li>Advokasi Rakyat Terintegrasi</li>
+                        <li>Data-Driven Decision Making</li>
+                        <li>Platform Interaktif Multi-Channel</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <div>SPAP PKS</div>
+            <div class="slide-number">3 / 15</div>
+        </div>
+    </div>
+
+    <!-- Slide 4: Arsitektur Dual-Kanal -->
+    <div class="slide" id="slide4">
+        <div class="slide-content">
+            <h2>🏗️ Arsitektur Dual-Kanal</h2>
+            <div class="two-column">
+                <div class="card">
+                    <h4>📥 Kanal Pasif</h4>
+                    <p style="font-size: 1.3em; margin-bottom: 20px; color: #666;"><strong>Reactive Channel</strong></p>
+                    <ul>
+                        <li>WhatsApp Business</li>
+                        <li>Media Sosial DM</li>
+                        <li>Kolom Komentar</li>
+                        <li>Email & Web Form</li>
+                        <li>Hotline Telepon</li>
+                        <li>Mobile App</li>
+                    </ul>
+                    <p style="margin-top: 30px; font-size: 1.2em; font-style: italic; color: #666;">Masyarakat menginisiasi komunikasi</p>
+                </div>
+
+                <div class="card">
+                    <h4>📡 Kanal Aktif</h4>
+                    <p style="font-size: 1.3em; margin-bottom: 20px; color: #666;"><strong>Proactive Channel (OSINT)</strong></p>
+                    <ul>
+                        <li>Trending Topics</li>
+                        <li>Sentiment Analysis</li>
+                        <li>Hashtag Monitoring</li>
+                        <li>News Analysis</li>
+                        <li>Mentions Tracking</li>
+                        <li>Forum Monitoring</li>
+                    </ul>
+                    <p style="margin-top: 30px; font-size: 1.2em; font-style: italic; color: #666;">PKS menginisiasi pengumpulan data</p>
+                </div>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <div>SPAP PKS</div>
+            <div class="slide-number">4 / 15</div>
+        </div>
+    </div>
+
+    <!-- Slide 5: AI Integration -->
+    <div class="slide" id="slide5">
+        <div class="slide-content">
+            <h2>🤖 Integrasi AI dan Analytics</h2>
+            
+            <div class="three-column">
+                <div class="card">
+                    <h4>🔍 Klusterisasi</h4>
+                    <ul>
+                        <li>Topic Clustering</li>
+                        <li>Geographic</li>
+                        <li>Temporal Pattern</li>
+                        <li>Sentiment Grouping</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h4>📊 Klasifikasi</h4>
+                    <ul>
+                        <li>Kategori Aspirasi</li>
+                        <li>Level Urgensi</li>
+                        <li>Stakeholder Mapping</li>
+                        <li>Compliance Check</li>
+                    </ul>
+                </div>
+                
+                <div class="card">
+                    <h4>⭐ Kualifikasi</h4>
+                    <ul>
+                        <li>Credibility Scoring</li>
+                        <li>Impact Assessment</li>
+                        <li>Resource Estimation</li>
+                        <li>Timeline Prediction</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="highlight-box" style="margin-top: 40px;">
+                <h3 style="font-size: 2em; margin-bottom: 20px;">AI-Powered Intelligence</h3>
+                <p style="font-size: 1.5em;">Transformasi data mentah menjadi insights strategis untuk kebijakan berbasis bukti</p>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <div>SPAP PKS</div>
+            <div class="slide-number">5 / 15</div>
+        </div>
+    </div>
+
+    <!-- Slide 6: Data Flow -->
+    <div class="slide" id="slide6">
+        <div class="slide-content">
+            <h2>🔄 Alur Data dan Processing</h2>
+            
+            <div class="workflow" style="margin: 50px 0;">
+                <span class="workflow-step">Data Ingestion</span>
+                <span class="workflow-arrow">→</span>
+                <span class="workflow-step">AI Processing</span>
+                <span class="workflow-arrow">→</span>
+                <span class="workflow-step">Output</span>
+            </div>
+
+            <div class="two-column">
+                <div class="card">
+                    <h4>📥 Data Ingestion</h4>
+                    <ul>
+                        <li>Multi-Channel Collection</li>
+                        <li>Data Normalization</li>
+                        <li>Quality Control</li>
+                        <li>Real-time Processing</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h4>🧠 AI Processing</h4>
+                    <ul>
+                        <li>Preprocessing</li>
+                        <li>Feature Extraction</li>
+                        <li>ML Models</li>
+                        <li>Post-processing</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <div>SPAP PKS</div>
+            <div class="slide-number">6 / 15</div>
+        </div>
+    </div>
+
+    <!-- Slide 7: Output Generation -->
+    <div class="slide" id="slide7">
+        <div class="slide-content">
+            <h2>📤 Output & Insights</h2>
+            
+            <div class="two-column">
+                <div class="card">
+                    <h4>📊 Dashboard Analytics</h4>
+                    <ul>
+                        <li>Executive Summary</li>
+                        <li>Trend Analysis</li>
+                        <li>Geographic Heatmap</li>
+                        <li>Performance Metrics</li>
+                        <li>Real-time Monitoring</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h4>📋 Output Reports</h4>
+                    <ul>
+                        <li>Automated Report Generation</li>
+                        <li>Alert System</li>
+                        <li>Policy Recommendations</li>
+                        <li>Scheduled Reports</li>
+                        <li>Custom Analytics</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="highlight-box" style="margin-top: 30px;">
+                <h3 style="font-size: 2em; margin-bottom: 20px;">📈 Data-Driven Decision Making</h3>
+                <p style="font-size: 1.5em;">Setiap keputusan didukung oleh data real-time dan insights mendalam dari AI</p>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <div>SPAP PKS</div>
+            <div class="slide-number">7 / 15</div>
+        </div>
+    </div>
+
+    <!-- Slide 8: Struktur Organisasi -->
+    <div class="slide" id="slide8">
+        <div class="slide-content">
+            <h2>🏛️ Struktur Organisasi</h2>
+            
+            <div class="two-column">
+                <div class="card">
+                    <h4>📋 Hierarki Responsibility</h4>
+                    <ul>
+                        <li>DPP: Strategic oversight & policy formulation</li>
+                        <li>DPW/DPD: Regional coordination & resource allocation</li>
+                        <li>DPC/DPRa: Local implementation & community engagement</li>
+                        <li>Legislator: Policy advocacy & constituent service</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h4>⚙️ Workflow Management</h4>
+                    <ul>
+                        <li>Triage System (auto-routing)</li>
+                        <li>Escalation Matrix</li>
+                        <li>SLA Tracking</li>
+                        <li>Performance Metrics & KPI</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="highlight-box" style="margin-top: 30px;">
+                <h3 style="font-size: 2em;">🎯 End-to-End Accountability</h3>
+                <p style="font-size: 1.5em;">Setiap aspirasi ditindaklanjuti dengan transparansi dan akuntabilitas penuh</p>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <div>SPAP PKS</div>
+            <div class="slide-number">8 / 15</div>
+        </div>
+    </div>
+
+    <!-- Slide 9: Fitur Utama -->
+    <div class="slide" id="slide9">
+        <div class="slide-content">
+            <h2>🛠️ Fitur Utama Sistem</h2>
+            
+            <div class="three-column">
+                <div class="card">
+                    <h4>👑 Executive Dashboard</h4>
+                    <ul>
+                        <li>Real-time metrics</li>
+                        <li>Performance tracking</li>
+                        <li>Strategic insights</li>
+                        <li>Geographic overview</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h4>🌐 Public Portal</h4>
+                    <ul>
+                        <li>Multi-channel access</li>
+                        <li>Status tracking</li>
+                        <li>Feedback loop</li>
+                        <li>Transparency</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h4>📱 Mobile App</h4>
+                    <ul>
+                        <li>Offline capability</li>
+                        <li>Push notifications</li>
+                        <li>Location services</li>
+                        <li>Multimedia support</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <div>SPAP PKS</div>
+            <div class="slide-number">9 / 15</div>
+        </div>
+    </div>
+
+    <!-- Slide 10: Keamanan -->
+    <div class="slide" id="slide10">
+        <div class="slide-content">
+            <h2>🔒 Keamanan dan Privacy</h2>
+            
+            <div class="two-column">
+                <div class="card">
+                    <h4>🛡️ Data Protection</h4>
+                    <ul>
+                        <li>End-to-end encryption</li>
+                        <li>Role-based access control</li>
+                        <li>Audit trail</li>
+                        <li>Backup & recovery</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h4>📜 Compliance</h4>
+                    <ul>
+                        <li>UU PDP/GDPR Compliance</li>
+                        <li>UU ITE compliance</li>
+                        <li>Data anonymization</li>
+                        <li>Retention policy</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="highlight-box" style="margin-top: 30px;">
+                <h3 style="font-size: 2em;">🔐 Trust & Security First</h3>
+                <p style="font-size: 1.5em;">Keamanan data adalah prioritas utama dalam membangun kepercayaan masyarakat</p>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <div>SPAP PKS</div>
+            <div class="slide-number">10 / 15</div>
+        </div>
+    </div>
+
+    <!-- Slide 11: Implementasi Phase 1 -->
+    <div class="slide" id="slide11">
+        <div class="slide-content">
+            <h2>🚀 Phase 1: Foundation</h2>
+            <p style="font-size: 2em; color: #ff6b35; margin-bottom: 30px;"><strong>3-6 Bulan</strong></p>
+            
+            <div class="card">
+                <ul>
+                    <li>Setup infrastruktur dasar (cloud & database)</li>
+                    <li>Implementasi kanal pasif (WhatsApp, Social Media)</li>
+                    <li>Basic AI processing (clustering & classification)</li>
+                    <li>Dashboard admin dan portal publik</li>
+                    <li>Training tim internal</li>
+                    <li>Pilot testing di 5 provinsi</li>
+                </ul>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <div>SPAP PKS</div>
+            <div class="slide-number">11 / 15</div>
+        </div>
+    </div>
+
+    <!-- Slide 12: Implementasi Phase 2 -->
+    <div class="slide" id="slide12">
+        <div class="slide-content">
+            <h2>🚀 Phase 2: Enhancement</h2>
+            <p style="font-size: 2em; color: #ff6b35; margin-bottom: 30px;"><strong>6-12 Bulan</strong></p>
+            
+            <div class="card">
+                <ul>
+                    <li>Implementasi kanal aktif (OSINT monitoring)</li>
+                    <li>Advanced AI capabilities (sentiment analysis, predictive)</li>
+                    <li>Mobile application iOS & Android</li>
+                    <li>Integration dengan sistem existing PKS</li>
+                    <li>Scale-up ke 20 provinsi</li>
+                    <li>Community engagement program</li>
+                </ul>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <div>SPAP PKS</div>
+            <div class="slide-number">12 / 15</div>
+        </div>
+    </div>
+
+    <!-- Slide 13: Implementasi Phase 3 -->
+    <div class="slide" id="slide13">
+        <div class="slide-content">
+            <h2>🚀 Phase 3: Optimization</h2>
+            <p style="font-size: 2em; color: #ff6b35; margin-bottom: 30px;"><strong>12+ Bulan</strong></p>
+            
+            <div class="card">
+                <ul>
+                    <li>Machine learning optimization</li>
+                    <li>Advanced analytics & predictive capabilities</li>
+                    <li>Automated workflow & decision support</li>
+                    <li>Full scale-up ke seluruh Indonesia</li>
+                    <li>Integration dengan ekosistem politik digital</li>
+                    <li>Continuous improvement & innovation</li>
+                </ul>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <div>SPAP PKS</div>
+            <div class="slide-number">13 / 15</div>
+        </div>
+    </div>
+
+    <!-- Slide 14: Value Proposition -->
+    <div class="slide" id="slide14">
+        <div class="slide-content">
+            <h2>💎 Value Proposition</h2>
+            
+            <div class="three-column">
+                <div class="card">
+                    <h4>🏛️ Untuk PKS</h4>
+                    <ul>
+                        <li>Efektivitas pelayanan meningkat</li>
+                        <li>Data-driven policymaking</li>
+                        <li>Citra "party of service"</li>
+                        <li>Competitive advantage</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h4>👥 Untuk Masyarakat</h4>
+                    <ul>
+                        <li>Akses mudah aspirasi</li>
+                        <li>Transparansi proses</li>
+                        <li>Respons cepat</li>
+                        <li>Suara didengar</li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h4>🗳️ Untuk Demokratisasi</h4>
+                    <ul>
+                        <li>Partisipasi politik meningkat</li>
+                        <li>Transparansi digital</li>
+                        <li>Accountability tinggi</li>
+                        <li>Evidence-based governance</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <div>SPAP PKS</div>
+            <div class="slide-number">14 / 15</div>
+        </div>
+    </div>
+
+    <!-- Slide 15: Closing -->
+    <div class="slide" id="slide15">
+        <div class="slide-content" style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; text-align: center;">
+            <h1 style="font-size: 4em; color: #ff6b35; margin-bottom: 40px;">Terima Kasih</h1>
+            
+            <div class="highlight-box" style="max-width: 1000px; margin: 0 auto;">
+                <h3 style="font-size: 2.5em; margin-bottom: 30px;">SPAP PKS</h3>
+                <p style="font-size: 2em; margin-bottom: 20px;">Sistem Pelayanan dan Advokasi Publik</p>
+                <p style="font-size: 1.8em;">Membangun Jembatan Digital</p>
+                <p style="font-size: 1.8em;">Antara Partai dan Masyarakat</p>
+            </div>
+
+            <div style="margin-top: 60px;">
+                <p style="font-size: 2em; color: #ff8c00; font-weight: bold;">Partai Keadilan Sejahtera</p>
+                <p style="font-size: 1.5em; color: #666; margin-top: 20px;">"Party of Service"</p>
+            </div>
+        </div>
+        <div class="slide-footer">
+            <div>SPAP PKS</div>
+            <div class="slide-number">15 / 15</div>
+        </div>
+    </div>
+
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 15;
+
+        function showSlide(n) {
+            const slides = document.querySelectorAll('.slide');
+            if (n > totalSlides) currentSlide = 1;
+            if (n < 1) currentSlide = totalSlides;
+            
+            slides.forEach(slide => slide.classList.remove('active'));
+            document.getElementById(`slide${currentSlide}`).classList.add('active');
+        }
+
+        function nextSlide() {
+            currentSlide++;
+            if (currentSlide > totalSlides) currentSlide = 1;
+            showSlide(currentSlide);
+        }
+
+        function previousSlide() {
+            currentSlide--;
+            if (currentSlide < 1) currentSlide = totalSlides;
+            showSlide(currentSlide);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') nextSlide();
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') previousSlide();
+        });
+
+        // Initialize
+        showSlide(currentSlide);
+    </script>
+</body>
+</html>

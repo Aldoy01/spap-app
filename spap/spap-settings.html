@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPAP PKS - Pengaturan</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: linear-gradient(135deg, #ff6b35 0%, #ff8c00 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .logo h1 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+
+        .logo p {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-menu li {
+            margin-bottom: 10px;
+        }
+
+        .nav-menu a {
+            display: block;
+            padding: 12px 15px;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .nav-menu a:hover,
+        .nav-menu a.active {
+            background: rgba(255,255,255,0.2);
+            transform: translateX(5px);
+        }
+
+        .nav-menu .icon {
+            margin-right: 10px;
+            font-size: 1.1em;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h2 {
+            color: #ff6b35;
+            font-size: 1.8em;
+        }
+
+        .header .date-time {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        /* Settings Sections */
+        .settings-section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .settings-section h3 {
+            color: #ff6b35;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 30px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #ff8c00;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+
+        /* Settings Grid */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #ff8c00;
+        }
+
+        .setting-info h4 {
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 1em;
+        }
+
+        .setting-info p {
+            color: #666;
+            font-size: 0.8em;
+        }
+
+        /* User Management */
+        .user-list {
+            list-style: none;
+        }
+
+        .user-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #ff8c00;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #ff8c00;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 1.2em;
+        }
+
+        .user-details h4 {
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 1em;
+        }
+
+        .user-details p {
+            color: #666;
+            font-size: 0.8em;
+        }
+
+        .user-role {
+            background: #e9ecef;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            color: #666;
+            margin-right: 10px;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #ff8c00;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #ff6b35;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        /* System Status */
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .status-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #ff8c00;
+        }
+
+        .status-item.online {
+            border-left-color: #28a745;
+            background: #e8f5e8;
+        }
+
+        .status-item.offline {
+            border-left-color: #dc3545;
+            background: #ffebee;
+        }
+
+        .status-item.warning {
+            border-left-color: #ffc107;
+            background: #fffbf0;
+        }
+
+        .status-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .status-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .status-value {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        /* Backup & Restore */
+        .backup-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .backup-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #ff8c00;
+        }
+
+        .backup-item h4 {
+            color: #ff6b35;
+            margin-bottom: 10px;
+        }
+
+        .backup-item p {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .status-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <h1>SPAP PKS</h1>
+                <p>Sistem Pelayanan & Advokasi Publik</p>
+            </div>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="spap-dashboard.html"><span class="icon">📊</span>Dashboard</a></li>
+                    <li><a href="spap-aspirasi.html"><span class="icon">💬</span>Aspirasi Masyarakat</a></li>
+                    <li><a href="spap-pengaduan.html"><span class="icon">📝</span>Pengaduan</a></li>
+                    <li><a href="spap-osint.html"><span class="icon">🔍</span>OSINT Monitoring</a></li>
+                    <li><a href="spap-analytics.html"><span class="icon">📈</span>Analytics</a></li>
+                    <li><a href="spap-reports.html"><span class="icon">📋</span>Laporan</a></li>
+                    <li><a href="spap-settings.html" class="active"><span class="icon">⚙️</span>Pengaturan</a></li>
+                </ul>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <div>
+                    <h2>⚙️ Pengaturan Sistem</h2>
+                    <div class="date-time" id="currentDateTime"></div>
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="saveAllSettings()">💾 Simpan Semua</button>
+                </div>
+            </div>
+
+            <!-- System Status -->
+            <div class="settings-section">
+                <h3>📊 Status Sistem</h3>
+                <div class="status-grid">
+                    <div class="status-item online">
+                        <div class="status-icon">🟢</div>
+                        <div class="status-title">Database</div>
+                        <div class="status-value">Online</div>
+                    </div>
+                    <div class="status-item online">
+                        <div class="status-icon">🟢</div>
+                        <div class="status-title">API Services</div>
+                        <div class="status-value">Online</div>
+                    </div>
+                    <div class="status-item warning">
+                        <div class="status-icon">🟡</div>
+                        <div class="status-title">OSINT Monitoring</div>
+                        <div class="status-value">Partial</div>
+                    </div>
+                    <div class="status-item online">
+                        <div class="status-icon">🟢</div>
+                        <div class="status-title">Email Service</div>
+                        <div class="status-value">Online</div>
+                    </div>
+                    <div class="status-item online">
+                        <div class="status-icon">🟢</div>
+                        <div class="status-title">Storage</div>
+                        <div class="status-value">85% Used</div>
+                    </div>
+                    <div class="status-item online">
+                        <div class="status-icon">🟢</div>
+                        <div class="status-title">Backup</div>
+                        <div class="status-value">Last: 2 hours ago</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- General Settings -->
+            <div class="settings-section">
+                <h3>🔧 Pengaturan Umum</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nama Sistem:</label>
+                        <input type="text" value="SPAP PKS" id="systemName">
+                    </div>
+                    <div class="form-group">
+                        <label>Timezone:</label>
+                        <select id="timezone">
+                            <option value="WIB">WIB (UTC+7)</option>
+                            <option value="WITA">WITA (UTC+8)</option>
+                            <option value="WIT">WIT (UTC+9)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Bahasa Default:</label>
+                        <select id="defaultLanguage">
+                            <option value="id">Bahasa Indonesia</option>
+                            <option value="en">English</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Format Tanggal:</label>
+                        <select id="dateFormat">
+                            <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                            <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                            <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notification Settings -->
+            <div class="settings-section">
+                <h3>🔔 Pengaturan Notifikasi</h3>
+                <div class="settings-grid">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Email Notifications</h4>
+                            <p>Kirim notifikasi via email</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>SMS Notifications</h4>
+                            <p>Kirim notifikasi via SMS</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Push Notifications</h4>
+                            <p>Notifikasi push ke aplikasi mobile</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Alert Kritis</h4>
+                            <p>Notifikasi untuk alert kritis</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Management -->
+            <div class="settings-section">
+                <h3>👥 Manajemen User</h3>
+                <div style="text-align: right; margin-bottom: 20px;">
+                    <button class="btn btn-primary" onclick="addUser()">+ Tambah User</button>
+                </div>
+                <ul class="user-list">
+                    <li class="user-item">
+                        <div class="user-info">
+                            <div class="user-avatar">👤</div>
+                            <div class="user-details">
+                                <h4>Admin PKS</h4>
+                                <p>admin@pks.id</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <span class="user-role">Super Admin</span>
+                            <div class="user-actions">
+                                <button class="btn btn-warning" onclick="editUser('admin')">✏️ Edit</button>
+                                <button class="btn btn-danger" onclick="deleteUser('admin')">🗑️ Delete</button>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="user-item">
+                        <div class="user-info">
+                            <div class="user-avatar">👨‍💼</div>
+                            <div class="user-details">
+                                <h4>Manager Regional</h4>
+                                <p>manager@pks.id</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <span class="user-role">Manager</span>
+                            <div class="user-actions">
+                                <button class="btn btn-warning" onclick="editUser('manager')">✏️ Edit</button>
+                                <button class="btn btn-danger" onclick="deleteUser('manager')">🗑️ Delete</button>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="user-item">
+                        <div class="user-info">
+                            <div class="user-avatar">👩‍💻</div>
+                            <div class="user-details">
+                                <h4>Operator SPAP</h4>
+                                <p>operator@pks.id</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <span class="user-role">Operator</span>
+                            <div class="user-actions">
+                                <button class="btn btn-warning" onclick="editUser('operator')">✏️ Edit</button>
+                                <button class="btn btn-danger" onclick="deleteUser('operator')">🗑️ Delete</button>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Security Settings -->
+            <div class="settings-section">
+                <h3>🔒 Pengaturan Keamanan</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Session Timeout (menit):</label>
+                        <input type="number" value="30" id="sessionTimeout">
+                    </div>
+                    <div class="form-group">
+                        <label>Max Login Attempts:</label>
+                        <input type="number" value="5" id="maxLoginAttempts">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Password Min Length:</label>
+                        <input type="number" value="8" id="passwordMinLength">
+                    </div>
+                    <div class="form-group">
+                        <label>Password Expiry (hari):</label>
+                        <input type="number" value="90" id="passwordExpiry">
+                    </div>
+                </div>
+                <div class="settings-grid">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>Two-Factor Authentication</h4>
+                            <p>Wajibkan 2FA untuk semua user</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>IP Whitelist</h4>
+                            <p>Batasi akses berdasarkan IP</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backup & Restore -->
+            <div class="settings-section">
+                <h3>💾 Backup & Restore</h3>
+                <div class="backup-section">
+                    <div class="backup-item">
+                        <h4>📦 Manual Backup</h4>
+                        <p>Buat backup manual dari semua data sistem</p>
+                        <button class="btn btn-primary" onclick="createBackup()">Buat Backup</button>
+                    </div>
+                    <div class="backup-item">
+                        <h4>🔄 Restore Data</h4>
+                        <p>Restore data dari file backup sebelumnya</p>
+                        <button class="btn btn-warning" onclick="restoreData()">Restore</button>
+                    </div>
+                    <div class="backup-item">
+                        <h4>🗑️ Cleanup Logs</h4>
+                        <p>Bersihkan log lama untuk menghemat storage</p>
+                        <button class="btn btn-secondary" onclick="cleanupLogs()">Cleanup</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Maintenance -->
+            <div class="settings-section">
+                <h3>🔧 System Maintenance</h3>
+                <div class="form-group">
+                    <label>Maintenance Mode:</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="maintenanceMode">
+                        <span class="slider"></span>
+                    </label>
+                    <p style="color: #666; font-size: 0.8em; margin-top: 5px;">Aktifkan untuk melakukan maintenance sistem</p>
+                </div>
+                <div class="form-group">
+                    <label>Maintenance Message:</label>
+                    <textarea id="maintenanceMessage" placeholder="Pesan yang akan ditampilkan saat maintenance mode aktif...">Sistem sedang dalam maintenance. Mohon maaf atas ketidaknyamanan ini.</textarea>
+                </div>
+                <div style="text-align: right;">
+                    <button class="btn btn-danger" onclick="restartSystem()">🔄 Restart System</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Page
+        function initPage() {
+            updateDateTime();
+        }
+
+        // Update Date Time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('currentDateTime').textContent = 
+                now.toLocaleDateString('id-ID', options);
+        }
+
+        // Save All Settings
+        function saveAllSettings() {
+            const settings = {
+                systemName: document.getElementById('systemName').value,
+                timezone: document.getElementById('timezone').value,
+                defaultLanguage: document.getElementById('defaultLanguage').value,
+                dateFormat: document.getElementById('dateFormat').value,
+                sessionTimeout: document.getElementById('sessionTimeout').value,
+                maxLoginAttempts: document.getElementById('maxLoginAttempts').value,
+                passwordMinLength: document.getElementById('passwordMinLength').value,
+                passwordExpiry: document.getElementById('passwordExpiry').value,
+                maintenanceMode: document.getElementById('maintenanceMode').checked,
+                maintenanceMessage: document.getElementById('maintenanceMessage').value
+            };
+
+            console.log('Saving settings:', settings);
+            alert('Semua pengaturan berhasil disimpan!');
+        }
+
+        // User Management
+        function addUser() {
+            alert('Form tambah user akan segera tersedia!');
+        }
+
+        function editUser(userId) {
+            alert(`Edit user ${userId} akan segera tersedia!`);
+        }
+
+        function deleteUser(userId) {
+            if (confirm(`Apakah Anda yakin ingin menghapus user ${userId}?`)) {
+                alert(`User ${userId} berhasil dihapus!`);
+            }
+        }
+
+        // Backup & Restore
+        function createBackup() {
+            alert('Backup sedang dibuat...');
+        }
+
+        function restoreData() {
+            alert('Fitur restore akan segera tersedia!');
+        }
+
+        function cleanupLogs() {
+            if (confirm('Apakah Anda yakin ingin membersihkan log lama?')) {
+                alert('Log berhasil dibersihkan!');
+            }
+        }
+
+        // System Maintenance
+        function restartSystem() {
+            if (confirm('Apakah Anda yakin ingin restart sistem? Ini akan mempengaruhi semua user yang sedang aktif.')) {
+                alert('Sistem akan restart dalam 30 detik...');
+            }
+        }
+
+        // Initialize page when loaded
+        document.addEventListener('DOMContentLoaded', initPage);
+        
+        // Hide sidebar if opened in iframe
+        if (window.location.search.includes('hideSidebar=true')) {
+            document.querySelector('.sidebar').style.display = 'none';
+            document.querySelector('.dashboard-container').style.gridTemplateColumns = '1fr';
+            document.querySelector('.main-content').style.padding = '20px';
+        }
+    </script>
+</body>
+</html>

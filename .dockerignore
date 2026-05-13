@@ -1,0 +1,7 @@
+node_modules
+backend/node_modules
+.git
+__MACOSX
+spap/*.pdf
+*.zip
+*.log

@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPAP PKS Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: linear-gradient(135deg, #ff6b35 0%, #ff8c00 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .logo h1 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+
+        .logo p {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-menu li {
+            margin-bottom: 10px;
+        }
+
+        .nav-menu a {
+            display: block;
+            padding: 12px 15px;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .nav-menu a:hover,
+        .nav-menu a.active {
+            background: rgba(255,255,255,0.2);
+            transform: translateX(5px);
+        }
+
+        .nav-menu .icon {
+            margin-right: 10px;
+            font-size: 1.1em;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h2 {
+            color: #ff6b35;
+            font-size: 1.8em;
+        }
+
+        .header .date-time {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #ff8c00;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card .icon {
+            font-size: 2.5em;
+            color: #ff8c00;
+            margin-bottom: 15px;
+        }
+
+        .stat-card h3 {
+            color: #ff6b35;
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .stat-card .trend {
+            margin-top: 10px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .trend.up {
+            color: #28a745;
+        }
+
+        .trend.down {
+            color: #dc3545;
+        }
+
+        /* Charts Section */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .chart-container h3 {
+            color: #ff6b35;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Recent Activities */
+        .activities-section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .activities-section h3 {
+            color: #ff6b35;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #ff8c00;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 1.2em;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-content h4 {
+            color: #333;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .activity-content p {
+            color: #666;
+            font-size: 0.8em;
+        }
+
+        .activity-time {
+            color: #999;
+            font-size: 0.8em;
+        }
+
+        /* Geographic Heatmap */
+        .heatmap-section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .heatmap-section h3 {
+            color: #ff6b35;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .province-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .province-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #ff8c00;
+        }
+
+        .province-item.high {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        .province-item.medium {
+            border-left-color: #ffc107;
+            background: #fffbf0;
+        }
+
+        .province-item.low {
+            border-left-color: #28a745;
+            background: #f0fff4;
+        }
+
+        .province-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .province-count {
+            font-size: 1.5em;
+            color: #ff6b35;
+            font-weight: bold;
+        }
+
+        /* Alert System */
+        .alert-section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .alert-section h3 {
+            color: #ff6b35;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .alert-item {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid;
+        }
+
+        .alert-item.critical {
+            background: #fff5f5;
+            border-left-color: #dc3545;
+        }
+
+        .alert-item.warning {
+            background: #fffbf0;
+            border-left-color: #ffc107;
+        }
+
+        .alert-item.info {
+            background: #f0f8ff;
+            border-left-color: #17a2b8;
+        }
+
+        .alert-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .alert-message {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #ff8c00;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Filter Controls */
+        .filter-controls {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-controls select,
+        .filter-controls input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+
+        .filter-controls button {
+            background: #ff8c00;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background 0.3s;
+        }
+
+        .filter-controls button:hover {
+            background: #ff6b35;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <h1>SPAP PKS</h1>
+                <p>Sistem Pelayanan & Advokasi Publik</p>
+            </div>
+            <nav>
+                <ul class="nav-menu">
+                    <li><a href="spap-dashboard.html" class="active"><span class="icon">📊</span>Dashboard</a></li>
+                    <li><a href="spap-aspirasi.html"><span class="icon">💬</span>Aspirasi Masyarakat</a></li>
+                    <li><a href="spap-pengaduan.html"><span class="icon">📝</span>Pengaduan</a></li>
+                    <li><a href="spap-osint.html"><span class="icon">🔍</span>OSINT Monitoring</a></li>
+                    <li><a href="spap-analytics.html"><span class="icon">📈</span>Analytics</a></li>
+                    <li><a href="spap-reports.html"><span class="icon">📋</span>Laporan</a></li>
+                    <li><a href="spap-settings.html"><span class="icon">⚙️</span>Pengaturan</a></li>
+                </ul>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <div>
+                    <h2>Dashboard SPAP PKS</h2>
+                    <div class="date-time" id="currentDateTime"></div>
+                </div>
+                <div>
+                    <span class="loading" id="statusIndicator"></span>
+                    <span style="margin-left: 10px; color: #28a745;">Sistem Aktif</span>
+                </div>
+            </div>
+
+            <!-- Filter Controls -->
+            <div class="filter-controls">
+                <select id="timeFilter">
+                    <option value="today">Hari Ini</option>
+                    <option value="week">Minggu Ini</option>
+                    <option value="month">Bulan Ini</option>
+                    <option value="year">Tahun Ini</option>
+                </select>
+                <select id="regionFilter">
+                    <option value="all">Semua Wilayah</option>
+                    <option value="jabodetabek">Jabodetabek</option>
+                    <option value="jawa">Jawa</option>
+                    <option value="sumatra">Sumatra</option>
+                    <option value="kalimantan">Kalimantan</option>
+                    <option value="sulawesi">Sulawesi</option>
+                    <option value="papua">Papua</option>
+                </select>
+                <select id="categoryFilter">
+                    <option value="all">Semua Kategori</option>
+                    <option value="infrastruktur">Infrastruktur</option>
+                    <option value="pendidikan">Pendidikan</option>
+                    <option value="kesehatan">Kesehatan</option>
+                    <option value="ekonomi">Ekonomi</option>
+                    <option value="sosial">Sosial</option>
+                </select>
+                <button onclick="refreshData()">🔄 Refresh Data</button>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="icon">💬</div>
+                    <h3 id="totalAspirasi">1,247</h3>
+                    <p>Total Aspirasi</p>
+                    <div class="trend up">↗ +12% dari minggu lalu</div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">📝</div>
+                    <h3 id="totalPengaduan">892</h3>
+                    <p>Total Pengaduan</p>
+                    <div class="trend down">↘ -5% dari minggu lalu</div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">✅</div>
+                    <h3 id="resolvedIssues">1,089</h3>
+                    <p>Issues Terselesaikan</p>
+                    <div class="trend up">↗ +18% dari minggu lalu</div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon">⏱️</div>
+                    <h3 id="avgResponseTime">2.3</h3>
+                    <p>Rata-rata Response Time (jam)</p>
+                    <div class="trend down">↘ -0.5 jam dari minggu lalu</div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h3>📈 Trend Aspirasi & Pengaduan</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <h3>🎯 Kategori Aspirasi</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Geographic Heatmap -->
+            <div class="heatmap-section">
+                <h3>🗺️ Distribusi Geografis Aspirasi</h3>
+                <div class="province-grid" id="provinceGrid">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Recent Activities -->
+            <div class="activities-section">
+                <h3>🕒 Aktivitas Terbaru</h3>
+                <div id="recentActivities">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Alert System -->
+            <div class="alert-section">
+                <h3>🚨 Alert & Notifikasi</h3>
+                <div id="alertSystem">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock Data
+        const mockData = {
+            provinces: [
+                { name: 'DKI Jakarta', count: 245, level: 'high' },
+                { name: 'Jawa Barat', count: 189, level: 'high' },
+                { name: 'Jawa Tengah', count: 156, level: 'medium' },
+                { name: 'Jawa Timur', count: 134, level: 'medium' },
+                { name: 'Sumatra Utara', count: 98, level: 'low' },
+                { name: 'Sumatra Selatan', count: 87, level: 'low' },
+                { name: 'Kalimantan Timur', count: 76, level: 'low' },
+                { name: 'Sulawesi Selatan', count: 65, level: 'low' }
+            ],
+            activities: [
+                { icon: '💬', title: 'Aspirasi baru diterima', desc: 'Infrastruktur jalan di Depok', time: '5 menit lalu' },
+                { icon: '✅', title: 'Pengaduan terselesaikan', desc: 'Masalah air bersih di Bekasi', time: '15 menit lalu' },
+                { icon: '📊', title: 'Laporan mingguan generated', desc: 'Statistik periode 1-7 Jan 2024', time: '1 jam lalu' },
+                { icon: '🔍', title: 'OSINT alert detected', desc: 'Trending topic: #HargaSembako', time: '2 jam lalu' },
+                { icon: '📝', title: 'Pengaduan baru', desc: 'Fasilitas kesehatan di Bandung', time: '3 jam lalu' }
+            ],
+            alerts: [
+                { type: 'critical', title: 'Aspirasi Kritis', message: '15 aspirasi infrastruktur belum ditindaklanjuti > 48 jam' },
+                { type: 'warning', title: 'Volume Tinggi', message: 'Peningkatan 25% pengaduan di wilayah Jabodetabek' },
+                { type: 'info', title: 'Update Sistem', message: 'Maintenance terjadwal hari Minggu 02:00-04:00 WIB' }
+            ]
+        };
+
+        // Initialize Dashboard
+        function initDashboard() {
+            updateDateTime();
+            updateStats();
+            initCharts();
+            populateProvinces();
+            populateActivities();
+            populateAlerts();
+            startRealTimeUpdates();
+        }
+
+        // Update Date Time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('currentDateTime').textContent = 
+                now.toLocaleDateString('id-ID', options);
+        }
+
+        // Update Stats with Animation
+        function updateStats() {
+            const stats = [
+                { id: 'totalAspirasi', value: 1247 },
+                { id: 'totalPengaduan', value: 892 },
+                { id: 'resolvedIssues', value: 1089 },
+                { id: 'avgResponseTime', value: 2.3 }
+            ];
+
+            stats.forEach(stat => {
+                animateNumber(stat.id, stat.value);
+            });
+        }
+
+        // Animate Number Counter
+        function animateNumber(elementId, targetValue) {
+            const element = document.getElementById(elementId);
+            const duration = 2000;
+            const start = 0;
+            const increment = targetValue / (duration / 16);
+            let current = start;
+
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= targetValue) {
+                    current = targetValue;
+                    clearInterval(timer);
+                }
+                
+                if (elementId === 'avgResponseTime') {
+                    element.textContent = current.toFixed(1);
+                } else {
+                    element.textContent = Math.floor(current).toLocaleString('id-ID');
+                }
+            }, 16);
+        }
+
+        // Initialize Charts
+        function initCharts() {
+            // Trend Chart
+            const trendCtx = document.getElementById('trendChart').getContext('2d');
+            new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
+                    datasets: [{
+                        label: 'Aspirasi',
+                        data: [45, 52, 38, 67, 89, 34, 56],
+                        borderColor: '#ff8c00',
+                        backgroundColor: 'rgba(255, 140, 0, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Pengaduan',
+                        data: [32, 28, 45, 38, 52, 41, 29],
+                        borderColor: '#ff6b35',
+                        backgroundColor: 'rgba(255, 107, 53, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Category Chart
+            const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+            new Chart(categoryCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Infrastruktur', 'Pendidikan', 'Kesehatan', 'Ekonomi', 'Sosial'],
+                    datasets: [{
+                        data: [35, 25, 20, 15, 5],
+                        backgroundColor: [
+                            '#ff8c00',
+                            '#ff6b35',
+                            '#e55a2b',
+                            '#ffa500',
+                            '#ffb347'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+        }
+
+        // Populate Provinces
+        function populateProvinces() {
+            const grid = document.getElementById('provinceGrid');
+            grid.innerHTML = '';
+
+            mockData.provinces.forEach(province => {
+                const div = document.createElement('div');
+                div.className = `province-item ${province.level}`;
+                div.innerHTML = `
+                    <div class="province-name">${province.name}</div>
+                    <div class="province-count">${province.count}</div>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        // Populate Activities
+        function populateActivities() {
+            const container = document.getElementById('recentActivities');
+            container.innerHTML = '';
+
+            mockData.activities.forEach(activity => {
+                const div = document.createElement('div');
+                div.className = 'activity-item';
+                div.innerHTML = `
+                    <div class="activity-icon">${activity.icon}</div>
+                    <div class="activity-content">
+                        <h4>${activity.title}</h4>
+                        <p>${activity.desc}</p>
+                    </div>
+                    <div class="activity-time">${activity.time}</div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Populate Alerts
+        function populateAlerts() {
+            const container = document.getElementById('alertSystem');
+            container.innerHTML = '';
+
+            mockData.alerts.forEach(alert => {
+                const div = document.createElement('div');
+                div.className = `alert-item ${alert.type}`;
+                div.innerHTML = `
+                    <div class="alert-title">${alert.title}</div>
+                    <div class="alert-message">${alert.message}</div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Real-time Updates
+        function startRealTimeUpdates() {
+            // Update time every minute
+            setInterval(updateDateTime, 60000);
+            
+            // Simulate real-time data updates
+            setInterval(() => {
+                // Randomly update some stats
+                const randomStat = Math.floor(Math.random() * 4);
+                const statIds = ['totalAspirasi', 'totalPengaduan', 'resolvedIssues', 'avgResponseTime'];
+                const currentValue = parseInt(document.getElementById(statIds[randomStat]).textContent.replace(/,/g, ''));
+                const newValue = currentValue + Math.floor(Math.random() * 5) - 2;
+                
+                if (newValue > 0) {
+                    animateNumber(statIds[randomStat], newValue);
+                }
+            }, 30000); // Update every 30 seconds
+        }
+
+        // Refresh Data
+        function refreshData() {
+            const indicator = document.getElementById('statusIndicator');
+            indicator.style.display = 'inline-block';
+            
+            setTimeout(() => {
+                indicator.style.display = 'none';
+                updateStats();
+                populateActivities();
+                populateAlerts();
+                
+                // Show refresh success message
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = '✅ Data Updated';
+                button.style.background = '#28a745';
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '#ff8c00';
+                }, 2000);
+            }, 1500);
+        }
+
+        // Filter Functions
+        document.getElementById('timeFilter').addEventListener('change', function() {
+            console.log('Time filter changed:', this.value);
+            // Implement time filtering logic
+        });
+
+        document.getElementById('regionFilter').addEventListener('change', function() {
+            console.log('Region filter changed:', this.value);
+            // Implement region filtering logic
+        });
+
+        document.getElementById('categoryFilter').addEventListener('change', function() {
+            console.log('Category filter changed:', this.value);
+            // Implement category filtering logic
+        });
+
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', initDashboard);
+        
+        // Hide sidebar if opened in iframe
+        if (window.location.search.includes('hideSidebar=true')) {
+            document.querySelector('.sidebar').style.display = 'none';
+            document.querySelector('.dashboard-container').style.gridTemplateColumns = '1fr';
+            document.querySelector('.main-content').style.padding = '20px';
+        }
+    </script>
+</body>
+</html>

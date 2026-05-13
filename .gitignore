@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+node_modules/
+vendor/
+.DS_Store
+__MACOSX/
+*.log
+*.tmp
+spap-app_postgres_data/
+spap-app_redis_data/
