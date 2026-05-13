@@ -191,12 +191,6 @@ function ensure_schema(): void
             ('Admin SPAP', 'admin@spap.local', 'admin', 'DPP'),
             ('Operator SPAP', 'operator@spap.local', 'operator', 'Triage SPAP')
          ON CONFLICT (email) DO NOTHING",
-        "UPDATE users
-         SET password_hash = '$2y$10$XjdRzaG9nJAORl4ek5m3LuLXJpCaSW29f3niYRrSH2ObViR8rIqa2', status = 'active'
-         WHERE email = 'admin@spap.local'",
-        "UPDATE users
-         SET password_hash = '$2y$10$CynqGjenPLMJnhh33m.nLepJRQvpo/BuJZr60ZWo5dj5WERsIUXqe', status = 'active'
-         WHERE email = 'operator@spap.local'",
         "INSERT INTO tickets (public_id, type, reporter_name, channel, region, category, priority, status, subject, description, assigned_unit, sla_due_at)
          VALUES
             ('ASP-2026-001', 'aspirasi', 'Ahmad Rizki', 'WhatsApp', 'DKI Jakarta', 'Infrastruktur', 'Tinggi', 'Baru', 'Perbaikan jalan rusak di Cengkareng', 'Jalan utama rusak dan membahayakan pengendara saat jam padat.', 'DPC Jakarta Barat', now() + interval '2 days'),
@@ -215,7 +209,16 @@ function ensure_schema(): void
         db()->exec($statement);
     }
 
+    seed_user_password('admin@spap.local', '$2y$10$XjdRzaG9nJAORl4ek5m3LuLXJpCaSW29f3niYRrSH2ObViR8rIqa2');
+    seed_user_password('operator@spap.local', '$2y$10$CynqGjenPLMJnhh33m.nLepJRQvpo/BuJZr60ZWo5dj5WERsIUXqe');
+
     $ready = true;
+}
+
+function seed_user_password(string $email, string $passwordHash): void
+{
+    $statement = db()->prepare('UPDATE users SET password_hash = ?, status = ? WHERE email = ?');
+    $statement->execute([$passwordHash, 'active', $email]);
 }
 
 function cache(): ?Redis
