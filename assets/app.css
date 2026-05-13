@@ -1233,6 +1233,59 @@ dialog::backdrop {
   padding: 12px;
 }
 
+.panel-head.compact {
+  margin: 22px 0 12px;
+  padding-bottom: 12px;
+}
+
+.panel-head.compact h3 {
+  font-size: 18px;
+}
+
+.event-panel {
+  margin-top: 18px;
+}
+
+.event-list {
+  display: grid;
+  gap: 10px;
+}
+
+.event-item,
+.event-empty {
+  border: 1px solid var(--line);
+  background: #fbfcff;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.event-item {
+  display: grid;
+  gap: 4px;
+}
+
+.event-item span {
+  color: var(--ink);
+}
+
+.event-item time,
+.event-empty {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.note-compose {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.compact-btn {
+  min-height: 32px;
+  padding: 6px 10px;
+  margin-left: 6px;
+}
+
 .role-pill {
   display: inline-flex;
   align-items: center;

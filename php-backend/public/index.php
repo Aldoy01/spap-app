@@ -60,6 +60,11 @@ function route_request(): void
         return;
     }
 
+    if ($method === 'PATCH' && preg_match('#^/api/admin/users/([^/]+)/password$#', $path, $matches)) {
+        reset_user_password($matches[1]);
+        return;
+    }
+
     if ($method === 'GET' && $path === '/api/admin/menu-permissions') {
         list_menu_permissions();
         return;
@@ -83,6 +88,16 @@ function route_request(): void
 
     if ($method === 'PATCH' && preg_match('#^/api/tickets/([^/]+)/status$#', $path, $matches)) {
         update_ticket_status($matches[1]);
+        return;
+    }
+
+    if ($method === 'GET' && preg_match('#^/api/tickets/([^/]+)/events$#', $path, $matches)) {
+        list_ticket_events($matches[1]);
+        return;
+    }
+
+    if ($method === 'POST' && preg_match('#^/api/tickets/([^/]+)/events$#', $path, $matches)) {
+        create_ticket_event($matches[1]);
         return;
     }
 
@@ -407,6 +422,26 @@ function require_admin(): ?array
     return $user;
 }
 
+function require_permission(string $menuKey, string $action): ?array
+{
+    $user = session_user();
+    if (!$user) {
+        json_response(['error' => 'Unauthorized'], 401);
+        return null;
+    }
+    if (($user['role'] ?? '') === 'admin') {
+        return $user;
+    }
+
+    $permission = $user['permissions'][$menuKey] ?? null;
+    if (!$permission || empty($permission[$action])) {
+        json_response(['error' => 'Forbidden'], 403);
+        return null;
+    }
+
+    return $user;
+}
+
 function cache_get(string $key): ?array
 {
     $redis = cache();
@@ -616,6 +651,34 @@ function update_user(string $id): void
     json_response(['data' => $user]);
 }
 
+function reset_user_password(string $id): void
+{
+    if (!require_admin()) {
+        return;
+    }
+
+    $input = input_json();
+    $password = trim($input['password'] ?? '');
+    if (strlen($password) < 6) {
+        json_response(['error' => 'Password minimal 6 karakter'], 422);
+        return;
+    }
+
+    $statement = db()->prepare(
+        'UPDATE users
+         SET password_hash = ?
+         WHERE id = ?
+         RETURNING id, name, email, role, organization_unit, status, created_at'
+    );
+    $statement->execute([password_hash($password, PASSWORD_BCRYPT), $id]);
+    $user = $statement->fetch();
+    if (!$user) {
+        json_response(['error' => 'User not found'], 404);
+        return;
+    }
+    json_response(['data' => $user]);
+}
+
 function list_menu_permissions(): void
 {
     if (!require_admin()) {
@@ -685,10 +748,25 @@ function logout(): void
 
 function list_tickets(): void
 {
+    $user = session_user();
+    if (!$user) {
+        json_response(['error' => 'Unauthorized'], 401);
+        return;
+    }
+
     $type = $_GET['type'] ?? null;
     $status = $_GET['status'] ?? null;
     $region = $_GET['region'] ?? null;
     $q = $_GET['q'] ?? null;
+
+    if ($type && ($user['role'] ?? '') !== 'admin') {
+        $permission = $user['permissions'][$type] ?? null;
+        if (!$permission || empty($permission['view'])) {
+            json_response(['error' => 'Forbidden'], 403);
+            return;
+        }
+    }
+
     $cacheKey = 'tickets:' . ($type ?: 'all') . ':' . ($status ?: 'all') . ':' . ($region ?: 'all') . ':' . ($q ?: '');
 
     $cached = cache_get($cacheKey);
@@ -738,6 +816,10 @@ function create_ticket(): void
 {
     $ticket = input_json();
     $type = $ticket['type'] ?? 'aspirasi';
+    $actor = require_permission($type === 'pengaduan' ? 'pengaduan' : 'aspirasi', 'create');
+    if (!$actor) {
+        return;
+    }
     $prefix = $type === 'pengaduan' ? 'PEN' : 'ASP';
 
     $countStatement = db()->prepare('SELECT count(*)::int + 1 AS next FROM tickets WHERE type = ?');
@@ -767,8 +849,8 @@ function create_ticket(): void
     ]);
     $created = $statement->fetch();
 
-    $event = db()->prepare("INSERT INTO ticket_events (ticket_id, event_type, note) VALUES (?, 'created', 'Tiket dibuat dari API PHP 7')");
-    $event->execute([$created['id']]);
+    $event = db()->prepare("INSERT INTO ticket_events (ticket_id, event_type, note, actor_name) VALUES (?, 'created', ?, ?)");
+    $event->execute([$created['id'], 'Tiket dibuat dari aplikasi SPAP', $actor['name'] ?? 'Operator SPAP']);
 
     cache_invalidate('tickets:');
     json_response(['data' => $created], 201);
@@ -779,6 +861,18 @@ function update_ticket_status(string $publicId): void
     $input = input_json();
     $status = $input['status'] ?? 'Diproses';
     $assignedUnit = $input['assignedUnit'] ?? null;
+    $typeStatement = db()->prepare('SELECT type FROM tickets WHERE public_id = ? LIMIT 1');
+    $typeStatement->execute([$publicId]);
+    $type = $typeStatement->fetchColumn();
+    if (!$type) {
+        json_response(['error' => 'Ticket not found'], 404);
+        return;
+    }
+
+    $actor = require_permission($type === 'pengaduan' ? 'pengaduan' : 'aspirasi', 'update');
+    if (!$actor) {
+        return;
+    }
 
     $statement = db()->prepare(
         "UPDATE tickets
@@ -801,11 +895,76 @@ function update_ticket_status(string $publicId): void
     $event->execute([
         $ticket['id'],
         $input['note'] ?? 'Status diubah ke ' . $status,
-        $input['actorName'] ?? 'Operator SPAP',
+        $input['actorName'] ?? ($actor['name'] ?? 'Operator SPAP'),
     ]);
 
     cache_invalidate('tickets:');
     json_response(['data' => $ticket]);
+}
+
+function ticket_by_public_id(string $publicId): ?array
+{
+    $statement = db()->prepare('SELECT id, public_id, type FROM tickets WHERE public_id = ? LIMIT 1');
+    $statement->execute([$publicId]);
+    $ticket = $statement->fetch();
+    return $ticket ?: null;
+}
+
+function list_ticket_events(string $publicId): void
+{
+    $ticket = ticket_by_public_id($publicId);
+    if (!$ticket) {
+        json_response(['error' => 'Ticket not found'], 404);
+        return;
+    }
+
+    $actor = require_permission($ticket['type'] === 'pengaduan' ? 'pengaduan' : 'aspirasi', 'view');
+    if (!$actor) {
+        return;
+    }
+
+    $statement = db()->prepare(
+        'SELECT event_type, note, actor_name, created_at
+         FROM ticket_events
+         WHERE ticket_id = ?
+         ORDER BY created_at DESC'
+    );
+    $statement->execute([$ticket['id']]);
+    json_response(['data' => $statement->fetchAll()]);
+}
+
+function create_ticket_event(string $publicId): void
+{
+    $ticket = ticket_by_public_id($publicId);
+    if (!$ticket) {
+        json_response(['error' => 'Ticket not found'], 404);
+        return;
+    }
+
+    $actor = require_permission($ticket['type'] === 'pengaduan' ? 'pengaduan' : 'aspirasi', 'update');
+    if (!$actor) {
+        return;
+    }
+
+    $input = input_json();
+    $note = trim($input['note'] ?? '');
+    if (!$note) {
+        json_response(['error' => 'Catatan wajib diisi'], 422);
+        return;
+    }
+
+    $statement = db()->prepare(
+        "INSERT INTO ticket_events (ticket_id, event_type, note, actor_name)
+         VALUES (?, 'note_added', ?, ?)
+         RETURNING event_type, note, actor_name, created_at"
+    );
+    $statement->execute([
+        $ticket['id'],
+        $note,
+        $input['actorName'] ?? ($actor['name'] ?? 'Operator SPAP'),
+    ]);
+
+    json_response(['data' => $statement->fetch()], 201);
 }
 
 function list_osint_mentions(): void

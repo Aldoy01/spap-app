@@ -88,6 +88,7 @@ let apiAvailable = false;
 let authToken = localStorage.getItem("spap-auth-token") || "";
 let currentUser = null;
 let adminData = { users: [], permissions: [] };
+let ticketEvents = {};
 const API_BASE = window.SPAP_CONFIG?.apiBaseUrl || (window.location.port === "3000" ? "" : "http://localhost:3000");
 const manageableMenus = ["dashboard", "aspirasi", "pengaduan", "osint", "analytics", "laporan", "settings"];
 const manageableRoles = ["admin", "operator", "verifikator", "koordinator"];
@@ -545,12 +546,19 @@ function renderPengaduan() {
     `).join("");
 }
 
-function openDetail(type, id) {
-  const collection = type === "aspirasi" ? state.aspirasi : state.pengaduan;
-  const item = collection.find(ticket => ticket.id === id);
-  if (!item) return;
-  document.getElementById("detailTitle").textContent = `${type === "aspirasi" ? "Aspirasi" : "Pengaduan"} ${item.id}`;
-  document.getElementById("detailContent").innerHTML = `
+function renderDetailContent(type, item) {
+  const events = ticketEvents[item.id] || [];
+  const eventRows = events.length
+    ? events.map(event => `
+      <div class="event-item">
+        <strong>${event.actor_name || "Sistem"}</strong>
+        <span>${event.note || event.event_type}</span>
+        <time>${new Date(event.created_at).toLocaleString("id-ID")}</time>
+      </div>
+    `).join("")
+    : '<div class="event-empty">Belum ada riwayat tindak lanjut.</div>';
+
+  return `
     <div class="detail-grid">
       <div class="detail-box"><strong>Pelapor</strong><br>${item.nama}</div>
       <div class="detail-box"><strong>Wilayah</strong><br>${item.wilayah}</div>
@@ -566,9 +574,46 @@ function openDetail(type, id) {
       <button class="btn" onclick="updateTicketStatus('${type}','${item.id}','Eskalasi')">Eskalasi</button>
       <button class="btn primary" onclick="updateTicketStatus('${type}','${item.id}','Selesai')">Selesaikan</button>
     </div>
+    <div class="event-panel">
+      <div class="panel-head compact">
+        <div>
+          <h3>Riwayat Tindak Lanjut</h3>
+          <p>Catatan audit dan perubahan status tiket</p>
+        </div>
+      </div>
+      <div id="ticketEventList" class="event-list">${eventRows}</div>
+      <div class="note-compose">
+        <textarea id="ticketNoteInput" rows="3" placeholder="Tulis catatan tindak lanjut..."></textarea>
+        <button class="btn primary" onclick="addTicketNote('${type}','${item.id}')">Tambah Catatan</button>
+      </div>
+    </div>
   `;
+}
+
+async function loadTicketEvents(type, id) {
+  if (!apiAvailable) return;
+  try {
+    const payload = await apiRequest(`/api/tickets/${id}/events`);
+    ticketEvents[id] = payload.data || [];
+    const collection = type === "aspirasi" ? state.aspirasi : state.pengaduan;
+    const item = collection.find(ticket => ticket.id === id);
+    if (item && document.getElementById("detailDialog").open) {
+      document.getElementById("detailContent").innerHTML = renderDetailContent(type, item);
+    }
+  } catch (error) {
+    console.error("Ticket events load failed", error);
+  }
+}
+
+function openDetail(type, id) {
+  const collection = type === "aspirasi" ? state.aspirasi : state.pengaduan;
+  const item = collection.find(ticket => ticket.id === id);
+  if (!item) return;
+  document.getElementById("detailTitle").textContent = `${type === "aspirasi" ? "Aspirasi" : "Pengaduan"} ${item.id}`;
+  document.getElementById("detailContent").innerHTML = renderDetailContent(type, item);
   const detailDialog = document.getElementById("detailDialog");
   if (!detailDialog.open) detailDialog.showModal();
+  loadTicketEvents(type, id);
 }
 
 async function updateTicketStatus(type, id, status) {
@@ -582,6 +627,7 @@ async function updateTicketStatus(type, id, status) {
         method: "PATCH",
         body: JSON.stringify({ status, note: `Status diubah melalui UI ke ${status}` })
       });
+      await loadTicketEvents(type, id);
     } catch (error) {
       apiAvailable = false;
       setConnectionStatus("Mode lokal aktif", false);
@@ -594,6 +640,37 @@ async function updateTicketStatus(type, id, status) {
   renderAll();
   openDetail(type, id);
   toast(`Status ${id} diubah ke ${status}`);
+}
+
+async function addTicketNote(type, id) {
+  const noteInput = document.getElementById("ticketNoteInput");
+  const note = noteInput?.value.trim();
+  if (!note) {
+    toast("Catatan tindak lanjut belum diisi");
+    return;
+  }
+  if (!apiAvailable) {
+    ticketEvents[id] = [
+      { actor_name: currentUser?.name || "Operator SPAP", note, event_type: "note_added", created_at: new Date().toISOString() },
+      ...(ticketEvents[id] || [])
+    ];
+    noteInput.value = "";
+    openDetail(type, id);
+    toast("Catatan disimpan lokal");
+    return;
+  }
+
+  try {
+    await apiRequest(`/api/tickets/${id}/events`, {
+      method: "POST",
+      body: JSON.stringify({ note, actorName: currentUser?.name || "Operator SPAP" })
+    });
+    noteInput.value = "";
+    await loadTicketEvents(type, id);
+    toast("Catatan tindak lanjut ditambahkan");
+  } catch (error) {
+    toast("Catatan gagal disimpan");
+  }
 }
 
 function renderOsint() {
@@ -659,6 +736,7 @@ function renderSettings() {
             <option value="active" ${user.status === "active" ? "selected" : ""}>Aktif</option>
             <option value="inactive" ${user.status !== "active" ? "selected" : ""}>Nonaktif</option>
           </select>
+          <button class="btn ghost compact-btn" onclick="resetUserPassword('${user.id}', '${user.email}')">Reset</button>
         </td>
       </tr>
     `).join("")
@@ -889,6 +967,18 @@ async function updateUserStatus(id, status) {
   adminData.users = adminData.users.map(user => user.id === id ? payload.data : user);
   renderSettings();
   toast("Status user diperbarui");
+}
+
+async function resetUserPassword(id, email) {
+  if (!apiAvailable || currentUser?.role !== "admin") return;
+  const password = prompt(`Password baru untuk ${email}`, "user123");
+  if (!password) return;
+
+  await apiRequest(`/api/admin/users/${id}/password`, {
+    method: "PATCH",
+    body: JSON.stringify({ password })
+  });
+  toast("Password user diperbarui");
 }
 
 async function savePermissions() {
