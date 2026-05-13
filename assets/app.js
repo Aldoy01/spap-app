@@ -164,6 +164,7 @@ let currentUser = null;
 let adminData = { users: [], permissions: [] };
 let ticketEvents = {};
 let acknowledgedNotifications = new Set(JSON.parse(localStorage.getItem("spap-ack-notifications") || "[]"));
+let kpuDapilCache = {};
 const API_BASE = window.SPAP_CONFIG?.apiBaseUrl || (window.location.port === "3000" ? "" : "http://localhost:3000");
 const manageableMenus = ["dashboard", "aspirasi", "pengaduan", "osint", "analytics", "laporan", "settings"];
 const manageableRoles = ["admin", "operator", "verifikator", "koordinator"];
@@ -192,7 +193,7 @@ function setSelectOptions(select, values, placeholder) {
 
 function currentRecipientDirectory() {
   const province = document.getElementById("ticketRegion")?.value || "";
-  return recipientDirectory[province] || recipientDirectory.default;
+  return kpuDapilCache[province] || recipientDirectory[province] || recipientDirectory.default;
 }
 
 function updateRecipientFields() {
@@ -213,6 +214,41 @@ function updateRecipientFields() {
 
   citySelect.disabled = level !== "DPRD Kab/Kota";
   if (citySelect.disabled) citySelect.value = "";
+}
+
+function buildRecipientNames(level, dapils, province) {
+  const suffix = province ? ` ${province}` : "";
+  return dapils.length
+    ? dapils.map(dapil => `${level} - ${dapil}`)
+    : [`${level}${suffix}`];
+}
+
+async function loadKpuDapilForProvince(province) {
+  if (!province || kpuDapilCache[province]) return;
+  try {
+    const payload = await apiRequest(`/api/kpu/dapil?province=${encodeURIComponent(province)}`);
+    const data = payload.data || {};
+    const dprRi = data.dprRi || data.dpr_ri || [];
+    const dprdProvinsi = data.dprdProvinsi || data.dprd_provinsi || [];
+    kpuDapilCache[province] = {
+      dprRi,
+      dprdProvinsi,
+      cities: data.cities || [],
+      names: {
+        "DPR RI": data.names?.["DPR RI"]?.length ? data.names["DPR RI"] : buildRecipientNames("DPR RI", dprRi, province),
+        "DPRD Provinsi": data.names?.["DPRD Provinsi"]?.length ? data.names["DPRD Provinsi"] : buildRecipientNames("DPRD Provinsi", dprdProvinsi, province),
+        "DPRD Kab/Kota": data.names?.["DPRD Kab/Kota"]?.length ? data.names["DPRD Kab/Kota"] : buildRecipientNames("DPRD Kab/Kota", data.cities || [], province)
+      }
+    };
+  } catch (error) {
+    console.error("KPU dapil data load failed", error);
+  }
+}
+
+async function refreshRecipientFieldsFromKpu() {
+  const province = document.getElementById("ticketRegion")?.value || "";
+  await loadKpuDapilForProvince(province);
+  updateRecipientFields();
 }
 
 function setConnectionStatus(text, online) {
@@ -393,6 +429,10 @@ async function loadRemoteState() {
   state.notifications = notificationsPayload.data || [];
 
   apiAvailable = true;
+  const currentTicketRegion = document.getElementById("ticketRegion")?.value;
+  if (currentTicketRegion) {
+    await loadKpuDapilForProvince(currentTicketRegion);
+  }
   setConnectionStatus("API backend aktif", true);
   saveState();
 }
@@ -1312,7 +1352,7 @@ function bindEvents() {
     });
   });
   document.getElementById("regionFilter").addEventListener("change", renderAll);
-  document.getElementById("ticketRegion").addEventListener("change", updateRecipientFields);
+  document.getElementById("ticketRegion").addEventListener("change", refreshRecipientFieldsFromKpu);
   document.getElementById("ticketTargetLevel").addEventListener("change", updateRecipientFields);
   document.getElementById("newTicketBtn").addEventListener("click", openTicketDialog);
   document.getElementById("ticketForm").addEventListener("submit", addTicket);

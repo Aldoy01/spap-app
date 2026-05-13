@@ -111,6 +111,11 @@ function route_request(): void
         return;
     }
 
+    if ($method === 'GET' && $path === '/api/kpu/dapil') {
+        list_kpu_dapil();
+        return;
+    }
+
     if ($method === 'POST' && preg_match('#^/api/notifications/([^/]+)/ack$#', $path, $matches)) {
         acknowledge_notification($matches[1]);
         return;
@@ -1136,6 +1141,35 @@ function acknowledge_notification(string $publicId): void
     }
 
     json_response(['data' => ['id' => $publicId, 'acknowledged' => true]]);
+}
+
+function list_kpu_dapil(): void
+{
+    $path = __DIR__ . '/data/kpu-dapil-2024.json';
+    if (!is_file($path)) {
+        $path = dirname(__DIR__, 2) . '/data/kpu-dapil-2024.json';
+    }
+    if (!is_file($path)) {
+        json_response(['error' => 'KPU dapil data not found'], 404);
+        return;
+    }
+
+    $data = json_decode(file_get_contents($path) ?: '{}', true);
+    if (!is_array($data)) {
+        json_response(['error' => 'Invalid KPU dapil data'], 500);
+        return;
+    }
+
+    $province = $_GET['province'] ?? null;
+    if ($province) {
+        $fallback = $data['default'] ?? [];
+        $item = $data['provinces'][$province] ?? $fallback;
+        $item['source'] = $data['source'] ?? null;
+        json_response(['data' => $item]);
+        return;
+    }
+
+    json_response(['data' => $data]);
 }
 
 function report_summary(): void
