@@ -198,6 +198,15 @@ function nav_icon(string $name): string
             </div>
             <div id="dashboardAlerts" class="dashboard-alerts"></div>
           </section>
+          <section class="panel span-3">
+            <div class="panel-head">
+              <div>
+                <h3>SLA & Eskalasi Otomatis</h3>
+                <p>Tiket yang melewati batas waktu, kritis, atau menunggu tindakan</p>
+              </div>
+            </div>
+            <div id="slaNotificationList" class="sla-list"></div>
+          </section>
           <section class="panel span-2">
             <div class="panel-head">
               <div>

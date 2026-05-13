@@ -788,6 +788,52 @@ select:focus, input:focus, textarea:focus {
   font-size: 13px;
 }
 
+.sla-list {
+  display: grid;
+  gap: 12px;
+}
+
+.sla-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-left: 4px solid #f59e0b;
+  border-radius: var(--radius);
+  background: #fffaf0;
+}
+
+.sla-card.overdue {
+  border-left-color: #dc2626;
+  background: #fff1f2;
+}
+
+.sla-card.critical {
+  border-left-color: #f97316;
+  background: #fff7ed;
+}
+
+.sla-card.escalation {
+  border-left-color: #7c3aed;
+  background: #f5f3ff;
+}
+
+.sla-card strong {
+  display: block;
+  margin: 4px 0;
+}
+
+.sla-card p {
+  margin: 0 0 6px;
+  color: var(--muted);
+}
+
+.sla-card small {
+  color: var(--muted);
+}
+
 .pipeline {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

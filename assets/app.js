@@ -22,7 +22,8 @@ const seed = {
       { sumber: "Facebook", cluster: "Pendidikan", teks: "Program bantuan pendidikan mendapat respon positif dari orang tua.", waktu: "21 menit lalu" },
       { sumber: "Instagram", cluster: "Infrastruktur", teks: "Warga menandai kondisi jalan rusak dan meminta advokasi.", waktu: "38 menit lalu" }
     ]
-  }
+  },
+  notifications: []
 };
 
 const provinces = [
@@ -244,7 +245,10 @@ function normalizeTicket(row) {
     deskripsi: row.description || row.deskripsi,
     kanal: row.channel || row.kanal || "API",
     pic: row.assigned_unit || row.pic || "Triage SPAP",
-    lokasi: row.region || row.lokasi || row.wilayah
+    lokasi: row.region || row.lokasi || row.wilayah,
+    slaDueAt: row.sla_due_at || row.slaDueAt || null,
+    resolvedAt: row.resolved_at || row.resolvedAt || null,
+    updatedAt: row.updated_at || row.updatedAt || null
   };
 }
 
@@ -258,9 +262,10 @@ function normalizeOsint(row) {
 }
 
 async function loadRemoteState() {
-  const [ticketsPayload, osintPayload] = await Promise.all([
+  const [ticketsPayload, osintPayload, notificationsPayload] = await Promise.all([
     apiRequest("/api/tickets"),
-    apiRequest("/api/osint/mentions")
+    apiRequest("/api/osint/mentions"),
+    apiRequest("/api/notifications")
   ]);
 
   const tickets = ticketsPayload.data || [];
@@ -275,6 +280,7 @@ async function loadRemoteState() {
     teks: row.sample_text || row.recommendation || "Sinyal ruang publik terdeteksi.",
     waktu: "baru saja"
   }));
+  state.notifications = notificationsPayload.data || [];
 
   apiAvailable = true;
   setConnectionStatus("API backend aktif", true);
@@ -457,6 +463,70 @@ function renderDashboardAlerts() {
   `).join("");
 }
 
+function hoursUntil(dateValue) {
+  if (!dateValue) return null;
+  return Math.round((new Date(dateValue).getTime() - Date.now()) / 36e5);
+}
+
+function localNotifications() {
+  return scopedTickets()
+    .filter(ticket => ticket.status !== "Selesai")
+    .map(ticket => {
+      const hours = hoursUntil(ticket.slaDueAt);
+      let severity = "info";
+      let title = "Perlu tindak lanjut";
+      if (hours !== null && hours < 0) {
+        severity = "overdue";
+        title = "SLA terlewati";
+      } else if (ticket.prioritas === "Kritis") {
+        severity = "critical";
+        title = "Tiket kritis aktif";
+      } else if (ticket.status === "Eskalasi") {
+        severity = "escalation";
+        title = "Butuh eskalasi";
+      }
+      return {
+        id: ticket.id,
+        type: ticket.tipe.toLowerCase(),
+        severity,
+        title,
+        description: `${ticket.judul} - ${ticket.wilayah}`,
+        assignedUnit: ticket.pic,
+        slaDueAt: ticket.slaDueAt
+      };
+    })
+    .filter(item => item.severity !== "info")
+    .slice(0, 8);
+}
+
+function renderSlaNotifications() {
+  const notifications = (state.notifications?.length ? state.notifications : localNotifications()).slice(0, 8);
+  const target = document.getElementById("slaNotificationList");
+  if (!target) return;
+
+  target.innerHTML = notifications.length
+    ? notifications.map(item => {
+      const hours = hoursUntil(item.slaDueAt);
+      const eta = hours === null
+        ? "SLA belum ditentukan"
+        : hours < 0
+          ? `Terlambat ${Math.abs(hours)} jam`
+          : `Sisa ${hours} jam`;
+      return `
+        <article class="sla-card ${item.severity}">
+          <div>
+            <span class="eyebrow">${item.id} - ${item.type}</span>
+            <strong>${item.title}</strong>
+            <p>${item.description}</p>
+            <small>${item.assignedUnit || "Triage SPAP"} - ${eta}</small>
+          </div>
+          <button class="btn ghost" onclick="openDetail('${item.type}','${item.id}')">Tindak Lanjut</button>
+        </article>
+      `;
+    }).join("")
+    : '<div class="warning positif"><strong>SLA aman</strong><p>Tidak ada tiket kritis atau terlambat saat ini.</p></div>';
+}
+
 function renderPipeline() {
   const tickets = scopedTickets();
   const statuses = ["Baru", "Diproses", "Eskalasi", "Selesai"];
@@ -501,6 +571,7 @@ function renderDashboard() {
   renderCategoryDonut();
   renderDashboardActivities();
   renderDashboardAlerts();
+  renderSlaNotifications();
   renderPipeline();
   renderCategoryBars();
   renderWarnings();
@@ -702,6 +773,8 @@ function renderWorkflow() {
 function renderReport() {
   const tickets = scopedTickets();
   const unresolved = tickets.filter(item => item.status !== "Selesai").length;
+  const overdue = localNotifications().filter(item => item.severity === "overdue").length;
+  const critical = tickets.filter(item => item.prioritas === "Kritis" && item.status !== "Selesai").length;
   const topCategory = Object.entries(tickets.reduce((acc, item) => {
     acc[item.kategori] = (acc[item.kategori] || 0) + 1;
     return acc;
@@ -712,6 +785,8 @@ function renderReport() {
     <hr>
     <p><strong>Total tiket:</strong> ${tickets.length}</p>
     <p><strong>Belum selesai:</strong> ${unresolved}</p>
+    <p><strong>SLA terlewati:</strong> ${overdue}</p>
+    <p><strong>Tiket kritis aktif:</strong> ${critical}</p>
     <p><strong>Kategori dominan:</strong> ${topCategory}</p>
     <p><strong>Isu OSINT utama:</strong> ${(state.osint.topics[0]?.tag || "-")} dengan ${(state.osint.topics[0]?.mentions || 0).toLocaleString("id-ID")} mentions.</p>
     <p><strong>Rekomendasi:</strong> Perkuat triage tiket prioritas, siapkan respon isu publik, dan kirim ringkasan ke struktur wilayah terkait.</p>

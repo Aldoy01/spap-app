@@ -106,6 +106,11 @@ function route_request(): void
         return;
     }
 
+    if ($method === 'GET' && $path === '/api/notifications') {
+        list_notifications();
+        return;
+    }
+
     if ($method === 'GET' && $path === '/api/reports/summary') {
         report_summary();
         return;
@@ -831,9 +836,10 @@ function create_ticket(): void
         "INSERT INTO tickets
           (public_id, type, reporter_name, reporter_contact, channel, region, category, priority, status, subject, description, assigned_unit, sla_due_at)
          VALUES
-          (?, ?, ?, ?, ?, ?, ?, ?, 'Baru', ?, ?, ?, now() + interval '2 days')
+          (?, ?, ?, ?, ?, ?, ?, ?, 'Baru', ?, ?, ?, now() + (? * interval '1 hour'))
          RETURNING *"
     );
+    $slaHours = sla_hours_for_priority($ticket['priority'] ?? 'Sedang');
     $statement->execute([
         $publicId,
         $type,
@@ -846,6 +852,7 @@ function create_ticket(): void
         $ticket['subject'] ?? 'Tiket baru',
         $ticket['description'] ?? '-',
         $ticket['assignedUnit'] ?? 'Triage SPAP',
+        $slaHours,
     ]);
     $created = $statement->fetch();
 
@@ -854,6 +861,17 @@ function create_ticket(): void
 
     cache_invalidate('tickets:');
     json_response(['data' => $created], 201);
+}
+
+function sla_hours_for_priority(string $priority): int
+{
+    $map = [
+        'Kritis' => 12,
+        'Tinggi' => 24,
+        'Sedang' => 48,
+        'Rendah' => 72,
+    ];
+    return $map[$priority] ?? 48;
 }
 
 function update_ticket_status(string $publicId): void
@@ -984,6 +1002,66 @@ function list_osint_mentions(): void
     $payload = ['data' => $statement->fetchAll()];
     cache_set('osint:mentions', $payload, 60);
     json_response($payload);
+}
+
+function list_notifications(): void
+{
+    $user = session_user();
+    if (!$user) {
+        json_response(['error' => 'Unauthorized'], 401);
+        return;
+    }
+
+    $statement = db()->query(
+        "SELECT public_id, type, priority, status, subject, region, assigned_unit, sla_due_at, created_at,
+                CASE
+                  WHEN status <> 'Selesai' AND sla_due_at < now() THEN 'overdue'
+                  WHEN priority = 'Kritis' AND status <> 'Selesai' THEN 'critical'
+                  WHEN status = 'Eskalasi' THEN 'escalation'
+                  WHEN status = 'Baru' AND created_at < now() - interval '24 hours' THEN 'waiting'
+                  ELSE 'info'
+                END AS severity
+         FROM tickets
+         WHERE status <> 'Selesai'
+           AND (
+             sla_due_at < now()
+             OR priority = 'Kritis'
+             OR status = 'Eskalasi'
+             OR (status = 'Baru' AND created_at < now() - interval '24 hours')
+           )
+         ORDER BY
+           CASE
+             WHEN sla_due_at < now() THEN 1
+             WHEN priority = 'Kritis' THEN 2
+             WHEN status = 'Eskalasi' THEN 3
+             ELSE 4
+           END,
+           sla_due_at ASC
+         LIMIT 20"
+    );
+
+    $items = array_map(static function (array $row): array {
+        $title = [
+            'overdue' => 'SLA terlewati',
+            'critical' => 'Tiket kritis aktif',
+            'escalation' => 'Butuh eskalasi',
+            'waiting' => 'Menunggu verifikasi',
+            'info' => 'Perlu tindak lanjut',
+        ][$row['severity']] ?? 'Perlu tindak lanjut';
+
+        return [
+            'id' => $row['public_id'],
+            'type' => $row['type'],
+            'severity' => $row['severity'],
+            'title' => $title,
+            'description' => $row['subject'] . ' - ' . $row['region'],
+            'assignedUnit' => $row['assigned_unit'],
+            'slaDueAt' => $row['sla_due_at'],
+            'createdAt' => $row['created_at'],
+        ];
+    }, $statement->fetchAll());
+
+    json_response(['data' => $items]);
 }
 
 function report_summary(): void
