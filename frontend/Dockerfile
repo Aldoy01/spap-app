@@ -1,5 +1,8 @@
 FROM php:7.4-apache
 
+RUN a2dismod mpm_event mpm_worker || true \
+  && a2enmod mpm_prefork
+
 COPY index.php /var/www/html/index.php
 COPY assets /var/www/html/assets
 
