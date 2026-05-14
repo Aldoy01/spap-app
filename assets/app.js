@@ -165,11 +165,21 @@ let adminData = { users: [], permissions: [] };
 let ticketEvents = {};
 let acknowledgedNotifications = new Set(JSON.parse(localStorage.getItem("spap-ack-notifications") || "[]"));
 let kpuDapilCache = {};
+let kpuTargetNameOptions = [];
 const API_BASE = window.SPAP_CONFIG?.apiBaseUrl || (window.location.port === "3000" ? "" : "http://localhost:3000");
 const manageableMenus = ["dashboard", "aspirasi", "pengaduan", "osint", "analytics", "laporan", "settings"];
 const manageableRoles = ["admin", "operator", "verifikator", "koordinator"];
 const roleLabels = { admin: "Admin", operator: "Operator", verifikator: "Verifikator", koordinator: "Koordinator" };
 const menuLabels = { dashboard: "Dashboard", aspirasi: "Aspirasi", pengaduan: "Pengaduan", osint: "OSINT", analytics: "Analytics", laporan: "Laporan", settings: "Pengaturan" };
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 
 function populateProvinceOptions() {
   const regionFilter = document.getElementById("regionFilter");
@@ -268,6 +278,19 @@ async function loadKpuDapilForProvince(province) {
   }
 }
 
+async function loadKpuTargetNameOptions() {
+  if (kpuTargetNameOptions.length || !apiAvailable) return;
+  try {
+    const payload = await apiRequest("/api/kpu/dapil");
+    const provincesData = payload.data?.provinces || {};
+    kpuTargetNameOptions = [...new Set(Object.values(provincesData).flatMap(province =>
+      Object.values(province.pksDprRi || {}).flat()
+    ))].sort((a, b) => a.localeCompare(b, "id-ID"));
+  } catch (error) {
+    console.error("KPU target name options load failed", error);
+  }
+}
+
 async function refreshRecipientFieldsFromKpu() {
   const province = document.getElementById("ticketRegion")?.value || "";
   await loadKpuDapilForProvince(province);
@@ -320,7 +343,8 @@ function applyAuthState() {
   appShell.style.display = loggedIn ? "flex" : "none";
 
   document.getElementById("currentUserName").textContent = currentUser?.name || "-";
-  document.getElementById("currentUserRole").textContent = currentUser ? (currentUser.role === "admin" ? "Admin" : "User") : "-";
+  const targetScope = currentUser?.targetName ? ` - ${currentUser.targetName}` : "";
+  document.getElementById("currentUserRole").textContent = currentUser ? `${currentUser.role === "admin" ? "Admin" : "User"}${targetScope}` : "-";
 
   document.querySelectorAll(".nav-item").forEach(item => {
     const page = item.dataset.page;
@@ -465,6 +489,7 @@ async function loadAdminData() {
     return;
   }
   try {
+    await loadKpuTargetNameOptions();
     const [usersPayload, permissionsPayload] = await Promise.all([
       apiRequest("/api/admin/users"),
       apiRequest("/api/admin/menu-permissions")
@@ -836,6 +861,10 @@ function renderPengaduan() {
 
 function renderDetailContent(type, item) {
   const events = ticketEvents[item.id] || [];
+  const targetName = item.targetName || item.target_name || "-";
+  const targetLevel = item.targetLevel || item.target_level || "-";
+  const targetDapil = item.targetDapil || item.target_dapil || "-";
+  const targetArea = [item.targetProvince, item.targetCity].filter(Boolean).join(" - ") || "-";
   const eventRows = events.length
     ? events.map(event => `
       <div class="event-item">
@@ -854,8 +883,8 @@ function renderDetailContent(type, item) {
       <div class="detail-box"><strong>PIC</strong><br>${item.pic}</div>
       <div class="detail-box"><strong>Prioritas</strong><br>${badge(item.prioritas)}</div>
       <div class="detail-box"><strong>Status</strong><br>${badge(item.status)}</div>
-      <div class="detail-box"><strong>Ditujukan Kepada</strong><br>${item.targetLevel || "-"}<br><small>${item.targetName || "-"}</small></div>
-      <div class="detail-box"><strong>Wilayah Tujuan</strong><br>${item.targetDapil || "-"}<br><small>${[item.targetProvince, item.targetCity].filter(Boolean).join(" - ") || "-"}</small></div>
+      <div class="detail-box target-recipient"><strong>Ditujukan Kepada</strong><br><span>${targetName}</span><br><small>${targetLevel}</small></div>
+      <div class="detail-box"><strong>Wilayah Tujuan</strong><br>${targetDapil}<br><small>${targetArea}</small></div>
     </div>
     <h4>${item.judul}</h4>
     <p>${item.deskripsi}</p>
@@ -1018,13 +1047,21 @@ function renderSettings() {
   const complaintBox = document.getElementById("complaintManagement");
   if (!userRows || !permissionRows || !complaintBox) return;
 
+  populateUserTargetNameOptions();
+
   userRows.innerHTML = adminData.users.length
-    ? adminData.users.map(user => `
+    ? adminData.users.map(user => {
+      const targetName = user.target_name || user.targetName || "";
+      return `
       <tr>
         <td><strong>${user.name}</strong></td>
         <td>${user.email}</td>
         <td><span class="role-pill">${roleLabels[user.role] || user.role}</span></td>
         <td>${user.organization_unit || "-"}</td>
+        <td>
+          <input class="compact-input" id="target-${user.id}" value="${escapeHtml(targetName)}" placeholder="Nama yang dituju">
+          <button class="btn ghost compact-btn" onclick="updateUserTargetName('${user.id}')">Simpan</button>
+        </td>
         <td>
           <select class="compact-select" onchange="updateUserStatus('${user.id}', this.value)">
             <option value="active" ${user.status === "active" ? "selected" : ""}>Aktif</option>
@@ -1033,8 +1070,9 @@ function renderSettings() {
           <button class="btn ghost compact-btn" onclick="resetUserPassword('${user.id}', '${user.email}')">Reset</button>
         </td>
       </tr>
-    `).join("")
-    : '<tr><td colspan="5">Data user akan tampil setelah API admin aktif.</td></tr>';
+    `;
+    }).join("")
+    : '<tr><td colspan="6">Data user akan tampil setelah API admin aktif.</td></tr>';
 
   const permissionMap = new Map(adminData.permissions.map(item => [`${item.role}:${item.menu_key}`, item]));
   permissionRows.innerHTML = manageableRoles.flatMap(role => manageableMenus.map(menu => {
@@ -1078,6 +1116,20 @@ function renderSettings() {
       </article>
     `).join("")
     : '<div class="warning positif"><strong>Semua pengaduan selesai</strong><p>Tidak ada pengaduan aktif yang perlu ditindaklanjuti.</p></div>';
+}
+
+function collectUserTargetNameOptions() {
+  const ticketNames = [...state.aspirasi, ...state.pengaduan].map(item => item.targetName).filter(Boolean);
+  const userNames = adminData.users.map(user => user.target_name || user.targetName).filter(Boolean);
+  return [...new Set([...kpuTargetNameOptions, ...ticketNames, ...userNames])].sort((a, b) => a.localeCompare(b, "id-ID"));
+}
+
+function populateUserTargetNameOptions() {
+  const datalist = document.getElementById("userTargetNameOptions");
+  if (!datalist) return;
+  datalist.innerHTML = collectUserTargetNameOptions()
+    .map(name => `<option value="${escapeHtml(name)}"></option>`)
+    .join("");
 }
 
 function renderAll() {
@@ -1298,6 +1350,7 @@ async function createUser(event) {
       email: document.getElementById("userEmail").value,
       role: document.getElementById("userRole").value,
       organizationUnit: document.getElementById("userUnit").value,
+      targetName: document.getElementById("userTargetName").value,
       password: document.getElementById("userPassword").value,
       status: document.getElementById("userStatus").value
     })
@@ -1318,6 +1371,18 @@ async function updateUserStatus(id, status) {
   adminData.users = adminData.users.map(user => user.id === id ? payload.data : user);
   renderSettings();
   toast("Status user diperbarui");
+}
+
+async function updateUserTargetName(id) {
+  if (!apiAvailable || currentUser?.role !== "admin") return;
+  const targetName = document.getElementById(`target-${id}`)?.value || "";
+  const payload = await apiRequest(`/api/admin/users/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ targetName })
+  });
+  adminData.users = adminData.users.map(user => user.id === id ? payload.data : user);
+  renderSettings();
+  toast("Nama tujuan user diperbarui. User perlu login ulang agar filter aktif.");
 }
 
 async function resetUserPassword(id, email) {

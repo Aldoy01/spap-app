@@ -517,6 +517,11 @@ function nav_icon(string $name): string
             <form id="userForm" class="form-grid">
               <label>Nama<input id="userName" required></label>
               <label>Email<input id="userEmail" type="email" required></label>
+              <label class="full user-target-field">Nama Tujuan / Anggota yang Diakses
+                <input id="userTargetName" list="userTargetNameOptions" placeholder="Pilih atau ketik nama anggota yang dituju">
+                <datalist id="userTargetNameOptions"></datalist>
+                <small class="field-hint">Kosongkan untuk akses semua data sesuai role. Isi nama anggota agar user hanya melihat aspirasi/pengaduan yang ditujukan ke nama tersebut.</small>
+              </label>
               <label>Role
                 <select id="userRole">
                   <option value="operator">Operator</option>
@@ -545,7 +550,7 @@ function nav_icon(string $name): string
             </div>
             <div class="table-wrap">
               <table>
-                <thead><tr><th>Nama</th><th>Email</th><th>Role</th><th>Unit</th><th>Status</th></tr></thead>
+                <thead><tr><th>Nama</th><th>Email</th><th>Role</th><th>Unit</th><th>Nama Tujuan</th><th>Status</th></tr></thead>
                 <tbody id="userManagementRows"></tbody>
               </table>
             </div>

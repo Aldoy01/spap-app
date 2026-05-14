@@ -179,9 +179,11 @@ function ensure_schema(): void
             password_hash VARCHAR(255),
             role VARCHAR(40) NOT NULL DEFAULT 'operator',
             organization_unit VARCHAR(120),
+            target_name VARCHAR(160),
             status VARCHAR(20) NOT NULL DEFAULT 'active',
             created_at TIMESTAMPTZ NOT NULL DEFAULT now()
         )",
+        'ALTER TABLE users ADD COLUMN IF NOT EXISTS target_name VARCHAR(160)',
         "CREATE TABLE IF NOT EXISTS tickets (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             public_id VARCHAR(32) UNIQUE NOT NULL,
@@ -212,6 +214,7 @@ function ensure_schema(): void
         'ALTER TABLE tickets ADD COLUMN IF NOT EXISTS target_province VARCHAR(120)',
         'ALTER TABLE tickets ADD COLUMN IF NOT EXISTS target_city VARCHAR(120)',
         'ALTER TABLE tickets ADD COLUMN IF NOT EXISTS target_name VARCHAR(160)',
+        'CREATE INDEX IF NOT EXISTS tickets_target_name_idx ON tickets(target_name)',
         "CREATE TABLE IF NOT EXISTS ticket_events (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             ticket_id UUID NOT NULL REFERENCES tickets(id) ON DELETE CASCADE,
@@ -398,6 +401,7 @@ function public_user(array $user): array
         'email' => $user['email'],
         'role' => $user['role'],
         'organizationUnit' => $user['organization_unit'] ?? null,
+        'targetName' => $user['target_name'] ?? null,
         'permissions' => permissions_for_role($user['role']),
     ];
 }
@@ -465,6 +469,31 @@ function require_permission(string $menuKey, string $action): ?array
     }
 
     return $user;
+}
+
+function apply_target_name_scope(array $user, array &$where, array &$params): void
+{
+    $targetName = trim((string) ($user['targetName'] ?? $user['target_name'] ?? ''));
+    if (($user['role'] ?? '') === 'admin' || $targetName === '') {
+        return;
+    }
+
+    $where[] = '(target_name ILIKE ? OR ? ILIKE target_name || ?)';
+    $params[] = $targetName . '%';
+    $params[] = $targetName;
+    $params[] = '%';
+}
+
+function can_access_ticket_target(array $user, array $ticket): bool
+{
+    $targetName = trim((string) ($user['targetName'] ?? $user['target_name'] ?? ''));
+    if (($user['role'] ?? '') === 'admin' || $targetName === '') {
+        return true;
+    }
+
+    $ticketTarget = trim((string) ($ticket['target_name'] ?? ''));
+    return $ticketTarget !== ''
+        && (stripos($ticketTarget, $targetName) === 0 || stripos($targetName, $ticketTarget) === 0);
 }
 
 function cache_get(string $key): ?array
@@ -608,7 +637,7 @@ function list_users(): void
     }
 
     $statement = db()->query(
-        'SELECT id, name, email, role, organization_unit, status, created_at
+        'SELECT id, name, email, role, organization_unit, target_name, status, created_at
          FROM users
          ORDER BY created_at DESC, name ASC'
     );
@@ -626,6 +655,7 @@ function create_user(): void
     $email = strtolower(trim($input['email'] ?? ''));
     $role = $input['role'] ?? 'operator';
     $unit = $input['organizationUnit'] ?? 'SPAP';
+    $targetName = trim($input['targetName'] ?? '');
     $status = $input['status'] ?? 'active';
     $password = $input['password'] ?? 'user123';
 
@@ -635,13 +665,13 @@ function create_user(): void
     }
 
     $statement = db()->prepare(
-        'INSERT INTO users (name, email, password_hash, role, organization_unit, status)
-         VALUES (?, ?, ?, ?, ?, ?)
+        'INSERT INTO users (name, email, password_hash, role, organization_unit, target_name, status)
+         VALUES (?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT (email) DO UPDATE
-         SET name = EXCLUDED.name, role = EXCLUDED.role, organization_unit = EXCLUDED.organization_unit, status = EXCLUDED.status
-         RETURNING id, name, email, role, organization_unit, status, created_at'
+         SET name = EXCLUDED.name, role = EXCLUDED.role, organization_unit = EXCLUDED.organization_unit, target_name = EXCLUDED.target_name, status = EXCLUDED.status
+         RETURNING id, name, email, role, organization_unit, target_name, status, created_at'
     );
-    $statement->execute([$name, $email, password_hash($password, PASSWORD_BCRYPT), $role, $unit, $status]);
+    $statement->execute([$name, $email, password_hash($password, PASSWORD_BCRYPT), $role, $unit, $targetName ?: null, $status]);
     json_response(['data' => $statement->fetch()], 201);
 }
 
@@ -652,19 +682,24 @@ function update_user(string $id): void
     }
 
     $input = input_json();
+    $targetNameProvided = array_key_exists('targetName', $input);
+    $targetName = $targetNameProvided ? (trim((string) $input['targetName']) ?: null) : null;
     $statement = db()->prepare(
         'UPDATE users
          SET name = COALESCE(?, name),
              role = COALESCE(?, role),
              organization_unit = COALESCE(?, organization_unit),
+             target_name = CASE WHEN ? = 1 THEN ? ELSE target_name END,
              status = COALESCE(?, status)
          WHERE id = ?
-         RETURNING id, name, email, role, organization_unit, status, created_at'
+         RETURNING id, name, email, role, organization_unit, target_name, status, created_at'
     );
     $statement->execute([
         $input['name'] ?? null,
         $input['role'] ?? null,
         $input['organizationUnit'] ?? null,
+        $targetNameProvided ? 1 : 0,
+        $targetName,
         $input['status'] ?? null,
         $id,
     ]);
@@ -693,7 +728,7 @@ function reset_user_password(string $id): void
         'UPDATE users
          SET password_hash = ?
          WHERE id = ?
-         RETURNING id, name, email, role, organization_unit, status, created_at'
+         RETURNING id, name, email, role, organization_unit, target_name, status, created_at'
     );
     $statement->execute([password_hash($password, PASSWORD_BCRYPT), $id]);
     $user = $statement->fetch();
@@ -792,14 +827,6 @@ function list_tickets(): void
         }
     }
 
-    $cacheKey = 'tickets:' . ($type ?: 'all') . ':' . ($status ?: 'all') . ':' . ($region ?: 'all') . ':' . ($q ?: '');
-
-    $cached = cache_get($cacheKey);
-    if ($cached) {
-        json_response($cached);
-        return;
-    }
-
     $where = [];
     $params = [];
 
@@ -820,6 +847,16 @@ function list_tickets(): void
         $params[] = '%' . $q . '%';
         $params[] = '%' . $q . '%';
         $params[] = '%' . $q . '%';
+    }
+    apply_target_name_scope($user, $where, $params);
+
+    $scope = ($user['role'] ?? '') === 'admin' ? 'admin' : ('target:' . md5((string) ($user['targetName'] ?? $user['target_name'] ?? 'all')));
+    $cacheKey = 'tickets:' . $scope . ':' . ($type ?: 'all') . ':' . ($status ?: 'all') . ':' . ($region ?: 'all') . ':' . ($q ?: '');
+
+    $cached = cache_get($cacheKey);
+    if ($cached) {
+        json_response($cached);
+        return;
     }
 
     $sql = 'SELECT public_id, type, reporter_name, reporter_contact, channel, region, category, priority, status,
@@ -911,16 +948,20 @@ function update_ticket_status(string $publicId): void
     $targetProvince = $input['targetProvince'] ?? null;
     $targetCity = $input['targetCity'] ?? null;
     $targetName = $input['targetName'] ?? null;
-    $typeStatement = db()->prepare('SELECT type FROM tickets WHERE public_id = ? LIMIT 1');
+    $typeStatement = db()->prepare('SELECT type, target_name FROM tickets WHERE public_id = ? LIMIT 1');
     $typeStatement->execute([$publicId]);
-    $type = $typeStatement->fetchColumn();
-    if (!$type) {
+    $existingTicket = $typeStatement->fetch();
+    if (!$existingTicket) {
         json_response(['error' => 'Ticket not found'], 404);
         return;
     }
 
-    $actor = require_permission($type === 'pengaduan' ? 'pengaduan' : 'aspirasi', 'update');
+    $actor = require_permission($existingTicket['type'] === 'pengaduan' ? 'pengaduan' : 'aspirasi', 'update');
     if (!$actor) {
+        return;
+    }
+    if (!can_access_ticket_target($actor, $existingTicket)) {
+        json_response(['error' => 'Forbidden'], 403);
         return;
     }
 
@@ -959,7 +1000,7 @@ function update_ticket_status(string $publicId): void
 
 function ticket_by_public_id(string $publicId): ?array
 {
-    $statement = db()->prepare('SELECT id, public_id, type FROM tickets WHERE public_id = ? LIMIT 1');
+    $statement = db()->prepare('SELECT id, public_id, type, target_name FROM tickets WHERE public_id = ? LIMIT 1');
     $statement->execute([$publicId]);
     $ticket = $statement->fetch();
     return $ticket ?: null;
@@ -975,6 +1016,10 @@ function list_ticket_events(string $publicId): void
 
     $actor = require_permission($ticket['type'] === 'pengaduan' ? 'pengaduan' : 'aspirasi', 'view');
     if (!$actor) {
+        return;
+    }
+    if (!can_access_ticket_target($actor, $ticket)) {
+        json_response(['error' => 'Forbidden'], 403);
         return;
     }
 
@@ -998,6 +1043,10 @@ function create_ticket_event(string $publicId): void
 
     $actor = require_permission($ticket['type'] === 'pengaduan' ? 'pengaduan' : 'aspirasi', 'update');
     if (!$actor) {
+        return;
+    }
+    if (!can_access_ticket_target($actor, $ticket)) {
+        json_response(['error' => 'Forbidden'], 403);
         return;
     }
 
@@ -1049,7 +1098,19 @@ function list_notifications(): void
         return;
     }
 
-    $statement = db()->query(
+    $where = [
+        "status <> 'Selesai'",
+        "(
+            sla_due_at < now()
+            OR priority = 'Kritis'
+            OR status = 'Eskalasi'
+            OR (status = 'Baru' AND created_at < now() - interval '24 hours')
+        )",
+    ];
+    $params = [];
+    apply_target_name_scope($user, $where, $params);
+
+    $statement = db()->prepare(
         "SELECT public_id, type, priority, status, subject, region, assigned_unit, sla_due_at, created_at,
                 CASE
                   WHEN status <> 'Selesai' AND sla_due_at < now() THEN 'overdue'
@@ -1059,13 +1120,7 @@ function list_notifications(): void
                   ELSE 'info'
                 END AS severity
          FROM tickets
-         WHERE status <> 'Selesai'
-           AND (
-             sla_due_at < now()
-             OR priority = 'Kritis'
-             OR status = 'Eskalasi'
-             OR (status = 'Baru' AND created_at < now() - interval '24 hours')
-           )
+         WHERE " . implode(' AND ', $where) . "
          ORDER BY
            CASE
              WHEN sla_due_at < now() THEN 1
@@ -1076,6 +1131,7 @@ function list_notifications(): void
            sla_due_at ASC
          LIMIT 20"
     );
+    $statement->execute($params);
 
     $items = array_map(static function (array $row): array {
         $title = [
@@ -1112,6 +1168,10 @@ function acknowledge_notification(string $publicId): void
 
     $actor = require_permission($ticket['type'] === 'pengaduan' ? 'pengaduan' : 'aspirasi', 'update');
     if (!$actor) {
+        return;
+    }
+    if (!can_access_ticket_target($actor, $ticket)) {
+        json_response(['error' => 'Forbidden'], 403);
         return;
     }
 

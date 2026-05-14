@@ -1410,6 +1410,18 @@ dialog::backdrop {
   color: var(--muted);
 }
 
+.detail-box.target-recipient {
+  border-color: #fed7aa;
+  background: #fff7ed;
+}
+
+.detail-box.target-recipient span {
+  display: inline-block;
+  margin-top: 4px;
+  color: var(--brand-dark);
+  font-weight: 800;
+}
+
 .panel-head.compact {
   margin: 22px 0 12px;
   padding-bottom: 12px;
@@ -1481,6 +1493,30 @@ dialog::backdrop {
   border-radius: 8px;
   border: 1px solid var(--line);
   background: #fff;
+}
+
+.compact-input {
+  min-height: 34px;
+  width: min(260px, 100%);
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.field-hint {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.user-target-field {
+  padding: 16px;
+  border: 1px solid #fed7aa;
+  border-radius: 12px;
+  background: #fff7ed;
 }
 
 .management-list {
