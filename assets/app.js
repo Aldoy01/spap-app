@@ -820,34 +820,49 @@ function renderDashboard() {
   renderActivities();
 }
 
-function ticketMatches(item, search, status, priority) {
+function selectedRegionFilter() {
+  return document.getElementById("regionFilter")?.value || "Semua";
+}
+
+function ticketMatchesRegion(item, region) {
+  if (region === "Semua") return true;
+  return item.wilayah === region
+    || item.targetProvince === region
+    || item.lokasi === region;
+}
+
+function ticketMatches(item, search, status, priority, region = selectedRegionFilter()) {
   const haystack = `${item.id} ${item.nama} ${item.judul} ${item.kategori} ${item.wilayah} ${item.deskripsi}`.toLowerCase();
   return (!search || haystack.includes(search.toLowerCase()))
     && (status === "Semua" || item.status === status)
-    && (priority === "Semua" || item.prioritas === priority);
+    && (priority === "Semua" || item.prioritas === priority)
+    && ticketMatchesRegion(item, region);
 }
 
 function renderAspirasi() {
   const search = document.getElementById("aspirasiSearch").value;
   const status = document.getElementById("aspirasiStatus").value;
   const priority = document.getElementById("aspirasiPriority").value;
-  document.getElementById("aspirasiTable").innerHTML = state.aspirasi
-    .filter(item => ticketMatches(item, search, status, priority))
+  const items = state.aspirasi.filter(item => ticketMatches(item, search, status, priority));
+  document.getElementById("aspirasiTable").innerHTML = items.length
+    ? items
     .map(item => `
       <tr>
         <td>${item.id}</td><td>${item.nama}</td><td><strong>${item.judul}</strong><br><small>${item.kanal}</small></td>
         <td>${item.kategori}</td><td>${item.wilayah}</td><td>${badge(item.prioritas)}</td><td>${badge(item.status)}</td>
         <td><button class="btn ghost" onclick="openDetail('aspirasi','${item.id}')">Detail</button></td>
       </tr>
-    `).join("");
+    `).join("")
+    : '<tr><td colspan="8">Tidak ada aspirasi untuk filter wilayah/status/prioritas ini.</td></tr>';
 }
 
 function renderPengaduan() {
   const search = document.getElementById("pengaduanSearch").value;
   const status = document.getElementById("pengaduanStatus").value;
   const priority = document.getElementById("pengaduanPriority").value;
-  document.getElementById("pengaduanGrid").innerHTML = state.pengaduan
-    .filter(item => ticketMatches(item, search, status, priority))
+  const items = state.pengaduan.filter(item => ticketMatches(item, search, status, priority));
+  document.getElementById("pengaduanGrid").innerHTML = items.length
+    ? items
     .map(item => `
       <article class="ticket-card">
         <div class="ticket-meta"><span>${item.id}</span><span>${item.tanggal}</span></div>
@@ -856,7 +871,8 @@ function renderPengaduan() {
         <div class="ticket-meta"><span>${item.lokasi}</span><span>${item.pic}</span></div>
         <div class="card-actions">${badge(item.prioritas)} ${badge(item.status)} <button class="btn ghost" onclick="openDetail('pengaduan','${item.id}')">Detail</button></div>
       </article>
-    `).join("");
+    `).join("")
+    : '<div class="warning positif"><strong>Data tidak ditemukan</strong><p>Tidak ada pengaduan untuk filter wilayah/status/prioritas ini.</p></div>';
 }
 
 function renderDetailContent(type, item) {
