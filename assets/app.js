@@ -970,6 +970,8 @@ async function updateTicketStatus(type, id, status) {
         method: "PATCH",
         body: JSON.stringify({ status, note: `Status diubah melalui UI ke ${status}` })
       });
+      item.status = status;
+      await loadData();
       await loadTicketEvents(type, id);
     } catch (error) {
       apiAvailable = false;
@@ -1270,6 +1272,9 @@ async function addTicket(event) {
 
   collection.unshift(item);
   saveState();
+  if (apiAvailable) {
+    await loadData();
+  }
   document.getElementById("ticketDialog").close();
   document.getElementById("ticketForm").reset();
   renderAll();
@@ -1316,6 +1321,9 @@ async function assignComplaint(id, status) {
           actorName: currentUser?.name || "Admin SPAP"
         })
       });
+      item.status = status;
+      item.pic = assignedUnit;
+      await loadData();
     } catch (error) {
       toast("API tidak merespon, perubahan disimpan lokal");
     }
