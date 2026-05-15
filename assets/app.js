@@ -536,6 +536,10 @@ function mergeTicketIntoState(item, type) {
   }
 }
 
+function ticketTypeFromItem(item, fallback = "aspirasi") {
+  return (item?.type || item?.tipe || fallback).toString().toLowerCase() === "pengaduan" ? "pengaduan" : "aspirasi";
+}
+
 function badge(text) {
   return `<span class="badge ${text}">${text}</span>`;
 }
@@ -985,11 +989,11 @@ async function updateTicketStatus(type, id, status) {
 
   if (apiAvailable) {
     try {
-      await apiRequest(`/api/tickets/${id}/status`, {
+      const payload = await apiRequest(`/api/tickets/${id}/status`, {
         method: "PATCH",
         body: JSON.stringify({ status, note: `Status diubah melalui UI ke ${status}` })
       });
-      item.status = status;
+      Object.assign(item, normalizeTicket(payload.data || item), { status });
       await loadData();
       await loadTicketEvents(type, id);
     } catch (error) {
@@ -1330,7 +1334,7 @@ async function assignComplaint(id, status) {
 
   if (apiAvailable) {
     try {
-      await apiRequest(`/api/tickets/${id}/status`, {
+      const payload = await apiRequest(`/api/tickets/${id}/status`, {
         method: "PATCH",
         body: JSON.stringify({
           status,
@@ -1344,8 +1348,7 @@ async function assignComplaint(id, status) {
           actorName: currentUser?.name || "Admin SPAP"
         })
       });
-      item.status = status;
-      item.pic = assignedUnit;
+      Object.assign(item, normalizeTicket(payload.data || item), { status, pic: assignedUnit });
       await loadData();
     } catch (error) {
       toast("API tidak merespon, perubahan disimpan lokal");
@@ -1364,7 +1367,7 @@ async function acknowledgeNotification(id, type) {
   const note = "Notifikasi SLA/eskalasi sudah ditindaklanjuti dari pusat notifikasi";
   if (apiAvailable) {
     try {
-      await apiRequest(`/api/notifications/${id}/ack`, {
+      const payload = await apiRequest(`/api/notifications/${id}/ack`, {
         method: "POST",
         body: JSON.stringify({
           note,
@@ -1372,6 +1375,10 @@ async function acknowledgeNotification(id, type) {
           actorName: currentUser?.name || "Operator SPAP"
         })
       });
+      if (payload?.data) {
+        const updated = normalizeTicket(payload.data);
+        mergeTicketIntoState(updated, ticketTypeFromItem(payload.data, type));
+      }
       await loadTicketEvents(type, id);
     } catch (error) {
       toast("Notifikasi disimpan lokal karena API tidak merespon");
