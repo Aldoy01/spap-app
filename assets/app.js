@@ -322,8 +322,13 @@ function saveState() {
 async function apiRequest(path, options = {}) {
   const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
   if (authToken) headers.Authorization = `Bearer ${authToken}`;
-  const response = await fetch(`${API_BASE}${path}`, {
+  const method = (options.method || "GET").toUpperCase();
+  const endpoint = method === "GET"
+    ? `${path}${path.includes("?") ? "&" : "?"}_=${Date.now()}`
+    : path;
+  const response = await fetch(`${API_BASE}${endpoint}`, {
     headers,
+    cache: "no-store",
     ...options
   });
   if (!response.ok) {
@@ -881,7 +886,13 @@ function renderAspirasi() {
       <tr>
         <td>${item.id}</td><td>${item.nama}</td><td><strong>${item.judul}</strong><br><small>${item.kanal}</small></td>
         <td>${item.kategori}</td><td>${item.wilayah}</td><td>${badge(item.prioritas)}</td><td>${badge(item.status)}</td>
-        <td><button class="btn ghost" onclick="openDetail('aspirasi','${item.id}')">Detail</button></td>
+        <td>
+          <div class="table-actions">
+            <button class="btn ghost" onclick="openDetail('aspirasi','${item.id}')">Detail</button>
+            ${item.status === "Baru" ? `<button class="btn" onclick="updateTicketStatus('aspirasi','${item.id}','Diproses')">Proses</button>` : ""}
+            ${item.status !== "Selesai" ? `<button class="btn primary" onclick="updateTicketStatus('aspirasi','${item.id}','Selesai')">Selesai</button>` : ""}
+          </div>
+        </td>
       </tr>
     `).join("")
     : '<tr><td colspan="8">Tidak ada aspirasi untuk filter wilayah/status/prioritas ini.</td></tr>';

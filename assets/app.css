@@ -1081,6 +1081,18 @@ th {
   text-transform: uppercase;
 }
 
+.table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.table-actions .btn {
+  min-height: 34px;
+  padding: 8px 12px;
+}
+
 .badge {
   display: inline-flex;
   border-radius: 999px;
