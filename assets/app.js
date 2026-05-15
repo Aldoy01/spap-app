@@ -1000,6 +1000,7 @@ async function updateTicketStatus(type, id, status) {
   }
 
   item.status = status;
+  mergeTicketIntoState(item, type);
   saveState();
   renderAll();
   openDetail(type, id);
@@ -1353,6 +1354,7 @@ async function assignComplaint(id, status) {
 
   item.status = status;
   item.pic = assignedUnit;
+  mergeTicketIntoState(item, "pengaduan");
   saveState();
   renderAll();
   toast(`Pengaduan ${id} diperbarui`);
@@ -1383,6 +1385,7 @@ async function acknowledgeNotification(id, type) {
   const item = collection.find(ticket => ticket.id === id);
   if (item && item.status === "Baru") {
     item.status = "Diproses";
+    mergeTicketIntoState(item, type);
   }
 
   saveState();
