@@ -646,17 +646,25 @@ function renderCategoryDonut() {
 }
 
 function renderDashboardActivities() {
-  const items = [
-    ["Aspirasi baru diterima", "Infrastruktur jalan di Depok", "5 menit lalu", "A"],
-    ["Pengaduan terselesaikan", "Masalah air bersih di Bekasi", "15 menit lalu", "S"],
-    ["Laporan mingguan generated", "Statistik periode 1-7 Jan 2024", "1 jam lalu", "L"],
-    ["OSINT alert detected", "Trending topic: #HargaSembako", "2 jam lalu", "O"],
-    ["Pengaduan baru", "Fasilitas kesehatan di Bandung", "3 jam lalu", "P"]
-  ];
+  const items = scopedTickets()
+    .sort((a, b) => `${b.tanggal} ${b.id}`.localeCompare(`${a.tanggal} ${a.id}`))
+    .slice(0, 6)
+    .map(item => {
+      const isPengaduan = item.tipe === "Pengaduan";
+      const statusText = item.status === "Selesai" ? "terselesaikan" : item.status === "Baru" ? "baru diterima" : item.status.toLowerCase();
+      return [
+        `${item.tipe} ${statusText}`,
+        `${item.judul} - ${item.wilayah}`,
+        item.tanggal,
+        isPengaduan ? "P" : "A"
+      ];
+    });
 
-  document.getElementById("dashboardActivityList").innerHTML = items.map(([title, desc, time, icon]) => `
+  document.getElementById("dashboardActivityList").innerHTML = items.length
+    ? items.map(([title, desc, time, icon]) => `
     <div class="timeline-item"><span class="timeline-icon">${icon}</span><div><strong>${title}</strong><p>${desc}</p></div><time>${time}</time></div>
-  `).join("");
+  `).join("")
+    : '<div class="warning positif"><strong>Belum ada aktivitas</strong><p>Data terbaru akan muncul setelah aspirasi atau pengaduan dibuat.</p></div>';
 }
 
 function renderDashboardAlerts() {
