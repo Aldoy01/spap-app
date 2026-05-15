@@ -1098,15 +1098,7 @@ function list_notifications(): void
         return;
     }
 
-    $where = [
-        "status <> 'Selesai'",
-        "(
-            sla_due_at < now()
-            OR priority = 'Kritis'
-            OR status = 'Eskalasi'
-            OR (status = 'Baru' AND created_at < now() - interval '24 hours')
-        )",
-    ];
+    $where = ["status <> 'Selesai'"];
     $params = [];
     apply_target_name_scope($user, $where, $params);
 
@@ -1116,7 +1108,7 @@ function list_notifications(): void
                   WHEN status <> 'Selesai' AND sla_due_at < now() THEN 'overdue'
                   WHEN priority = 'Kritis' AND status <> 'Selesai' THEN 'critical'
                   WHEN status = 'Eskalasi' THEN 'escalation'
-                  WHEN status = 'Baru' AND created_at < now() - interval '24 hours' THEN 'waiting'
+                  WHEN status = 'Baru' THEN 'new'
                   ELSE 'info'
                 END AS severity
          FROM tickets
@@ -1126,8 +1118,10 @@ function list_notifications(): void
              WHEN sla_due_at < now() THEN 1
              WHEN priority = 'Kritis' THEN 2
              WHEN status = 'Eskalasi' THEN 3
-             ELSE 4
+             WHEN status = 'Baru' THEN 4
+             ELSE 5
            END,
+           created_at DESC,
            sla_due_at ASC
          LIMIT 20"
     );
@@ -1138,7 +1132,7 @@ function list_notifications(): void
             'overdue' => 'SLA terlewati',
             'critical' => 'Tiket kritis aktif',
             'escalation' => 'Butuh eskalasi',
-            'waiting' => 'Menunggu verifikasi',
+            'new' => $row['type'] === 'pengaduan' ? 'Pengaduan baru diajukan' : 'Aspirasi baru diajukan',
             'info' => 'Perlu tindak lanjut',
         ][$row['severity']] ?? 'Perlu tindak lanjut';
 

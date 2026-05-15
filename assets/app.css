@@ -895,6 +895,11 @@ select:focus, input:focus, textarea:focus {
   background: #f5f3ff;
 }
 
+.sla-card.new {
+  border-left-color: #16a34a;
+  background: #f0fdf4;
+}
+
 .sla-card strong {
   display: block;
   margin: 4px 0;
@@ -943,6 +948,11 @@ select:focus, input:focus, textarea:focus {
 .notification-card.escalation {
   border-left-color: #7c3aed;
   background: #f5f3ff;
+}
+
+.notification-card.new {
+  border-left-color: #16a34a;
+  background: #f0fdf4;
 }
 
 .notification-card p {

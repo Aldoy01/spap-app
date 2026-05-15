@@ -421,9 +421,10 @@ async function logout() {
 }
 
 function normalizeTicket(row) {
+  const createdAt = row.created_at || row.createdAt || row.tanggal || new Date().toISOString();
   return {
     id: row.public_id || row.id,
-    tanggal: (row.created_at || row.tanggal || new Date().toISOString()).slice(0, 10),
+    tanggal: createdAt.slice(0, 10),
     nama: row.reporter_name || row.nama,
     kategori: row.category || row.kategori,
     prioritas: row.priority || row.prioritas,
@@ -439,6 +440,7 @@ function normalizeTicket(row) {
     targetProvince: row.target_province || row.targetProvince || row.region || row.wilayah || "",
     targetCity: row.target_city || row.targetCity || "",
     targetName: row.target_name || row.targetName || "",
+    createdAt,
     slaDueAt: row.sla_due_at || row.slaDueAt || null,
     resolvedAt: row.resolved_at || row.resolvedAt || null,
     updatedAt: row.updated_at || row.updatedAt || null
@@ -524,6 +526,16 @@ function scopedTickets() {
   return allTickets().filter(item => region === "Semua" || item.wilayah === region);
 }
 
+function mergeTicketIntoState(item, type) {
+  const collection = type === "aspirasi" ? state.aspirasi : state.pengaduan;
+  const existingIndex = collection.findIndex(ticket => ticket.id === item.id);
+  if (existingIndex >= 0) {
+    collection[existingIndex] = { ...collection[existingIndex], ...item };
+  } else {
+    collection.unshift(item);
+  }
+}
+
 function badge(text) {
   return `<span class="badge ${text}">${text}</span>`;
 }
@@ -537,8 +549,12 @@ function toast(message) {
 
 function activeNotifications() {
   const selectedRegion = document.getElementById("regionFilter")?.value || "Semua";
-  const source = state.notifications?.length ? state.notifications : localNotifications();
-  return source.filter(item => {
+  const byTicket = new Map();
+  [...(state.notifications || []), ...localNotifications()].forEach(item => {
+    byTicket.set(`${item.type}:${item.id}`, { ...(byTicket.get(`${item.type}:${item.id}`) || {}), ...item });
+  });
+
+  return [...byTicket.values()].filter(item => {
     const matchesRegion = selectedRegion === "Semua" || item.region === selectedRegion || item.description?.includes(selectedRegion);
     return matchesRegion && !acknowledgedNotifications.has(item.id);
   });
@@ -699,19 +715,22 @@ function localNotifications() {
       } else if (ticket.status === "Eskalasi") {
         severity = "escalation";
         title = "Butuh eskalasi";
+      } else if (ticket.status === "Baru") {
+        severity = "new";
+        title = `${ticket.tipe} baru diajukan`;
       }
       return {
         id: ticket.id,
-        type: ticket.tipe.toLowerCase(),
+        type: ticket.tipe === "Pengaduan" ? "pengaduan" : "aspirasi",
         severity,
         title,
         description: `${ticket.judul} - ${ticket.wilayah}`,
         region: ticket.wilayah,
         assignedUnit: ticket.pic,
-        slaDueAt: ticket.slaDueAt
+        slaDueAt: ticket.slaDueAt,
+        createdAt: ticket.createdAt || ticket.tanggal
       };
     })
-    .filter(item => item.severity !== "info")
     .slice(0, 8);
 }
 
@@ -1236,6 +1255,7 @@ async function addTicket(event) {
     targetProvince,
     targetCity,
     targetName,
+    createdAt: new Date().toISOString(),
     email,
     phone
   };
@@ -1270,10 +1290,12 @@ async function addTicket(event) {
     }
   }
 
-  collection.unshift(item);
+  mergeTicketIntoState(item, type);
   saveState();
   if (apiAvailable) {
     await loadData();
+    mergeTicketIntoState(item, type);
+    saveState();
   }
   document.getElementById("ticketDialog").close();
   document.getElementById("ticketForm").reset();
