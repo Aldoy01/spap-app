@@ -355,6 +355,40 @@ async function refreshRecipientFieldsFromKpu() {
   updateRecipientFields();
 }
 
+function currentPublicRecipientDirectory() {
+  const province = document.getElementById("publicRegion")?.value || "";
+  return kpuDapilCache[province] || recipientDirectory[province] || recipientDirectory.default;
+}
+
+function updatePublicTargetNameOptions() {
+  const level = document.getElementById("publicTargetLevel")?.value || "DPR RI";
+  const selectedDapil = document.getElementById("publicTargetDapil")?.value || "";
+  const nameSelect = document.getElementById("publicTargetName");
+  if (!nameSelect) return;
+
+  const directory = currentPublicRecipientDirectory();
+  const pksDprRiNames = level === "DPR RI" ? buildPksDprRiNames(directory, selectedDapil) : [];
+  const fallbackNames = directory.names?.[level] || recipientDirectory.default.names[level];
+  setSelectOptions(nameSelect, pksDprRiNames.length ? pksDprRiNames : fallbackNames, "Pilih Nama Tujuan");
+}
+
+function updatePublicRecipientFields() {
+  const level = document.getElementById("publicTargetLevel")?.value || "DPR RI";
+  const dapilSelect = document.getElementById("publicTargetDapil");
+  if (!dapilSelect) return;
+
+  const directory = currentPublicRecipientDirectory();
+  const dapils = level === "DPR RI" ? directory.dprRi : directory.dprdProvinsi;
+  setSelectOptions(dapilSelect, dapils, "Pilih Dapil");
+  updatePublicTargetNameOptions();
+}
+
+async function refreshPublicRecipientFieldsFromKpu() {
+  const province = document.getElementById("publicRegion")?.value || "";
+  await loadKpuDapilForProvince(province);
+  updatePublicRecipientFields();
+}
+
 function setConnectionStatus(text, online) {
   const label = document.getElementById("connectionStatus");
   const dot = document.querySelector(".status-dot");
@@ -1659,14 +1693,20 @@ async function submitPublicComplaint(event) {
         reporterContact: document.getElementById("publicReporterPhone").value,
         region: document.getElementById("publicRegion").value,
         targetScope: document.getElementById("publicTargetScope").value,
+        targetLevel: document.getElementById("publicTargetLevel").value,
+        targetDapil: document.getElementById("publicTargetDapil").value,
+        targetName: document.getElementById("publicTargetName").value,
         subject: document.getElementById("publicSubject").value,
         description: document.getElementById("publicDescription").value
       })
     });
     const data = payload.data || {};
     event.target.reset();
+    updatePublicRecipientFields();
+    const targetLabel = escapeHtml(data.targetName || data.assignedUnit || "admin SPAP");
+    const targetDapil = data.targetDapil ? ` (${escapeHtml(data.targetDapil)})` : "";
     result.classList.remove("hidden");
-    result.innerHTML = `<strong>Pengaduan terkirim.</strong><p>Nomor tiket: <b>${data.id || "-"}</b>. Pengaduan diteruskan ke ${data.assignedUnit || "admin SPAP"}.</p>`;
+    result.innerHTML = `<strong>Pengaduan terkirim.</strong><p>Nomor tiket: <b>${escapeHtml(data.id || "-")}</b>. Pengaduan diteruskan ke ${targetLabel}${targetDapil}.</p>`;
   } catch (error) {
     result.classList.remove("hidden");
     result.innerHTML = "<strong>Pengaduan belum terkirim.</strong><p>Silakan coba lagi atau hubungi admin WhatsApp SPAP.</p>";
@@ -1872,6 +1912,9 @@ async function savePermissions() {
 
 function bindEvents() {
   document.getElementById("publicComplaintForm").addEventListener("submit", submitPublicComplaint);
+  document.getElementById("publicRegion").addEventListener("change", refreshPublicRecipientFieldsFromKpu);
+  document.getElementById("publicTargetLevel").addEventListener("change", updatePublicRecipientFields);
+  document.getElementById("publicTargetDapil").addEventListener("change", updatePublicTargetNameOptions);
   document.getElementById("loginForm").addEventListener("submit", login);
   document.getElementById("logoutBtn").addEventListener("click", logout);
   document.querySelectorAll(".nav-item").forEach(button => {
@@ -1925,6 +1968,7 @@ function bindEvents() {
 populateProvinceOptions();
 bindEvents();
 updateWhatsappPreview();
+updatePublicRecipientFields();
 if (!applyPublicComplaintMode()) {
   restoreSession().then(loadData);
   setPage(currentPage);

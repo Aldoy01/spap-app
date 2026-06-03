@@ -1103,16 +1103,21 @@ function create_public_complaint(): void
     $name = trim((string) ($input['reporterName'] ?? ''));
     $phone = trim((string) ($input['reporterContact'] ?? ''));
     $region = trim((string) ($input['region'] ?? ''));
+    $targetLevel = trim((string) ($input['targetLevel'] ?? ''));
+    $targetDapil = trim((string) ($input['targetDapil'] ?? ''));
+    $targetName = trim((string) ($input['targetName'] ?? ''));
     $subject = trim((string) ($input['subject'] ?? ''));
     $description = trim((string) ($input['description'] ?? ''));
     $targetScope = ($input['targetScope'] ?? 'wilayah') === 'pusat' ? 'pusat' : 'wilayah';
 
-    if (!$name || !$phone || !$region || !$subject || !$description) {
+    if (!$name || !$phone || !$region || !$targetLevel || !$targetDapil || !$targetName || !$subject || !$description) {
         json_response(['error' => 'Data pengaduan belum lengkap'], 422);
         return;
     }
 
-    $assignedUnit = $targetScope === 'pusat' ? 'Admin Pusat SPAP' : 'Admin Wilayah - ' . $region;
+    $assignedUnit = $targetScope === 'pusat'
+        ? 'Admin Pusat SPAP - ' . $targetName
+        : 'Admin Wilayah - ' . $region . ' - ' . $targetName;
     $ticket = [
         'type' => 'pengaduan',
         'reporterName' => $name,
@@ -1124,9 +1129,10 @@ function create_public_complaint(): void
         'subject' => $subject,
         'description' => $description,
         'assignedUnit' => $assignedUnit,
-        'targetLevel' => $targetScope === 'pusat' ? 'Admin Pusat' : 'Admin Wilayah',
+        'targetLevel' => $targetLevel,
+        'targetDapil' => $targetDapil,
         'targetProvince' => $region,
-        'targetName' => $assignedUnit,
+        'targetName' => $targetName,
     ];
 
     $created = insert_ticket_record($ticket, 'Form Publik WhatsApp', 'Pengaduan dibuat dari link WhatsApp Business');
@@ -1135,6 +1141,8 @@ function create_public_complaint(): void
             'id' => $created['public_id'],
             'status' => $created['status'],
             'assignedUnit' => $created['assigned_unit'],
+            'targetName' => $created['target_name'],
+            'targetDapil' => $created['target_dapil'],
         ],
     ], 201);
 }
@@ -1151,6 +1159,9 @@ function public_complaints_info(): void
             'reporterContact',
             'region',
             'targetScope',
+            'targetLevel',
+            'targetDapil',
+            'targetName',
             'subject',
             'description',
         ],

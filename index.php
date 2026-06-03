@@ -84,6 +84,23 @@ function nav_icon(string $name): string
             <option value="pusat">Admin Pusat</option>
           </select>
         </label>
+        <label>Struktur Dewan
+          <select id="publicTargetLevel" required>
+            <option>DPR RI</option>
+            <option>DPRD Provinsi</option>
+            <option>DPRD Kab/Kota</option>
+          </select>
+        </label>
+        <label>Dapil
+          <select id="publicTargetDapil" required>
+            <option value="">Pilih Wilayah terlebih dahulu</option>
+          </select>
+        </label>
+        <label class="full">Nama yang Dituju
+          <select id="publicTargetName" required>
+            <option value="">Pilih dapil terlebih dahulu</option>
+          </select>
+        </label>
         <label class="full">Judul Pengaduan
           <input id="publicSubject" placeholder="Ringkasan masalah dalam satu kalimat" required>
         </label>

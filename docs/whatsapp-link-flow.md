@@ -25,16 +25,17 @@ Setelah formulir dikirim, pengaduan akan tercatat otomatis dan diteruskan ke adm
 1. Masyarakat menghubungi nomor WhatsApp bisnis.
 2. Admin/auto-reply WhatsApp mengirim link `?aduan=wa`.
 3. Masyarakat membuka link dan mengisi form pengaduan tanpa login.
-4. Frontend mengirim data ke endpoint:
+4. Masyarakat memilih wilayah, struktur dewan, dapil, dan nama anggota/tujuan yang dituju.
+5. Frontend mengirim data ke endpoint:
 
 ```text
 POST /api/public/complaints
 ```
 
-5. Backend membuat tiket `Pengaduan` dengan kanal `WhatsApp Link`.
-6. Jika tujuan `Admin Wilayah`, tiket masuk ke `Admin Wilayah - [Wilayah]`.
-7. Jika tujuan `Admin Pusat`, tiket masuk ke `Admin Pusat SPAP`.
-8. Kategori dan prioritas tidak dipilih oleh masyarakat. Tiket masuk dengan kategori awal `Belum Diklasifikasi` dan prioritas awal `Sedang`, lalu diklasifikasi oleh admin/operator.
+6. Backend membuat tiket `Pengaduan` dengan kanal `WhatsApp Link`.
+7. Jika tujuan `Admin Wilayah`, tiket masuk ke `Admin Wilayah - [Wilayah] - [Nama Tujuan]`.
+8. Jika tujuan `Admin Pusat`, tiket masuk ke `Admin Pusat SPAP - [Nama Tujuan]`.
+9. Kategori dan prioritas tidak dipilih oleh masyarakat. Tiket masuk dengan kategori awal `Belum Diklasifikasi` dan prioritas awal `Sedang`, lalu diklasifikasi oleh admin/operator.
 
 ## Endpoint Backend
 
@@ -50,6 +51,9 @@ Payload contoh:
   "reporterContact": "081234567890",
   "region": "Jawa Barat",
   "targetScope": "wilayah",
+  "targetLevel": "DPR RI",
+  "targetDapil": "Jawa Barat I",
+  "targetName": "Nama Anggota PKS - PKS Jawa Barat I",
   "subject": "Keluhan layanan administrasi",
   "description": "Saya mengalami kendala pelayanan administrasi di kecamatan."
 }
