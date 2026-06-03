@@ -937,53 +937,200 @@ select:focus, input:focus, textarea:focus {
 
 .sla-list {
   display: grid;
+  gap: 16px;
+}
+
+.sla-graphic {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.sla-score {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 170px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.sla-score svg {
+  width: 132px;
+  height: 132px;
+  transform: rotate(-90deg);
+}
+
+.sla-score-track,
+.sla-score-fill {
+  fill: none;
+  stroke-width: 12;
+}
+
+.sla-score-track {
+  stroke: #f1f5f9;
+}
+
+.sla-score-fill {
+  stroke: #f97316;
+  stroke-linecap: round;
+}
+
+.sla-score div {
+  position: absolute;
+  display: grid;
+  place-items: center;
+}
+
+.sla-score strong {
+  color: var(--brand-dark);
+  font-size: 32px;
+}
+
+.sla-score span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.sla-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.sla-summary-grid article {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.sla-summary-grid i {
+  width: 32px;
+  height: 8px;
+  border-radius: 999px;
+}
+
+.sla-summary-grid span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.sla-summary-grid strong {
+  color: var(--ink);
+  font-size: 26px;
+}
+
+.sla-mini-track {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #edf2f7;
+}
+
+.sla-mini-track b {
+  display: block;
+  height: 100%;
+  min-width: 3px;
+}
+
+.sla-identity-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
 .sla-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 14px;
+  display: grid;
+  gap: 12px;
   padding: 14px;
   border: 1px solid var(--line);
-  border-left: 4px solid #f59e0b;
+  border-left: 5px solid var(--sla-color, #f59e0b);
   border-radius: var(--radius);
-  background: #fffaf0;
+  background: #fff;
 }
 
 .sla-card.overdue {
-  border-left-color: #dc2626;
   background: #fff1f2;
 }
 
 .sla-card.critical {
-  border-left-color: #f97316;
   background: #fff7ed;
 }
 
 .sla-card.escalation {
-  border-left-color: #7c3aed;
   background: #f5f3ff;
 }
 
 .sla-card.new {
-  border-left-color: #16a34a;
   background: #f0fdf4;
 }
 
-.sla-card strong {
-  display: block;
-  margin: 4px 0;
+.sla-card-head,
+.sla-card-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
 }
 
-.sla-card p {
+.sla-card-head span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.sla-card-head strong {
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .72);
+  color: var(--sla-color, var(--brand-dark));
+  font-size: 12px;
+}
+
+.sla-card-body small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.sla-card-body h4 {
+  margin: 5px 0;
+  font-size: 15px;
+}
+
+.sla-card-body p {
   margin: 0 0 6px;
   color: var(--muted);
+  font-size: 13px;
 }
 
-.sla-card small {
+.sla-card-meta {
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+
+.sla-card-meta span {
+  flex: 1;
+  min-width: 130px;
+  padding: 9px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .7);
   color: var(--muted);
+  font-size: 11px;
+}
+
+.sla-card-meta strong {
+  color: var(--ink);
+  font-size: 12px;
 }
 
 .compact-modal {
@@ -1751,6 +1898,15 @@ dialog::backdrop {
     grid-template-columns: 1fr;
   }
 
+  .sla-graphic,
+  .sla-identity-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sla-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .span-2, .span-3, .whatsapp-intake-form .span-2, .whatsapp-intake-form .span-3 {
     grid-column: auto;
   }
@@ -1790,6 +1946,10 @@ dialog::backdrop {
   }
 
   .nav-list, .pipeline, .form-grid, .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sla-summary-grid {
     grid-template-columns: 1fr;
   }
 

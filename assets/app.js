@@ -787,6 +787,16 @@ function hoursUntil(dateValue) {
   return Math.round((new Date(dateValue).getTime() - Date.now()) / 36e5);
 }
 
+function slaSeverityMeta(severity) {
+  return {
+    overdue: { label: "Terlambat", color: "#dc2626", weight: 100 },
+    critical: { label: "Kritis", color: "#f97316", weight: 78 },
+    escalation: { label: "Eskalasi", color: "#7c3aed", weight: 62 },
+    new: { label: "Baru", color: "#16a34a", weight: 36 },
+    info: { label: "Monitoring", color: "#64748b", weight: 24 },
+  }[severity] || { label: "Monitoring", color: "#64748b", weight: 24 };
+}
+
 function localNotifications() {
   return scopedTickets()
     .filter(ticket => ticket.status !== "Selesai")
@@ -827,27 +837,72 @@ function renderSlaNotifications() {
   const target = document.getElementById("slaNotificationList");
   if (!target) return;
 
-  target.innerHTML = notifications.length
-    ? notifications.map(item => {
+  if (!notifications.length) {
+    target.innerHTML = '<div class="warning positif"><strong>SLA aman</strong><p>Tidak ada tiket kritis atau terlambat saat ini.</p></div>';
+    return;
+  }
+
+  const total = notifications.length;
+  const counts = countBy(notifications, item => slaSeverityMeta(item.severity).label);
+  const riskScore = Math.round(notifications.reduce((sum, item) => sum + slaSeverityMeta(item.severity).weight, 0) / total);
+  const summary = [
+    ["Terlambat", counts.Terlambat || 0, "#dc2626"],
+    ["Kritis", counts.Kritis || 0, "#f97316"],
+    ["Eskalasi", counts.Eskalasi || 0, "#7c3aed"],
+    ["Baru", counts.Baru || 0, "#16a34a"],
+  ];
+
+  target.innerHTML = `
+    <div class="sla-graphic">
+      <div class="sla-score">
+        <svg viewBox="0 0 120 120" role="img" aria-label="Skor risiko SLA">
+          <circle class="sla-score-track" cx="60" cy="60" r="48" pathLength="100"></circle>
+          <circle class="sla-score-fill" cx="60" cy="60" r="48" pathLength="100" style="stroke-dasharray:${riskScore} ${100 - riskScore}"></circle>
+        </svg>
+        <div><strong>${riskScore}</strong><span>Skor Risiko</span></div>
+      </div>
+      <div class="sla-summary-grid">
+        ${summary.map(([label, count, color]) => `
+          <article>
+            <i style="background:${color}"></i>
+            <span>${label}</span>
+            <strong>${count}</strong>
+            <div class="sla-mini-track"><b style="width:${percent(count, total)}%; background:${color}"></b></div>
+          </article>
+        `).join("")}
+      </div>
+    </div>
+    <div class="sla-identity-grid">
+      ${notifications.map(item => {
       const hours = hoursUntil(item.slaDueAt);
       const eta = hours === null
         ? "SLA belum ditentukan"
         : hours < 0
           ? `Terlambat ${Math.abs(hours)} jam`
           : `Sisa ${hours} jam`;
+      const meta = slaSeverityMeta(item.severity);
       return `
-        <article class="sla-card ${item.severity}">
-          <div>
-            <span class="eyebrow">${item.id} - ${item.type}</span>
-            <strong>${item.title}</strong>
+        <article class="sla-card ${item.severity}" style="--sla-color:${meta.color}">
+          <div class="sla-card-head">
+            <span>${item.id}</span>
+            <strong>${meta.label}</strong>
+          </div>
+          <div class="sla-card-body">
+            <small>${item.type}</small>
+            <h4>${item.title}</h4>
             <p>${item.description}</p>
-            <small>${item.assignedUnit || "Triage SPAP"} - ${eta}</small>
+          </div>
+          <div class="sla-card-meta">
+            <span>PIC<br><strong>${item.assignedUnit || "Triage SPAP"}</strong></span>
+            <span>Wilayah<br><strong>${item.region || "-"}</strong></span>
+            <span>Waktu<br><strong>${eta}</strong></span>
           </div>
           <button class="btn ghost" onclick="openDetail('${item.type}','${item.id}')">Tindak Lanjut</button>
         </article>
       `;
-    }).join("")
-    : '<div class="warning positif"><strong>SLA aman</strong><p>Tidak ada tiket kritis atau terlambat saat ini.</p></div>';
+    }).join("")}
+    </div>
+  `;
 }
 
 function renderNotificationCenter() {
