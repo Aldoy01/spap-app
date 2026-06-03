@@ -30,6 +30,17 @@ function route_request(): void
         return;
     }
 
+    if ($path === '/api/integrations/whatsapp/webhook') {
+        if ($method === 'GET') {
+            verify_whatsapp_webhook();
+            return;
+        }
+        if ($method === 'POST') {
+            receive_whatsapp_webhook();
+            return;
+        }
+    }
+
     if ($method === 'POST' && $path === '/api/auth/login') {
         login();
         return;
@@ -377,6 +388,163 @@ function input_json(): array
     $raw = file_get_contents('php://input') ?: '{}';
     $decoded = json_decode($raw, true);
     return is_array($decoded) ? $decoded : [];
+}
+
+function raw_input(): string
+{
+    return file_get_contents('php://input') ?: '';
+}
+
+function webhook_token(): string
+{
+    return getenv_value('WHATSAPP_WEBHOOK_TOKEN', 'spap-whatsapp-secret');
+}
+
+function request_webhook_token(array $input = []): string
+{
+    return $_GET['token']
+        ?? $_SERVER['HTTP_X_WEBHOOK_TOKEN']
+        ?? $_SERVER['HTTP_X_SPAP_WEBHOOK_TOKEN']
+        ?? ($input['token'] ?? '');
+}
+
+function verify_whatsapp_webhook(): void
+{
+    $expected = webhook_token();
+    $token = $_GET['hub_verify_token'] ?? $_GET['hub.verify_token'] ?? $_GET['token'] ?? '';
+    $challenge = $_GET['hub_challenge'] ?? $_GET['hub.challenge'] ?? '';
+
+    if (!hash_equals($expected, (string) $token)) {
+        json_response(['error' => 'Invalid webhook token'], 403);
+        return;
+    }
+
+    if ($challenge !== '') {
+        header('Content-Type: text/plain; charset=utf-8');
+        echo $challenge;
+        return;
+    }
+
+    json_response(['data' => ['verified' => true]]);
+}
+
+function receive_whatsapp_webhook(): void
+{
+    $raw = raw_input();
+    $input = json_decode($raw ?: '{}', true);
+    $input = is_array($input) ? $input : [];
+
+    if (!hash_equals(webhook_token(), request_webhook_token($input))) {
+        json_response(['error' => 'Invalid webhook token'], 403);
+        return;
+    }
+
+    $messages = extract_whatsapp_messages($input);
+    if (!$messages) {
+        json_response(['data' => ['received' => 0, 'tickets' => []]]);
+        return;
+    }
+
+    $created = [];
+    foreach ($messages as $message) {
+        if (trim($message['body']) === '') {
+            continue;
+        }
+        $ticket = whatsapp_ticket_from_message($message);
+        $created[] = insert_ticket_record($ticket, 'Webhook WhatsApp', 'Pengaduan otomatis diterima dari WhatsApp');
+    }
+
+    json_response(['data' => ['received' => count($messages), 'tickets' => $created]], 201);
+}
+
+function extract_whatsapp_messages(array $payload): array
+{
+    $messages = [];
+
+    if (isset($payload['entry']) && is_array($payload['entry'])) {
+        foreach ($payload['entry'] as $entry) {
+            foreach (($entry['changes'] ?? []) as $change) {
+                $value = $change['value'] ?? [];
+                foreach (($value['messages'] ?? []) as $message) {
+                    $body = $message['text']['body'] ?? $message['button']['text'] ?? '';
+                    $from = $message['from'] ?? '';
+                    $name = $value['contacts'][0]['profile']['name'] ?? '';
+                    $messages[] = ['from' => $from, 'name' => $name, 'body' => (string) $body];
+                }
+            }
+        }
+    }
+
+    if (!$messages && isset($payload['messages']) && is_array($payload['messages'])) {
+        foreach ($payload['messages'] as $message) {
+            $body = is_array($message['text'] ?? null)
+                ? ($message['text']['body'] ?? '')
+                : ($message['text'] ?? ($message['body'] ?? ''));
+            $messages[] = [
+                'from' => (string) ($message['from'] ?? $message['phone'] ?? $message['wa_id'] ?? ''),
+                'name' => (string) ($message['name'] ?? $message['profileName'] ?? ''),
+                'body' => (string) $body,
+            ];
+        }
+    }
+
+    if (!$messages && isset($payload['body'])) {
+        $messages[] = [
+            'from' => (string) ($payload['from'] ?? $payload['phone'] ?? ''),
+            'name' => (string) ($payload['name'] ?? ''),
+            'body' => (string) $payload['body'],
+        ];
+    }
+
+    return $messages;
+}
+
+function parse_spap_whatsapp_format(string $body): array
+{
+    $fields = [];
+    foreach (preg_split('/\r\n|\r|\n/', $body) as $line) {
+        if (strpos($line, ':') === false) {
+            continue;
+        }
+        [$key, $value] = array_map('trim', explode(':', $line, 2));
+        $normalized = strtolower(str_replace(['.', ' '], ['', '_'], $key));
+        $fields[$normalized] = $value;
+    }
+    return $fields;
+}
+
+function valid_priority(string $priority): string
+{
+    return in_array($priority, ['Rendah', 'Sedang', 'Tinggi', 'Kritis'], true) ? $priority : 'Sedang';
+}
+
+function whatsapp_ticket_from_message(array $message): array
+{
+    $fields = parse_spap_whatsapp_format($message['body']);
+    $region = $fields['wilayah'] ?? 'Nasional';
+    $scope = strtolower($fields['tujuan'] ?? 'Admin Wilayah');
+    $isPusat = strpos($scope, 'pusat') !== false;
+    $assignedUnit = $isPusat ? 'Admin Pusat SPAP' : 'Admin Wilayah - ' . $region;
+    $reporterName = $fields['nama'] ?? ($message['name'] ?: 'Pelapor WhatsApp');
+    $contact = $fields['no_whatsapp'] ?? $fields['whatsapp'] ?? $message['from'];
+    $subject = $fields['judul'] ?? ('Pengaduan WhatsApp dari ' . $reporterName);
+    $description = $fields['kronologi'] ?? $fields['isi_pesan'] ?? $message['body'];
+
+    return [
+        'type' => 'pengaduan',
+        'reporterName' => $reporterName,
+        'reporterContact' => $contact,
+        'channel' => 'WhatsApp',
+        'region' => $region,
+        'category' => $fields['kategori'] ?? 'Pelayanan Publik',
+        'priority' => valid_priority($fields['prioritas'] ?? 'Sedang'),
+        'subject' => $subject,
+        'description' => $description,
+        'assignedUnit' => $assignedUnit,
+        'targetLevel' => $isPusat ? 'Admin Pusat' : 'Admin Wilayah',
+        'targetProvince' => $region,
+        'targetName' => $assignedUnit,
+    ];
 }
 
 function bearer_token(): ?string
@@ -883,6 +1051,14 @@ function create_ticket(): void
     if (!$actor) {
         return;
     }
+
+    $created = insert_ticket_record($ticket, $actor['name'] ?? 'Operator SPAP', 'Tiket dibuat dari aplikasi SPAP');
+    json_response(['data' => $created], 201);
+}
+
+function insert_ticket_record(array $ticket, string $actorName, string $eventNote): array
+{
+    $type = ($ticket['type'] ?? 'aspirasi') === 'pengaduan' ? 'pengaduan' : 'aspirasi';
     $prefix = $type === 'pengaduan' ? 'PEN' : 'ASP';
 
     $countStatement = db()->prepare('SELECT count(*)::int + 1 AS next FROM tickets WHERE type = ?');
@@ -921,10 +1097,10 @@ function create_ticket(): void
     $created = $statement->fetch();
 
     $event = db()->prepare("INSERT INTO ticket_events (ticket_id, event_type, note, actor_name) VALUES (?, 'created', ?, ?)");
-    $event->execute([$created['id'], 'Tiket dibuat dari aplikasi SPAP', $actor['name'] ?? 'Operator SPAP']);
+    $event->execute([$created['id'], $eventNote, $actorName]);
 
     cache_invalidate('tickets:');
-    json_response(['data' => $created], 201);
+    return $created;
 }
 
 function sla_hours_for_priority(string $priority): int
