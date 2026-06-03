@@ -200,6 +200,28 @@ function populateProvinceOptions() {
   updateRecipientFields();
 }
 
+function applyUserRegionScope() {
+  const regionFilter = document.getElementById("regionFilter");
+  if (!regionFilter) return;
+
+  const regionScope = currentUser?.regionScope || currentUser?.region_scope || "";
+  regionFilter.innerHTML = "";
+
+  if (currentUser && currentUser.role !== "admin" && regionScope) {
+    regionFilter.appendChild(new Option(regionScope, regionScope));
+    regionFilter.value = regionScope;
+    regionFilter.disabled = true;
+    regionFilter.classList.add("is-locked");
+    return;
+  }
+
+  regionFilter.appendChild(new Option("Semua Wilayah", "Semua"));
+  provinces.forEach(province => regionFilter.appendChild(new Option(province, province)));
+  regionFilter.value = "Semua";
+  regionFilter.disabled = false;
+  regionFilter.classList.remove("is-locked");
+}
+
 function setSelectOptions(select, values, placeholder) {
   select.innerHTML = `<option value="">${placeholder}</option>`;
   (values || []).forEach(value => select.appendChild(new Option(value, value)));
@@ -353,7 +375,9 @@ function applyAuthState() {
 
   document.getElementById("currentUserName").textContent = currentUser?.name || "-";
   const targetScope = currentUser?.targetName ? ` - ${currentUser.targetName}` : "";
-  document.getElementById("currentUserRole").textContent = currentUser ? `${currentUser.role === "admin" ? "Admin" : "User"}${targetScope}` : "-";
+  const regionScope = currentUser?.regionScope ? ` - ${currentUser.regionScope}` : "";
+  document.getElementById("currentUserRole").textContent = currentUser ? `${currentUser.role === "admin" ? "Admin" : "User"}${regionScope}${targetScope}` : "-";
+  applyUserRegionScope();
 
   document.querySelectorAll(".nav-item").forEach(item => {
     const page = item.dataset.page;

@@ -373,6 +373,13 @@ select:focus, input:focus, textarea:focus {
   box-shadow: 0 0 0 4px rgba(255, 138, 29, .14);
 }
 
+select.is-locked {
+  color: #175cd3;
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  cursor: not-allowed;
+}
+
 .btn {
   border: 1px solid var(--line);
   background: #fff;
