@@ -41,6 +41,11 @@ function route_request(): void
         }
     }
 
+    if ($method === 'GET' && $path === '/api/public/complaints') {
+        public_complaints_info();
+        return;
+    }
+
     if ($method === 'POST' && $path === '/api/public/complaints') {
         create_public_complaint();
         return;
@@ -1132,6 +1137,25 @@ function create_public_complaint(): void
             'assignedUnit' => $created['assigned_unit'],
         ],
     ], 201);
+}
+
+function public_complaints_info(): void
+{
+    json_response([
+        'status' => 'ok',
+        'message' => 'Endpoint ini menerima pengaduan publik melalui metode POST.',
+        'method' => 'POST',
+        'frontendForm' => '/?aduan=wa',
+        'requiredFields' => [
+            'reporterName',
+            'reporterContact',
+            'region',
+            'targetScope',
+            'subject',
+            'description',
+        ],
+        'note' => 'Kategori dan prioritas ditentukan oleh admin/operator setelah pengaduan masuk.',
+    ]);
 }
 
 function insert_ticket_record(array $ticket, string $actorName, string $eventNote): array
