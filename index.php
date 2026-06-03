@@ -67,6 +67,7 @@ function nav_icon(string $name): string
         </div>
       </div>
       <form id="publicComplaintForm" class="public-complaint-form">
+        <div class="form-section full"><span>Data pelapor</span><small>Identitas dasar agar petugas dapat melakukan klarifikasi.</small></div>
         <label>Nama Lengkap
           <input id="publicReporterName" placeholder="Contoh: Budi Santoso" required>
         </label>
@@ -78,13 +79,14 @@ function nav_icon(string $name): string
             <option value="">Pilih Wilayah</option>
           </select>
         </label>
-        <label>Ditujukan Kepada
+        <div class="form-section full"><span>Tujuan penanganan</span><small>Pilih struktur, dapil, dan nama tujuan agar pengaduan masuk ke pihak yang tepat.</small></div>
+        <label>Alur Penanganan
           <select id="publicTargetScope">
             <option value="wilayah">Admin Wilayah</option>
             <option value="pusat">Admin Pusat</option>
           </select>
         </label>
-        <label>Struktur Dewan
+        <label>Ditujukan Kepada
           <select id="publicTargetLevel" required>
             <option>DPR RI</option>
             <option>DPRD Provinsi</option>
@@ -101,10 +103,11 @@ function nav_icon(string $name): string
             <option value="">Pilih dapil terlebih dahulu</option>
           </select>
         </label>
+        <div class="form-section full"><span>Isi pengaduan</span><small>Gunakan judul singkat dan kronologi yang jelas agar mudah diverifikasi.</small></div>
         <label class="full">Judul Pengaduan
           <input id="publicSubject" placeholder="Ringkasan masalah dalam satu kalimat" required>
         </label>
-        <label class="full">Kronologi Pengaduan
+        <label class="full">Deskripsi Pengaduan
           <textarea id="publicDescription" rows="5" placeholder="Tuliskan lokasi, waktu kejadian, kronologi, dan harapan tindak lanjut..." required></textarea>
         </label>
         <button class="btn primary" type="submit">Kirim Pengaduan</button>
