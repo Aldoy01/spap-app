@@ -296,10 +296,13 @@ function nav_icon(string $name): string
         <section class="panel whatsapp-intake-panel">
           <div class="panel-head">
             <div>
-              <h3>Pencatatan WhatsApp</h3>
-              <p>Catat pengaduan masyarakat dari chat WhatsApp langsung menjadi tiket SPAP</p>
+              <h3>Pengaduan WhatsApp Masyarakat</h3>
+              <p>Format pesan masyarakat dari WhatsApp dan catat langsung ke admin wilayah atau pusat</p>
             </div>
-            <button class="btn ghost" id="openWhatsappBtn" type="button">Buka WhatsApp</button>
+            <div class="panel-actions">
+              <button class="btn ghost" id="copyWhatsappFormatBtn" type="button">Salin Format</button>
+              <button class="btn ghost" id="openWhatsappBtn" type="button">Buka WhatsApp</button>
+            </div>
           </div>
           <form id="whatsappComplaintForm" class="whatsapp-intake-form">
             <label>Nama Pelapor
@@ -311,6 +314,12 @@ function nav_icon(string $name): string
             <label>Wilayah
               <select id="waRegion" required>
                 <option value="">Pilih Wilayah</option>
+              </select>
+            </label>
+            <label>Tujuan Admin
+              <select id="waAdminScope" required>
+                <option value="wilayah">Admin Wilayah</option>
+                <option value="pusat">Admin Pusat</option>
               </select>
             </label>
             <label>Kategori
@@ -339,9 +348,12 @@ function nav_icon(string $name): string
             <label class="span-3">Isi Pesan WhatsApp
               <textarea id="waMessage" rows="4" placeholder="Tempel isi chat atau kronologi dari WhatsApp..." required></textarea>
             </label>
+            <label class="span-3">Format WhatsApp untuk Masyarakat
+              <textarea id="waTemplatePreview" rows="8" readonly></textarea>
+            </label>
             <div class="whatsapp-actions span-3">
               <button class="btn primary" type="submit">Catat sebagai Pengaduan</button>
-              <small>Nomor WhatsApp disimpan sebagai kontak pelapor dan kanal tiket otomatis menjadi WhatsApp.</small>
+              <small>Pengaduan masuk sebagai kanal WhatsApp dan PIC otomatis mengikuti pilihan admin wilayah/pusat.</small>
             </div>
           </form>
         </section>

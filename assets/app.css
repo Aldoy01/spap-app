@@ -1122,6 +1122,13 @@ th {
   border-left: 4px solid #16a34a;
 }
 
+.panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
 .whatsapp-intake-form {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1152,6 +1159,15 @@ th {
 
 .whatsapp-actions small {
   color: var(--muted);
+}
+
+#waTemplatePreview {
+  min-height: 190px;
+  color: #0f172a;
+  background: #f8fafc;
+  font-family: Consolas, "Courier New", monospace;
+  line-height: 1.55;
+  resize: vertical;
 }
 
 .ticket-card {
