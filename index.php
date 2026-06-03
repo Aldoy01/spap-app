@@ -293,6 +293,58 @@ function nav_icon(string $name): string
       </section>
 
       <section class="page" id="pengaduan">
+        <section class="panel whatsapp-intake-panel">
+          <div class="panel-head">
+            <div>
+              <h3>Pencatatan WhatsApp</h3>
+              <p>Catat pengaduan masyarakat dari chat WhatsApp langsung menjadi tiket SPAP</p>
+            </div>
+            <button class="btn ghost" id="openWhatsappBtn" type="button">Buka WhatsApp</button>
+          </div>
+          <form id="whatsappComplaintForm" class="whatsapp-intake-form">
+            <label>Nama Pelapor
+              <input id="waReporterName" placeholder="Nama masyarakat" required>
+            </label>
+            <label>No. WhatsApp
+              <input id="waReporterPhone" type="tel" placeholder="08xxxxxxxxxx" required>
+            </label>
+            <label>Wilayah
+              <select id="waRegion" required>
+                <option value="">Pilih Wilayah</option>
+              </select>
+            </label>
+            <label>Kategori
+              <select id="waCategory" required>
+                <option value="">Pilih Kategori</option>
+                <option>Infrastruktur</option>
+                <option>Pendidikan</option>
+                <option>Kesehatan</option>
+                <option>Ekonomi</option>
+                <option>Sosial</option>
+                <option>Pelayanan Publik</option>
+                <option>Hukum</option>
+              </select>
+            </label>
+            <label>Prioritas
+              <select id="waPriority" required>
+                <option>Sedang</option>
+                <option>Rendah</option>
+                <option>Tinggi</option>
+                <option>Kritis</option>
+              </select>
+            </label>
+            <label class="span-2">Judul Pengaduan
+              <input id="waSubject" placeholder="Ringkasan singkat pengaduan" required>
+            </label>
+            <label class="span-3">Isi Pesan WhatsApp
+              <textarea id="waMessage" rows="4" placeholder="Tempel isi chat atau kronologi dari WhatsApp..." required></textarea>
+            </label>
+            <div class="whatsapp-actions span-3">
+              <button class="btn primary" type="submit">Catat sebagai Pengaduan</button>
+              <small>Nomor WhatsApp disimpan sebagai kontak pelapor dan kanal tiket otomatis menjadi WhatsApp.</small>
+            </div>
+          </form>
+        </section>
         <div class="toolbar">
           <input id="pengaduanSearch" type="search" placeholder="Cari pengaduan, lokasi, pelapor...">
           <select id="pengaduanStatus">

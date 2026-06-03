@@ -185,11 +185,13 @@ function populateProvinceOptions() {
   const regionFilter = document.getElementById("regionFilter");
   const ticketRegion = document.getElementById("ticketRegion");
   const reportRegion = document.getElementById("reportRegion");
+  const waRegion = document.getElementById("waRegion");
 
   provinces.forEach(province => {
     regionFilter.appendChild(new Option(province, province));
     ticketRegion.appendChild(new Option(province, province));
     reportRegion.appendChild(new Option(province, province));
+    if (waRegion) waRegion.appendChild(new Option(province, province));
   });
 
   ticketRegion.value = "";
@@ -1320,6 +1322,99 @@ async function addTicket(event) {
   toast(`${item.id} berhasil dibuat`);
 }
 
+function normalizeWhatsappPhone(phone) {
+  const digits = phone.replace(/\D/g, "");
+  if (!digits) return "";
+  if (digits.startsWith("62")) return digits;
+  if (digits.startsWith("0")) return `62${digits.slice(1)}`;
+  return digits;
+}
+
+function whatsappTemplateMessage() {
+  const name = document.getElementById("waReporterName")?.value || "[Nama]";
+  const region = document.getElementById("waRegion")?.value || "[Wilayah]";
+  const category = document.getElementById("waCategory")?.value || "[Kategori]";
+  const subject = document.getElementById("waSubject")?.value || "[Judul pengaduan]";
+  return [
+    "Assalamu'alaikum, saya ingin menyampaikan pengaduan melalui SPAP.",
+    `Nama: ${name}`,
+    `Wilayah: ${region}`,
+    `Kategori: ${category}`,
+    `Judul: ${subject}`,
+    "Kronologi: [Tulis kronologi singkat]",
+  ].join("\n");
+}
+
+function openWhatsappComposer() {
+  const phone = normalizeWhatsappPhone(document.getElementById("waReporterPhone")?.value || "");
+  if (!phone) {
+    toast("Isi nomor WhatsApp terlebih dahulu");
+    return;
+  }
+  const url = `https://wa.me/${phone}?text=${encodeURIComponent(whatsappTemplateMessage())}`;
+  window.open(url, "_blank", "noopener");
+}
+
+async function submitWhatsappComplaint(event) {
+  event.preventDefault();
+  const phone = normalizeWhatsappPhone(document.getElementById("waReporterPhone").value);
+  const item = {
+    id: `PEN-2026-${String(state.pengaduan.length + 1).padStart(3, "0")}`,
+    tanggal: new Date().toISOString().slice(0, 10),
+    nama: document.getElementById("waReporterName").value,
+    wilayah: document.getElementById("waRegion").value,
+    kategori: document.getElementById("waCategory").value,
+    prioritas: document.getElementById("waPriority").value,
+    status: "Baru",
+    judul: document.getElementById("waSubject").value,
+    deskripsi: document.getElementById("waMessage").value,
+    kanal: "WhatsApp",
+    pic: "Unit Pengaduan",
+    lokasi: document.getElementById("waRegion").value,
+    email: "",
+    phone,
+    createdAt: new Date().toISOString()
+  };
+
+  if (apiAvailable) {
+    try {
+      const payload = await apiRequest("/api/tickets", {
+        method: "POST",
+        body: JSON.stringify({
+          type: "pengaduan",
+          reporterName: item.nama,
+          reporterContact: phone,
+          channel: "WhatsApp",
+          region: item.wilayah,
+          category: item.kategori,
+          priority: item.prioritas,
+          subject: item.judul,
+          description: item.deskripsi,
+          assignedUnit: "Unit Pengaduan"
+        })
+      });
+      Object.assign(item, normalizeTicket(payload.data));
+    } catch (error) {
+      apiAvailable = false;
+      setConnectionStatus("Mode lokal aktif", false);
+      toast("API tidak merespon, pengaduan WhatsApp disimpan lokal");
+    }
+  }
+
+  mergeTicketIntoState(item, "pengaduan");
+  saveState();
+  if (apiAvailable) {
+    await loadData();
+    mergeTicketIntoState(item, "pengaduan");
+    saveState();
+  }
+  document.getElementById("whatsappComplaintForm").reset();
+  document.getElementById("waPriority").value = "Sedang";
+  renderAll();
+  setPage("pengaduan");
+  toast(`${item.id} dicatat dari WhatsApp`);
+}
+
 function closeTicketDialog() {
   const dialog = document.getElementById("ticketDialog");
   document.getElementById("ticketForm").reset();
@@ -1520,6 +1615,8 @@ function bindEvents() {
   document.getElementById("ticketTargetDapil").addEventListener("change", updateRecipientNameOptions);
   document.getElementById("newTicketBtn").addEventListener("click", openTicketDialog);
   document.getElementById("ticketForm").addEventListener("submit", addTicket);
+  document.getElementById("whatsappComplaintForm").addEventListener("submit", submitWhatsappComplaint);
+  document.getElementById("openWhatsappBtn").addEventListener("click", openWhatsappComposer);
   document.getElementById("closeTicketBtn").addEventListener("click", closeTicketDialog);
   document.getElementById("cancelTicketBtn").addEventListener("click", closeTicketDialog);
   document.getElementById("ticketDialog").addEventListener("click", event => {

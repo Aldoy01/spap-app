@@ -1117,6 +1117,43 @@ th {
   gap: 16px;
 }
 
+.whatsapp-intake-panel {
+  margin-bottom: 16px;
+  border-left: 4px solid #16a34a;
+}
+
+.whatsapp-intake-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.whatsapp-intake-form label {
+  display: grid;
+  gap: 8px;
+  font-weight: 800;
+}
+
+.whatsapp-intake-form .span-2 {
+  grid-column: span 2;
+}
+
+.whatsapp-intake-form .span-3,
+.whatsapp-actions {
+  grid-column: 1 / -1;
+}
+
+.whatsapp-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.whatsapp-actions small {
+  color: var(--muted);
+}
+
 .ticket-card {
   background: #fff;
   border: 1px solid rgba(230, 234, 240, .92);
@@ -1614,7 +1651,7 @@ dialog::backdrop {
     grid-template-columns: repeat(3, 1fr);
   }
 
-  .metric-grid, .dashboard-grid, .report-layout, .process-hero {
+  .metric-grid, .dashboard-grid, .report-layout, .process-hero, .whatsapp-intake-form {
     grid-template-columns: 1fr;
   }
 
@@ -1626,7 +1663,7 @@ dialog::backdrop {
     grid-template-columns: 1fr;
   }
 
-  .span-2, .span-3 {
+  .span-2, .span-3, .whatsapp-intake-form .span-2, .whatsapp-intake-form .span-3 {
     grid-column: auto;
   }
 
