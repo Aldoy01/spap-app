@@ -571,42 +571,93 @@ function activeNotifications() {
   });
 }
 
+function dashboardTickets() {
+  const category = document.getElementById("dashboardCategoryFilter")?.value || "Semua Kategori";
+  const period = document.getElementById("periodFilter")?.value || "7 Hari Terakhir";
+  const now = new Date();
+  const periodDays = {
+    "Hari Ini": 1,
+    "7 Hari Terakhir": 7,
+    "Bulan Ini": 31,
+    "Triwulan Ini": 92
+  }[period] || 7;
+
+  const categoryTickets = scopedTickets().filter(ticket => category === "Semua Kategori" || ticket.kategori === category);
+  const periodTickets = categoryTickets.filter(ticket => {
+    const matchesCategory = category === "Semua Kategori" || ticket.kategori === category;
+    const ticketDate = new Date(ticket.createdAt || ticket.tanggal || now);
+    const ageDays = Math.floor((now - ticketDate) / 86400000);
+    return matchesCategory && ageDays < periodDays;
+  });
+  return periodTickets.length ? periodTickets : categoryTickets;
+}
+
+function countBy(items, keyFn) {
+  return items.reduce((acc, item) => {
+    const key = keyFn(item) || "Tidak Terkategori";
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+}
+
+function percent(value, total) {
+  return total ? Math.round((value / total) * 100) : 0;
+}
+
 function renderMetrics() {
-  const tickets = scopedTickets();
+  const tickets = dashboardTickets();
+  const total = tickets.length;
   const selesai = tickets.filter(t => t.status === "Selesai").length;
-  const aspirasi = tickets.filter(t => t.tipe === "Aspirasi").length;
-  const pengaduan = tickets.filter(t => t.tipe === "Pengaduan").length;
-  const responseTime = Math.max(1.8, (4.6 - selesai * 0.35)).toFixed(1);
+  const aktif = tickets.filter(t => t.status !== "Selesai").length;
+  const kritis = tickets.filter(t => t.prioritas === "Kritis" || t.status === "Eskalasi").length;
+  const whatsapp = tickets.filter(t => t.kanal === "WhatsApp").length;
+  const resolutionRate = percent(selesai, total);
+  const criticalRate = percent(kritis, total);
   const metrics = [
-    ["Total Aspirasi", aspirasi.toLocaleString("id-ID"), "+12% dari minggu lalu"],
-    ["Total Pengaduan", pengaduan.toLocaleString("id-ID"), "-5% dari minggu lalu"],
-    ["Issues Terselesaikan", selesai.toLocaleString("id-ID"), "+18% dari minggu lalu"],
-    ["Rata-rata Response Time", responseTime, "-0.5 jam dari minggu lalu"]
+    ["Total Tiket", total.toLocaleString("id-ID"), `${aktif} masih aktif`],
+    ["Rasio Selesai", `${resolutionRate}%`, `${selesai} tiket selesai`],
+    ["Prioritas Kritis", kritis.toLocaleString("id-ID"), `${criticalRate}% dari total`],
+    ["Kanal WhatsApp", whatsapp.toLocaleString("id-ID"), `${percent(whatsapp, total)}% tiket masuk`]
   ];
-  const icons = ["A", "P", "S", "T"];
+  const icons = ["T", "S", "K", "WA"];
   document.getElementById("metricGrid").innerHTML = metrics.map(([label, value, trend], index) => `
-    <article class="metric dashboard-kpi"><div class="kpi-icon">${icons[index]}</div><strong>${value}</strong><span>${label}</span><em class="${trend.startsWith("-") ? "down" : ""}">${trend}</em></article>
+    <article class="metric dashboard-kpi"><div class="kpi-icon">${icons[index]}</div><strong>${value}</strong><span>${label}</span><em class="${label === "Prioritas Kritis" && kritis ? "down" : ""}">${trend}</em></article>
   `).join("");
 }
 
 function renderTrendChart() {
-  const labels = ["Sen", "Sel", "Rab", "Kam", "Jum"];
-  const aspirasi = [44, 51, 38, 67, 89];
-  const pengaduan = [32, 28, 45, 38, 52];
-  const max = 100;
+  const tickets = dashboardTickets();
+  let days = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date();
+    date.setDate(date.getDate() - (6 - index));
+    const key = date.toISOString().slice(0, 10);
+    return { key, label: date.toLocaleDateString("id-ID", { weekday: "short" }) };
+  });
+  let aspirasi = days.map(day => tickets.filter(ticket => ticket.tipe === "Aspirasi" && (ticket.createdAt || ticket.tanggal || "").slice(0, 10) === day.key).length);
+  let pengaduan = days.map(day => tickets.filter(ticket => ticket.tipe === "Pengaduan" && (ticket.createdAt || ticket.tanggal || "").slice(0, 10) === day.key).length);
+  if (tickets.length && [...aspirasi, ...pengaduan].every(value => value === 0)) {
+    days = [...new Set(tickets.map(ticket => (ticket.createdAt || ticket.tanggal || "").slice(0, 10)).filter(Boolean))]
+      .sort()
+      .slice(-7)
+      .map(key => ({ key, label: new Date(key).toLocaleDateString("id-ID", { day: "2-digit", month: "short" }) }));
+    aspirasi = days.map(day => tickets.filter(ticket => ticket.tipe === "Aspirasi" && (ticket.createdAt || ticket.tanggal || "").slice(0, 10) === day.key).length);
+    pengaduan = days.map(day => tickets.filter(ticket => ticket.tipe === "Pengaduan" && (ticket.createdAt || ticket.tanggal || "").slice(0, 10) === day.key).length);
+  }
+  const max = Math.max(5, ...aspirasi, ...pengaduan);
   const width = 900;
   const height = 250;
   const padding = 28;
-  const xStep = (width - padding * 2) / (labels.length - 1);
+  const xStep = (width - padding * 2) / Math.max(1, days.length - 1);
   const y = value => height - padding - (value / max) * (height - padding * 2);
   const x = index => padding + index * xStep;
   const points = values => values.map((value, index) => `${x(index)},${y(value)}`).join(" ");
   const circles = (values, className) => values.map((value, index) => `<circle class="${className}" cx="${x(index)}" cy="${y(value)}" r="4" />`).join("");
   const grid = [0, 20, 40, 60, 80, 100].map(value => {
-    const yy = y(value);
-    return `<line class="chart-grid" x1="${padding}" y1="${yy}" x2="${width - padding}" y2="${yy}" /><text class="chart-axis" x="4" y="${yy + 4}">${value}</text>`;
+    const chartValue = Math.round((value / 100) * max);
+    const yy = y(chartValue);
+    return `<line class="chart-grid" x1="${padding}" y1="${yy}" x2="${width - padding}" y2="${yy}" /><text class="chart-axis" x="4" y="${yy + 4}">${chartValue}</text>`;
   }).join("");
-  const axis = labels.map((label, index) => `<text class="chart-axis" x="${x(index) - 8}" y="${height - 6}">${label}</text>`).join("");
+  const axis = days.map((day, index) => `<text class="chart-axis" x="${x(index) - 8}" y="${height - 6}">${day.label}</text>`).join("");
 
   document.getElementById("trendChart").innerHTML = `
     <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Trend aspirasi dan pengaduan">
@@ -621,39 +672,31 @@ function renderTrendChart() {
 }
 
 function renderGeoDistribution() {
-  const tickets = scopedTickets();
-  const base = {
-    "DKI Jakarta": 245,
-    "Jawa Barat": 189,
-    "Jawa Tengah": 156,
-    "Jawa Timur": 134,
-    "Sumatera Utara": 98,
-    "Sumatera Selatan": 87,
-    "Kalimantan Timur": 76,
-    "Sulawesi Selatan": 65
-  };
+  const tickets = dashboardTickets();
+  const counts = countBy(tickets, ticket => ticket.wilayah);
 
-  tickets.forEach(ticket => {
-    base[ticket.wilayah] = (base[ticket.wilayah] || 20) + 1;
-  });
-
-  document.getElementById("geoDistribution").innerHTML = Object.entries(base)
+  document.getElementById("geoDistribution").innerHTML = Object.entries(counts)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 8)
     .map(([province, total], index) => `<article class="geo-card tone-${index % 4}"><span>${province}</span><strong>${total}</strong></article>`)
-    .join("");
+    .join("") || '<div class="warning positif"><strong>Belum ada sebaran wilayah</strong><p>Data akan muncul setelah tiket masuk.</p></div>';
 }
 
 function renderCategoryDonut() {
-  const categories = [
-    ["Infrastruktur", 35, "#ff8a00"],
-    ["Pendidikan", 25, "#ff6537"],
-    ["Kesehatan", 20, "#e9552a"],
-    ["Ekonomi", 15, "#ffa600"],
-    ["Sosial", 5, "#ffb94d"]
-  ];
+  const tickets = dashboardTickets();
+  const colors = ["#ff8a00", "#ff6537", "#0f766e", "#2563eb", "#eab308", "#7c3aed", "#64748b"];
+  const total = Math.max(1, tickets.length);
+  const categories = Object.entries(countBy(tickets, ticket => ticket.kategori))
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 7)
+    .map(([label, count], index) => [label, percent(count, total), colors[index], count]);
+  const top = categories[0];
+  document.getElementById("categoryInsightTitle").textContent = top ? `${top[0]} paling dominan` : "Belum ada kategori dominan";
+  document.getElementById("categoryInsightText").textContent = top
+    ? `${top[3]} tiket (${top[1]}%) berada pada kategori ${top[0]}. Gunakan ini untuk mengatur prioritas PIC dan komunikasi wilayah.`
+    : "Data kategori akan terbaca setelah pengaduan atau aspirasi masuk.";
   let offset = 0;
-  const segments = categories.map(([label, value, color]) => {
+  const segments = categories.map(([, value, color]) => {
     const dash = `${value} ${100 - value}`;
     const segment = `<circle class="donut-segment" r="45" cx="60" cy="60" stroke="${color}" stroke-dasharray="${dash}" stroke-dashoffset="${-offset}" />`;
     offset += value;
@@ -667,9 +710,43 @@ function renderCategoryDonut() {
       <circle class="donut-hole" r="27" cx="60" cy="60" />
     </svg>
     <div class="category-legend">
-      ${categories.map(([label, value, color]) => `<span><i style="background:${color}"></i>${label} <strong>${value}%</strong></span>`).join("")}
+      ${categories.length ? categories.map(([label, value, color, count]) => `<span><i style="background:${color}"></i>${label} <strong>${count} / ${value}%</strong></span>`).join("") : '<span>Belum ada data kategori</span>'}
     </div>
   `;
+}
+
+function renderStatusDashboardChart() {
+  const tickets = dashboardTickets();
+  const total = Math.max(1, tickets.length);
+  const statuses = ["Baru", "Diproses", "Eskalasi", "Selesai"];
+  const colors = { Baru: "#2563eb", Diproses: "#38bdf8", Eskalasi: "#dc2626", Selesai: "#16a34a" };
+  document.getElementById("statusDashboardChart").innerHTML = statuses.map(status => {
+    const count = tickets.filter(ticket => ticket.status === status).length;
+    return `
+      <div class="measure-row">
+        <div><strong>${status}</strong><span>${count} tiket</span></div>
+        <div class="measure-track"><i style="width:${percent(count, total)}%; background:${colors[status]}"></i></div>
+        <em>${percent(count, total)}%</em>
+      </div>
+    `;
+  }).join("");
+}
+
+function renderChannelDashboardChart() {
+  const tickets = dashboardTickets();
+  const total = Math.max(1, tickets.length);
+  const channels = Object.entries(countBy(tickets, ticket => ticket.kanal))
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+  document.getElementById("channelDashboardChart").innerHTML = channels.length
+    ? channels.map(([channel, count]) => `
+      <div class="channel-row">
+        <span>${channel}</span>
+        <strong>${count}</strong>
+        <small>${percent(count, total)}%</small>
+      </div>
+    `).join("")
+    : '<div class="warning positif"><strong>Belum ada kanal masuk</strong><p>Kanal akan muncul setelah data masuk.</p></div>';
 }
 
 function renderDashboardActivities() {
@@ -695,14 +772,14 @@ function renderDashboardActivities() {
 }
 
 function renderDashboardAlerts() {
-  const urgent = scopedTickets().filter(ticket => ticket.prioritas === "Kritis" || ticket.status === "Eskalasi");
+  const urgent = dashboardTickets().filter(ticket => ticket.prioritas === "Kritis" || ticket.status === "Eskalasi");
   const alerts = urgent.length
-    ? urgent.slice(0, 3).map(ticket => [ticket.prioritas === "Kritis" ? "Aspirasi Kritis" : "Perlu Eskalasi", `${ticket.judul} - ${ticket.wilayah}`])
-    : [["Aspirasi Kritis", "15 aspirasi infrastruktur belum ditindaklanjuti > 48 jam"]];
+    ? urgent.slice(0, 3).map(ticket => [ticket.prioritas === "Kritis" ? "Prioritas Kritis" : "Perlu Eskalasi", `${ticket.judul} - ${ticket.wilayah}`])
+    : [];
 
-  document.getElementById("dashboardAlerts").innerHTML = alerts.map(([title, desc]) => `
+  document.getElementById("dashboardAlerts").innerHTML = alerts.length ? alerts.map(([title, desc]) => `
     <div class="dashboard-alert"><strong>${title}</strong><p>${desc}</p></div>
-  `).join("");
+  `).join("") : '<div class="warning positif"><strong>Tidak ada alert berat</strong><p>Tiket dalam filter saat ini tidak memiliki eskalasi atau prioritas kritis.</p></div>';
 }
 
 function hoursUntil(dateValue) {
@@ -848,6 +925,8 @@ function renderDashboard() {
   renderTrendChart();
   renderGeoDistribution();
   renderCategoryDonut();
+  renderStatusDashboardChart();
+  renderChannelDashboardChart();
   renderDashboardActivities();
   renderDashboardAlerts();
   renderSlaNotifications();
@@ -1671,6 +1750,8 @@ function bindEvents() {
   document.getElementById("notificationBtn").addEventListener("click", () => document.getElementById("notificationDialog").showModal());
   document.getElementById("closeNotificationBtn").addEventListener("click", () => document.getElementById("notificationDialog").close());
   document.getElementById("refreshBtn").addEventListener("click", async () => { await loadData(); toast("Data dashboard diperbarui"); });
+  document.getElementById("refreshDashboardBtn").addEventListener("click", async () => { await loadData(); toast("Data dashboard diperbarui"); });
+  ["periodFilter", "dashboardCategoryFilter"].forEach(id => document.getElementById(id).addEventListener("change", renderDashboard));
   ["aspirasiSearch", "aspirasiStatus", "aspirasiPriority"].forEach(id => document.getElementById(id).addEventListener("input", renderAspirasi));
   ["pengaduanSearch", "pengaduanStatus", "pengaduanPriority"].forEach(id => document.getElementById(id).addEventListener("input", renderPengaduan));
   ["reportType", "reportPeriod", "reportRegion", "reportFormat"].forEach(id => document.getElementById(id).addEventListener("change", renderReport));

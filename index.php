@@ -134,7 +134,7 @@ function nav_icon(string $name): string
         <section class="dashboard-filterbar">
           <select id="periodFilter" aria-label="Filter periode">
             <option>Hari Ini</option>
-            <option>7 Hari Terakhir</option>
+            <option selected>7 Hari Terakhir</option>
             <option>Bulan Ini</option>
             <option>Triwulan Ini</option>
           </select>
@@ -176,17 +176,35 @@ function nav_icon(string $name): string
           <section class="panel span-3 category-panel">
             <div class="panel-head">
               <div>
-                <h3>Kategori Aspirasi</h3>
-                <p>Komposisi aspirasi berdasarkan isu utama masyarakat</p>
+                <h3>Kategori Isu Prioritas</h3>
+                <p>Komposisi aspirasi dan pengaduan berdasarkan isu utama masyarakat</p>
               </div>
             </div>
             <div class="category-chart-layout">
               <div class="category-copy">
-                <strong>Prioritas tema layanan</strong>
-                <p>Gunakan komposisi kategori untuk menentukan fokus advokasi dan alokasi PIC wilayah.</p>
+                <strong id="categoryInsightTitle">Prioritas tema layanan</strong>
+                <p id="categoryInsightText">Gunakan komposisi kategori untuk menentukan fokus advokasi dan alokasi PIC wilayah.</p>
               </div>
               <div id="categoryDonut" class="category-donut"></div>
             </div>
+          </section>
+          <section class="panel span-2">
+            <div class="panel-head">
+              <div>
+                <h3>Kinerja Status Tiket</h3>
+                <p>Rasio progres penyelesaian dan antrean tindak lanjut</p>
+              </div>
+            </div>
+            <div id="statusDashboardChart" class="measure-list"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <h3>Kanal Masuk</h3>
+                <p>Asal pengaduan dan aspirasi</p>
+              </div>
+            </div>
+            <div id="channelDashboardChart" class="channel-list"></div>
           </section>
           <section class="panel span-3">
             <div class="panel-head">
