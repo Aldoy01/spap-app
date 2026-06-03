@@ -187,6 +187,7 @@ function populateProvinceOptions() {
   const reportRegion = document.getElementById("reportRegion");
   const waRegion = document.getElementById("waRegion");
   const userRegionScope = document.getElementById("userRegionScope");
+  const publicRegion = document.getElementById("publicRegion");
 
   provinces.forEach(province => {
     regionFilter.appendChild(new Option(province, province));
@@ -194,10 +195,25 @@ function populateProvinceOptions() {
     reportRegion.appendChild(new Option(province, province));
     if (waRegion) waRegion.appendChild(new Option(province, province));
     if (userRegionScope) userRegionScope.appendChild(new Option(province, province));
+    if (publicRegion) publicRegion.appendChild(new Option(province, province));
   });
 
   ticketRegion.value = "";
   updateRecipientFields();
+}
+
+function isPublicComplaintMode() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("aduan") === "wa" || params.get("form") === "pengaduan";
+}
+
+function applyPublicComplaintMode() {
+  const publicScreen = document.getElementById("publicComplaintScreen");
+  if (!publicScreen || !isPublicComplaintMode()) return false;
+  publicScreen.classList.remove("hidden");
+  document.getElementById("loginScreen").style.display = "none";
+  document.getElementById("appShell").style.display = "none";
+  return true;
 }
 
 function applyUserRegionScope() {
@@ -1633,6 +1649,40 @@ async function submitWhatsappComplaint(event) {
   toast(`${item.id} dicatat dari WhatsApp`);
 }
 
+async function submitPublicComplaint(event) {
+  event.preventDefault();
+  const result = document.getElementById("publicComplaintResult");
+  const submitButton = event.target.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+  submitButton.textContent = "Mengirim...";
+
+  try {
+    const payload = await apiRequest("/api/public/complaints", {
+      method: "POST",
+      body: JSON.stringify({
+        reporterName: document.getElementById("publicReporterName").value,
+        reporterContact: document.getElementById("publicReporterPhone").value,
+        region: document.getElementById("publicRegion").value,
+        targetScope: document.getElementById("publicTargetScope").value,
+        category: document.getElementById("publicCategory").value,
+        priority: document.getElementById("publicPriority").value,
+        subject: document.getElementById("publicSubject").value,
+        description: document.getElementById("publicDescription").value
+      })
+    });
+    const data = payload.data || {};
+    event.target.reset();
+    result.classList.remove("hidden");
+    result.innerHTML = `<strong>Pengaduan terkirim.</strong><p>Nomor tiket: <b>${data.id || "-"}</b>. Pengaduan diteruskan ke ${data.assignedUnit || "admin SPAP"}.</p>`;
+  } catch (error) {
+    result.classList.remove("hidden");
+    result.innerHTML = "<strong>Pengaduan belum terkirim.</strong><p>Silakan coba lagi atau hubungi admin WhatsApp SPAP.</p>";
+  } finally {
+    submitButton.disabled = false;
+    submitButton.textContent = "Kirim Pengaduan";
+  }
+}
+
 function closeTicketDialog() {
   const dialog = document.getElementById("ticketDialog");
   document.getElementById("ticketForm").reset();
@@ -1828,6 +1878,7 @@ async function savePermissions() {
 }
 
 function bindEvents() {
+  document.getElementById("publicComplaintForm").addEventListener("submit", submitPublicComplaint);
   document.getElementById("loginForm").addEventListener("submit", login);
   document.getElementById("logoutBtn").addEventListener("click", logout);
   document.querySelectorAll(".nav-item").forEach(button => {
@@ -1881,5 +1932,7 @@ function bindEvents() {
 populateProvinceOptions();
 bindEvents();
 updateWhatsappPreview();
-restoreSession().then(loadData);
-setPage(currentPage);
+if (!applyPublicComplaintMode()) {
+  restoreSession().then(loadData);
+  setPage(currentPage);
+}

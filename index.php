@@ -56,6 +56,67 @@ function nav_icon(string $name): string
   </script>
 </head>
 <body>
+  <section class="public-complaint-screen hidden" id="publicComplaintScreen">
+    <div class="public-complaint-card">
+      <div class="public-complaint-head">
+        <?= pks_logo() ?>
+        <div>
+          <p class="eyebrow">Pengaduan WhatsApp SPAP</p>
+          <h1>Form Pengaduan Masyarakat</h1>
+          <p>Isi data berikut agar pengaduan dari WhatsApp dapat langsung tercatat dan diteruskan ke admin wilayah atau pusat.</p>
+        </div>
+      </div>
+      <form id="publicComplaintForm" class="public-complaint-form">
+        <label>Nama Lengkap
+          <input id="publicReporterName" placeholder="Contoh: Budi Santoso" required>
+        </label>
+        <label>No. WhatsApp
+          <input id="publicReporterPhone" type="tel" placeholder="08xxxxxxxxxx" required>
+        </label>
+        <label>Wilayah
+          <select id="publicRegion" required>
+            <option value="">Pilih Wilayah</option>
+          </select>
+        </label>
+        <label>Ditujukan Kepada
+          <select id="publicTargetScope">
+            <option value="wilayah">Admin Wilayah</option>
+            <option value="pusat">Admin Pusat</option>
+          </select>
+        </label>
+        <label>Kategori
+          <select id="publicCategory" required>
+            <option value="">Pilih Kategori</option>
+            <option>Infrastruktur</option>
+            <option>Pendidikan</option>
+            <option>Kesehatan</option>
+            <option>Ekonomi</option>
+            <option>Sosial</option>
+            <option>Pelayanan Publik</option>
+            <option>Hukum</option>
+          </select>
+        </label>
+        <label>Prioritas
+          <select id="publicPriority">
+            <option>Sedang</option>
+            <option>Rendah</option>
+            <option>Tinggi</option>
+            <option>Kritis</option>
+          </select>
+        </label>
+        <label class="full">Judul Pengaduan
+          <input id="publicSubject" placeholder="Ringkasan masalah dalam satu kalimat" required>
+        </label>
+        <label class="full">Kronologi Pengaduan
+          <textarea id="publicDescription" rows="5" placeholder="Tuliskan lokasi, waktu kejadian, kronologi, dan harapan tindak lanjut..." required></textarea>
+        </label>
+        <button class="btn primary" type="submit">Kirim Pengaduan</button>
+      </form>
+      <div class="public-complaint-result hidden" id="publicComplaintResult"></div>
+      <a class="public-login-link" href="/">Masuk sebagai admin/operator</a>
+    </div>
+  </section>
+
   <section class="login-screen" id="loginScreen">
     <div class="login-card">
       <?= pks_logo() ?>

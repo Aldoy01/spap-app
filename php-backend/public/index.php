@@ -41,6 +41,11 @@ function route_request(): void
         }
     }
 
+    if ($method === 'POST' && $path === '/api/public/complaints') {
+        create_public_complaint();
+        return;
+    }
+
     if ($method === 'POST' && $path === '/api/auth/login') {
         login();
         return;
@@ -1085,6 +1090,49 @@ function create_ticket(): void
 
     $created = insert_ticket_record($ticket, $actor['name'] ?? 'Operator SPAP', 'Tiket dibuat dari aplikasi SPAP');
     json_response(['data' => $created], 201);
+}
+
+function create_public_complaint(): void
+{
+    $input = input_json();
+    $name = trim((string) ($input['reporterName'] ?? ''));
+    $phone = trim((string) ($input['reporterContact'] ?? ''));
+    $region = trim((string) ($input['region'] ?? ''));
+    $category = trim((string) ($input['category'] ?? ''));
+    $subject = trim((string) ($input['subject'] ?? ''));
+    $description = trim((string) ($input['description'] ?? ''));
+    $targetScope = ($input['targetScope'] ?? 'wilayah') === 'pusat' ? 'pusat' : 'wilayah';
+
+    if (!$name || !$phone || !$region || !$category || !$subject || !$description) {
+        json_response(['error' => 'Data pengaduan belum lengkap'], 422);
+        return;
+    }
+
+    $assignedUnit = $targetScope === 'pusat' ? 'Admin Pusat SPAP' : 'Admin Wilayah - ' . $region;
+    $ticket = [
+        'type' => 'pengaduan',
+        'reporterName' => $name,
+        'reporterContact' => $phone,
+        'channel' => 'WhatsApp Link',
+        'region' => $region,
+        'category' => $category,
+        'priority' => valid_priority((string) ($input['priority'] ?? 'Sedang')),
+        'subject' => $subject,
+        'description' => $description,
+        'assignedUnit' => $assignedUnit,
+        'targetLevel' => $targetScope === 'pusat' ? 'Admin Pusat' : 'Admin Wilayah',
+        'targetProvince' => $region,
+        'targetName' => $assignedUnit,
+    ];
+
+    $created = insert_ticket_record($ticket, 'Form Publik WhatsApp', 'Pengaduan dibuat dari link WhatsApp Business');
+    json_response([
+        'data' => [
+            'id' => $created['public_id'],
+            'status' => $created['status'],
+            'assignedUnit' => $created['assigned_unit'],
+        ],
+    ], 201);
 }
 
 function insert_ticket_record(array $ticket, string $actorName, string $eventNote): array
