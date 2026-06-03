@@ -1657,6 +1657,95 @@ dialog::backdrop {
   font-size: 30px;
 }
 
+.modal-kicker {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.ticket-modal {
+  padding: 30px;
+}
+
+.ticket-modal .modal-head {
+  margin-bottom: 20px;
+  padding-bottom: 18px;
+}
+
+.ticket-modal .form-grid {
+  gap: 16px;
+}
+
+.ticket-modal .form-grid label {
+  gap: 8px;
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.ticket-modal .form-grid input,
+.ticket-modal .form-grid select,
+.ticket-modal .form-grid textarea {
+  min-height: 48px;
+  border-radius: 12px;
+  background: #fbfcff;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.ticket-modal .form-grid textarea {
+  min-height: 130px;
+}
+
+.ticket-modal .form-grid input[type="file"] {
+  min-height: 56px;
+  padding: 13px;
+  background: #fff;
+  font-size: 14px;
+}
+
+.form-section {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+  padding: 12px 14px;
+  border: 1px solid #fed7aa;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #fff7ed, #ffffff);
+}
+
+.form-section span {
+  color: #9a3412;
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.form-section small {
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+}
+
+.ticket-modal .modal-actions {
+  position: sticky;
+  bottom: -30px;
+  margin: 22px -30px -30px;
+  padding: 16px 30px;
+  border-top: 1px solid var(--line);
+  background: rgba(255, 255, 255, .94);
+  backdrop-filter: blur(10px);
+}
+
+.ticket-modal .modal-actions .btn {
+  min-height: 42px;
+  font-size: 15px;
+}
+
 .modal-title-icon {
   width: 34px;
   height: 34px;
@@ -1968,6 +2057,14 @@ dialog::backdrop {
 
   .geo-strip {
     grid-template-columns: 1fr;
+  }
+
+  .form-section {
+    display: grid;
+  }
+
+  .form-section small {
+    text-align: left;
   }
 
   .timeline-item {

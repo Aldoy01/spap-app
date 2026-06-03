@@ -1643,10 +1643,8 @@ function openTicketDialog() {
   const type = "pengaduan";
   document.getElementById("ticketType").value = type;
   updateRecipientFields();
-  document.getElementById("dialogTitle").innerHTML = type === "pengaduan"
-    ? '<span class="modal-title-icon">+</span> Tambah Pengaduan Baru'
-    : '<span class="modal-title-icon">+</span> Tambah Aspirasi Baru';
-  document.getElementById("saveTicketBtn").textContent = type === "pengaduan" ? "Simpan Pengaduan" : "Simpan Aspirasi";
+  document.getElementById("dialogTitle").innerHTML = '<span class="modal-title-icon">+</span> Tambah Pengaduan Baru';
+  document.getElementById("saveTicketBtn").textContent = "Simpan Pengaduan";
   document.getElementById("ticketDialog").showModal();
 }
 

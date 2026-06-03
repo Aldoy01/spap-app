@@ -677,9 +677,12 @@ function nav_icon(string $name): string
   </div>
 
   <dialog id="ticketDialog">
-    <form id="ticketForm" class="modal">
+    <form id="ticketForm" class="modal ticket-modal">
       <div class="modal-head">
-        <h3 id="dialogTitle"><span class="modal-title-icon">+</span> Tambah Aspirasi Baru</h3>
+        <div>
+          <p class="modal-kicker">Form layanan masyarakat</p>
+          <h3 id="dialogTitle"><span class="modal-title-icon">+</span> Tambah Pengaduan Baru</h3>
+        </div>
         <button class="icon-btn close-btn" id="closeTicketBtn" type="button" aria-label="Tutup"></button>
       </div>
       <div class="form-grid">
@@ -689,46 +692,49 @@ function nav_icon(string $name): string
             <option value="pengaduan">Pengaduan</option>
           </select>
         </label>
-        <label class="full">Nama Pengirim:
-          <input id="ticketName" required>
+        <div class="form-section full"><span>Data pelapor</span><small>Identitas dasar agar petugas dapat melakukan klarifikasi.</small></div>
+        <label>Nama Pengirim
+          <input id="ticketName" placeholder="Contoh: Budi Santoso" required>
         </label>
-        <label class="full">Email:
-          <input id="ticketEmail" type="email">
+        <label>Email
+          <input id="ticketEmail" type="email" placeholder="nama@email.com">
         </label>
-        <label class="full">No. Telepon:
-          <input id="ticketPhone" type="tel">
+        <label>No. Telepon / WhatsApp
+          <input id="ticketPhone" type="tel" placeholder="08xxxxxxxxxx">
         </label>
-        <label class="full">Wilayah:
+        <label>Wilayah
           <select id="ticketRegion">
             <option value="">Pilih Wilayah</option>
           </select>
         </label>
-        <label>Ditujukan Kepada:
+        <div class="form-section full"><span>Tujuan penanganan</span><small>Pilih struktur dan nama tujuan agar pengaduan masuk ke admin/anggota yang tepat.</small></div>
+        <label>Ditujukan Kepada
           <select id="ticketTargetLevel">
             <option value="DPR RI">DPR RI</option>
             <option value="DPRD Provinsi">DPRD Provinsi</option>
             <option value="DPRD Kab/Kota">DPRD Kab/Kota</option>
           </select>
         </label>
-        <label>Provinsi Tujuan:
+        <label>Provinsi Tujuan
           <input id="ticketTargetProvince" readonly>
         </label>
-        <label>Dapil:
+        <label>Dapil
           <select id="ticketTargetDapil">
             <option value="">Pilih Dapil</option>
           </select>
         </label>
-        <label>Kota/Kabupaten:
+        <label>Kota/Kabupaten
           <select id="ticketTargetCity">
             <option value="">Pilih Kota/Kabupaten</option>
           </select>
         </label>
-        <label class="full">Nama Tujuan:
+        <label class="full">Nama Tujuan
           <select id="ticketTargetName">
             <option value="">Pilih Nama Tujuan</option>
           </select>
         </label>
-        <label class="full">Kategori:
+        <div class="form-section full"><span>Isi pengaduan</span><small>Gunakan judul singkat dan kronologi yang jelas agar mudah diverifikasi.</small></div>
+        <label>Kategori
           <select id="ticketCategory">
             <option value="">Pilih Kategori</option>
             <option>Infrastruktur</option>
@@ -738,7 +744,7 @@ function nav_icon(string $name): string
             <option>Sosial</option>
           </select>
         </label>
-        <label class="full">Prioritas:
+        <label>Prioritas
           <select id="ticketPriority">
             <option value="">Pilih Prioritas</option>
             <option>Rendah</option>
@@ -747,14 +753,15 @@ function nav_icon(string $name): string
             <option>Kritis</option>
           </select>
         </label>
-        <label class="full">Judul Aspirasi:
-          <input id="ticketSubject" required>
+        <label class="full">Judul Pengaduan
+          <input id="ticketSubject" placeholder="Ringkasan masalah dalam satu kalimat" required>
         </label>
-        <label class="full">Deskripsi Aspirasi:
-          <textarea id="ticketDescription" rows="4" required></textarea>
+        <label class="full">Deskripsi Pengaduan
+          <textarea id="ticketDescription" rows="4" placeholder="Tuliskan kronologi, lokasi, waktu kejadian, dan harapan tindak lanjut..." required></textarea>
         </label>
-        <label class="full">Lampiran:
+        <label class="full">Lampiran
           <input id="ticketAttachment" type="file" multiple>
+          <small class="field-hint">Opsional. Tambahkan foto, dokumen, atau bukti pendukung jika tersedia.</small>
         </label>
       </div>
       <menu class="modal-actions">
