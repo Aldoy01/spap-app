@@ -1806,11 +1806,17 @@ dialog::backdrop {
   line-height: 1.45;
 }
 
-.user-target-field {
+.user-target-field,
+.user-region-field {
   padding: 16px;
   border: 1px solid #fed7aa;
   border-radius: 12px;
   background: #fff7ed;
+}
+
+.user-region-field {
+  border-color: #bfdbfe;
+  background: #eff6ff;
 }
 
 .management-list {

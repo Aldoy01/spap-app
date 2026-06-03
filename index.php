@@ -608,6 +608,12 @@ function nav_icon(string $name): string
                 <datalist id="userTargetNameOptions"></datalist>
                 <small class="field-hint">Kosongkan untuk akses semua data sesuai role. Isi nama anggota agar user hanya melihat aspirasi/pengaduan yang ditujukan ke nama tersebut.</small>
               </label>
+              <label class="full user-region-field">Wilayah Akses
+                <select id="userRegionScope">
+                  <option value="">Semua Wilayah</option>
+                </select>
+                <small class="field-hint">Isi wilayah untuk membuat user wilayah. User hanya melihat tiket dari provinsi tersebut atau tujuan provinsi yang sama.</small>
+              </label>
               <label>Role
                 <select id="userRole">
                   <option value="operator">Operator</option>
@@ -636,7 +642,7 @@ function nav_icon(string $name): string
             </div>
             <div class="table-wrap">
               <table>
-                <thead><tr><th>Nama</th><th>Email</th><th>Role</th><th>Unit</th><th>Nama Tujuan</th><th>Status</th></tr></thead>
+                <thead><tr><th>Nama</th><th>Email</th><th>Role</th><th>Unit</th><th>Wilayah</th><th>Nama Tujuan</th><th>Status</th></tr></thead>
                 <tbody id="userManagementRows"></tbody>
               </table>
             </div>

@@ -191,10 +191,12 @@ function ensure_schema(): void
             role VARCHAR(40) NOT NULL DEFAULT 'operator',
             organization_unit VARCHAR(120),
             target_name VARCHAR(160),
+            region_scope VARCHAR(120),
             status VARCHAR(20) NOT NULL DEFAULT 'active',
             created_at TIMESTAMPTZ NOT NULL DEFAULT now()
         )",
         'ALTER TABLE users ADD COLUMN IF NOT EXISTS target_name VARCHAR(160)',
+        'ALTER TABLE users ADD COLUMN IF NOT EXISTS region_scope VARCHAR(120)',
         "CREATE TABLE IF NOT EXISTS tickets (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             public_id VARCHAR(32) UNIQUE NOT NULL,
@@ -570,6 +572,7 @@ function public_user(array $user): array
         'role' => $user['role'],
         'organizationUnit' => $user['organization_unit'] ?? null,
         'targetName' => $user['target_name'] ?? null,
+        'regionScope' => $user['region_scope'] ?? null,
         'permissions' => permissions_for_role($user['role']),
     ];
 }
@@ -642,7 +645,16 @@ function require_permission(string $menuKey, string $action): ?array
 function apply_target_name_scope(array $user, array &$where, array &$params): void
 {
     $targetName = trim((string) ($user['targetName'] ?? $user['target_name'] ?? ''));
-    if (($user['role'] ?? '') === 'admin' || $targetName === '') {
+    $regionScope = trim((string) ($user['regionScope'] ?? $user['region_scope'] ?? ''));
+    if (($user['role'] ?? '') === 'admin') {
+        return;
+    }
+    if ($regionScope !== '') {
+        $where[] = '(region = ? OR target_province = ?)';
+        $params[] = $regionScope;
+        $params[] = $regionScope;
+    }
+    if ($targetName === '') {
         return;
     }
 
@@ -655,7 +667,18 @@ function apply_target_name_scope(array $user, array &$where, array &$params): vo
 function can_access_ticket_target(array $user, array $ticket): bool
 {
     $targetName = trim((string) ($user['targetName'] ?? $user['target_name'] ?? ''));
-    if (($user['role'] ?? '') === 'admin' || $targetName === '') {
+    $regionScope = trim((string) ($user['regionScope'] ?? $user['region_scope'] ?? ''));
+    if (($user['role'] ?? '') === 'admin') {
+        return true;
+    }
+    if ($regionScope !== '') {
+        $ticketRegion = trim((string) ($ticket['region'] ?? ''));
+        $ticketTargetProvince = trim((string) ($ticket['target_province'] ?? ''));
+        if ($ticketRegion !== $regionScope && $ticketTargetProvince !== $regionScope) {
+            return false;
+        }
+    }
+    if ($targetName === '') {
         return true;
     }
 
@@ -805,7 +828,7 @@ function list_users(): void
     }
 
     $statement = db()->query(
-        'SELECT id, name, email, role, organization_unit, target_name, status, created_at
+        'SELECT id, name, email, role, organization_unit, target_name, region_scope, status, created_at
          FROM users
          ORDER BY created_at DESC, name ASC'
     );
@@ -824,6 +847,7 @@ function create_user(): void
     $role = $input['role'] ?? 'operator';
     $unit = $input['organizationUnit'] ?? 'SPAP';
     $targetName = trim($input['targetName'] ?? '');
+    $regionScope = trim($input['regionScope'] ?? '');
     $status = $input['status'] ?? 'active';
     $password = $input['password'] ?? 'user123';
 
@@ -833,13 +857,13 @@ function create_user(): void
     }
 
     $statement = db()->prepare(
-        'INSERT INTO users (name, email, password_hash, role, organization_unit, target_name, status)
-         VALUES (?, ?, ?, ?, ?, ?, ?)
+        'INSERT INTO users (name, email, password_hash, role, organization_unit, target_name, region_scope, status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT (email) DO UPDATE
-         SET name = EXCLUDED.name, role = EXCLUDED.role, organization_unit = EXCLUDED.organization_unit, target_name = EXCLUDED.target_name, status = EXCLUDED.status
-         RETURNING id, name, email, role, organization_unit, target_name, status, created_at'
+         SET name = EXCLUDED.name, role = EXCLUDED.role, organization_unit = EXCLUDED.organization_unit, target_name = EXCLUDED.target_name, region_scope = EXCLUDED.region_scope, status = EXCLUDED.status
+         RETURNING id, name, email, role, organization_unit, target_name, region_scope, status, created_at'
     );
-    $statement->execute([$name, $email, password_hash($password, PASSWORD_BCRYPT), $role, $unit, $targetName ?: null, $status]);
+    $statement->execute([$name, $email, password_hash($password, PASSWORD_BCRYPT), $role, $unit, $targetName ?: null, $regionScope ?: null, $status]);
     json_response(['data' => $statement->fetch()], 201);
 }
 
@@ -852,15 +876,18 @@ function update_user(string $id): void
     $input = input_json();
     $targetNameProvided = array_key_exists('targetName', $input);
     $targetName = $targetNameProvided ? (trim((string) $input['targetName']) ?: null) : null;
+    $regionScopeProvided = array_key_exists('regionScope', $input);
+    $regionScope = $regionScopeProvided ? (trim((string) $input['regionScope']) ?: null) : null;
     $statement = db()->prepare(
         'UPDATE users
          SET name = COALESCE(?, name),
              role = COALESCE(?, role),
              organization_unit = COALESCE(?, organization_unit),
              target_name = CASE WHEN ? = 1 THEN ? ELSE target_name END,
+             region_scope = CASE WHEN ? = 1 THEN ? ELSE region_scope END,
              status = COALESCE(?, status)
          WHERE id = ?
-         RETURNING id, name, email, role, organization_unit, target_name, status, created_at'
+         RETURNING id, name, email, role, organization_unit, target_name, region_scope, status, created_at'
     );
     $statement->execute([
         $input['name'] ?? null,
@@ -868,6 +895,8 @@ function update_user(string $id): void
         $input['organizationUnit'] ?? null,
         $targetNameProvided ? 1 : 0,
         $targetName,
+        $regionScopeProvided ? 1 : 0,
+        $regionScope,
         $input['status'] ?? null,
         $id,
     ]);
@@ -1018,7 +1047,9 @@ function list_tickets(): void
     }
     apply_target_name_scope($user, $where, $params);
 
-    $scope = ($user['role'] ?? '') === 'admin' ? 'admin' : ('target:' . md5((string) ($user['targetName'] ?? $user['target_name'] ?? 'all')));
+    $scope = ($user['role'] ?? '') === 'admin'
+        ? 'admin'
+        : ('target:' . md5((string) ($user['targetName'] ?? $user['target_name'] ?? 'all') . '|region:' . (string) ($user['regionScope'] ?? $user['region_scope'] ?? 'all')));
     $cacheKey = 'tickets:' . $scope . ':' . ($type ?: 'all') . ':' . ($status ?: 'all') . ':' . ($region ?: 'all') . ':' . ($q ?: '');
 
     $cached = cache_get($cacheKey);
@@ -1124,7 +1155,7 @@ function update_ticket_status(string $publicId): void
     $targetProvince = $input['targetProvince'] ?? null;
     $targetCity = $input['targetCity'] ?? null;
     $targetName = $input['targetName'] ?? null;
-    $typeStatement = db()->prepare('SELECT type, target_name FROM tickets WHERE public_id = ? LIMIT 1');
+    $typeStatement = db()->prepare('SELECT type, region, target_province, target_name FROM tickets WHERE public_id = ? LIMIT 1');
     $typeStatement->execute([$publicId]);
     $existingTicket = $typeStatement->fetch();
     if (!$existingTicket) {
@@ -1176,7 +1207,7 @@ function update_ticket_status(string $publicId): void
 
 function ticket_by_public_id(string $publicId): ?array
 {
-    $statement = db()->prepare('SELECT id, public_id, type, target_name FROM tickets WHERE public_id = ? LIMIT 1');
+    $statement = db()->prepare('SELECT id, public_id, type, region, target_province, target_name FROM tickets WHERE public_id = ? LIMIT 1');
     $statement->execute([$publicId]);
     $ticket = $statement->fetch();
     return $ticket ?: null;

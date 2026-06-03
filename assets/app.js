@@ -186,12 +186,14 @@ function populateProvinceOptions() {
   const ticketRegion = document.getElementById("ticketRegion");
   const reportRegion = document.getElementById("reportRegion");
   const waRegion = document.getElementById("waRegion");
+  const userRegionScope = document.getElementById("userRegionScope");
 
   provinces.forEach(province => {
     regionFilter.appendChild(new Option(province, province));
     ticketRegion.appendChild(new Option(province, province));
     reportRegion.appendChild(new Option(province, province));
     if (waRegion) waRegion.appendChild(new Option(province, province));
+    if (userRegionScope) userRegionScope.appendChild(new Option(province, province));
   });
 
   ticketRegion.value = "";
@@ -1249,12 +1251,20 @@ function renderSettings() {
   userRows.innerHTML = adminData.users.length
     ? adminData.users.map(user => {
       const targetName = user.target_name || user.targetName || "";
+      const regionScope = user.region_scope || user.regionScope || "";
       return `
       <tr>
         <td><strong>${user.name}</strong></td>
         <td>${user.email}</td>
         <td><span class="role-pill">${roleLabels[user.role] || user.role}</span></td>
         <td>${user.organization_unit || "-"}</td>
+        <td>
+          <select class="compact-select" id="region-${user.id}">
+            <option value="">Semua Wilayah</option>
+            ${provinces.map(province => `<option value="${province}" ${regionScope === province ? "selected" : ""}>${province}</option>`).join("")}
+          </select>
+          <button class="btn ghost compact-btn" onclick="updateUserRegionScope('${user.id}')">Simpan</button>
+        </td>
         <td>
           <input class="compact-input" id="target-${user.id}" value="${escapeHtml(targetName)}" placeholder="Nama yang dituju">
           <button class="btn ghost compact-btn" onclick="updateUserTargetName('${user.id}')">Simpan</button>
@@ -1269,7 +1279,7 @@ function renderSettings() {
       </tr>
     `;
     }).join("")
-    : '<tr><td colspan="6">Data user akan tampil setelah API admin aktif.</td></tr>';
+    : '<tr><td colspan="7">Data user akan tampil setelah API admin aktif.</td></tr>';
 
   const permissionMap = new Map(adminData.permissions.map(item => [`${item.role}:${item.menu_key}`, item]));
   permissionRows.innerHTML = manageableRoles.flatMap(role => manageableMenus.map(menu => {
@@ -1689,6 +1699,7 @@ async function createUser(event) {
       role: document.getElementById("userRole").value,
       organizationUnit: document.getElementById("userUnit").value,
       targetName: document.getElementById("userTargetName").value,
+      regionScope: document.getElementById("userRegionScope").value,
       password: document.getElementById("userPassword").value,
       status: document.getElementById("userStatus").value
     })
@@ -1696,6 +1707,7 @@ async function createUser(event) {
   adminData.users = [payload.data, ...adminData.users.filter(user => user.email !== payload.data.email)];
   document.getElementById("userForm").reset();
   document.getElementById("userPassword").value = "user123";
+  document.getElementById("userRegionScope").value = "";
   renderSettings();
   toast("User berhasil disimpan");
 }
@@ -1721,6 +1733,18 @@ async function updateUserTargetName(id) {
   adminData.users = adminData.users.map(user => user.id === id ? payload.data : user);
   renderSettings();
   toast("Nama tujuan user diperbarui. User perlu login ulang agar filter aktif.");
+}
+
+async function updateUserRegionScope(id) {
+  if (!apiAvailable || currentUser?.role !== "admin") return;
+  const regionScope = document.getElementById(`region-${id}`)?.value || "";
+  const payload = await apiRequest(`/api/admin/users/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ regionScope })
+  });
+  adminData.users = adminData.users.map(user => user.id === id ? payload.data : user);
+  renderSettings();
+  toast("Wilayah akses user diperbarui. User perlu login ulang agar filter aktif.");
 }
 
 async function resetUserPassword(id, email) {
