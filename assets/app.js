@@ -202,24 +202,40 @@ function populateProvinceOptions() {
 
 function applyUserRegionScope() {
   const regionFilter = document.getElementById("regionFilter");
-  if (!regionFilter) return;
+  const ticketRegion = document.getElementById("ticketRegion");
+  const waRegion = document.getElementById("waRegion");
 
   const regionScope = currentUser?.regionScope || currentUser?.region_scope || "";
-  regionFilter.innerHTML = "";
+  const lockSelect = select => {
+    if (!select) return;
+    select.innerHTML = "";
+    select.appendChild(new Option(regionScope, regionScope));
+    select.value = regionScope;
+    select.disabled = true;
+    select.classList.add("is-locked");
+  };
+  const unlockSelect = (select, placeholder, includeAll = false) => {
+    if (!select) return;
+    select.innerHTML = "";
+    if (includeAll) select.appendChild(new Option("Semua Wilayah", "Semua"));
+    else select.appendChild(new Option(placeholder, ""));
+    provinces.forEach(province => select.appendChild(new Option(province, province)));
+    select.disabled = false;
+    select.classList.remove("is-locked");
+  };
 
   if (currentUser && currentUser.role !== "admin" && regionScope) {
-    regionFilter.appendChild(new Option(regionScope, regionScope));
-    regionFilter.value = regionScope;
-    regionFilter.disabled = true;
-    regionFilter.classList.add("is-locked");
+    lockSelect(regionFilter);
+    lockSelect(ticketRegion);
+    lockSelect(waRegion);
+    refreshRecipientFieldsFromKpu();
     return;
   }
 
-  regionFilter.appendChild(new Option("Semua Wilayah", "Semua"));
-  provinces.forEach(province => regionFilter.appendChild(new Option(province, province)));
-  regionFilter.value = "Semua";
-  regionFilter.disabled = false;
-  regionFilter.classList.remove("is-locked");
+  unlockSelect(regionFilter, "", true);
+  unlockSelect(ticketRegion, "Pilih Wilayah");
+  unlockSelect(waRegion, "Pilih Wilayah");
+  if (regionFilter) regionFilter.value = "Semua";
 }
 
 function setSelectOptions(select, values, placeholder) {
