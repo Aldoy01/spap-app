@@ -84,26 +84,6 @@ function nav_icon(string $name): string
             <option value="pusat">Admin Pusat</option>
           </select>
         </label>
-        <label>Kategori
-          <select id="publicCategory" required>
-            <option value="">Pilih Kategori</option>
-            <option>Infrastruktur</option>
-            <option>Pendidikan</option>
-            <option>Kesehatan</option>
-            <option>Ekonomi</option>
-            <option>Sosial</option>
-            <option>Pelayanan Publik</option>
-            <option>Hukum</option>
-          </select>
-        </label>
-        <label>Prioritas
-          <select id="publicPriority">
-            <option>Sedang</option>
-            <option>Rendah</option>
-            <option>Tinggi</option>
-            <option>Kritis</option>
-          </select>
-        </label>
         <label class="full">Judul Pengaduan
           <input id="publicSubject" placeholder="Ringkasan masalah dalam satu kalimat" required>
         </label>
@@ -399,26 +379,6 @@ function nav_icon(string $name): string
               <select id="waAdminScope" required>
                 <option value="wilayah">Admin Wilayah</option>
                 <option value="pusat">Admin Pusat</option>
-              </select>
-            </label>
-            <label>Kategori
-              <select id="waCategory" required>
-                <option value="">Pilih Kategori</option>
-                <option>Infrastruktur</option>
-                <option>Pendidikan</option>
-                <option>Kesehatan</option>
-                <option>Ekonomi</option>
-                <option>Sosial</option>
-                <option>Pelayanan Publik</option>
-                <option>Hukum</option>
-              </select>
-            </label>
-            <label>Prioritas
-              <select id="waPriority" required>
-                <option>Sedang</option>
-                <option>Rendah</option>
-                <option>Tinggi</option>
-                <option>Kritis</option>
               </select>
             </label>
             <label class="span-2">Judul Pengaduan

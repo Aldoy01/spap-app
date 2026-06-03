@@ -34,6 +34,7 @@ POST /api/public/complaints
 5. Backend membuat tiket `Pengaduan` dengan kanal `WhatsApp Link`.
 6. Jika tujuan `Admin Wilayah`, tiket masuk ke `Admin Wilayah - [Wilayah]`.
 7. Jika tujuan `Admin Pusat`, tiket masuk ke `Admin Pusat SPAP`.
+8. Kategori dan prioritas tidak dipilih oleh masyarakat. Tiket masuk dengan kategori awal `Belum Diklasifikasi` dan prioritas awal `Sedang`, lalu diklasifikasi oleh admin/operator.
 
 ## Endpoint Backend
 
@@ -49,8 +50,6 @@ Payload contoh:
   "reporterContact": "081234567890",
   "region": "Jawa Barat",
   "targetScope": "wilayah",
-  "category": "Pelayanan Publik",
-  "priority": "Sedang",
   "subject": "Keluhan layanan administrasi",
   "description": "Saya mengalami kendala pelayanan administrasi di kecamatan."
 }

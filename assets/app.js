@@ -1528,8 +1528,6 @@ function whatsappTemplateMessage() {
   const name = document.getElementById("waReporterName")?.value || "[Nama]";
   const phone = document.getElementById("waReporterPhone")?.value || "[No. WhatsApp]";
   const region = document.getElementById("waRegion")?.value || "[Wilayah]";
-  const category = document.getElementById("waCategory")?.value || "[Kategori]";
-  const priority = document.getElementById("waPriority")?.value || "Sedang";
   const adminScope = document.getElementById("waAdminScope")?.value === "pusat" ? "Admin Pusat" : "Admin Wilayah";
   const subject = document.getElementById("waSubject")?.value || "[Judul pengaduan]";
   const message = document.getElementById("waMessage")?.value || "[Tulis kronologi singkat]";
@@ -1540,8 +1538,6 @@ function whatsappTemplateMessage() {
     `No. WhatsApp: ${phone}`,
     `Wilayah: ${region}`,
     `Tujuan: ${adminScope}`,
-    `Kategori: ${category}`,
-    `Prioritas: ${priority}`,
     `Judul: ${subject}`,
     `Kronologi: ${message}`,
   ].join("\n");
@@ -1589,8 +1585,8 @@ async function submitWhatsappComplaint(event) {
     tanggal: new Date().toISOString().slice(0, 10),
     nama: document.getElementById("waReporterName").value,
     wilayah: document.getElementById("waRegion").value,
-    kategori: document.getElementById("waCategory").value,
-    prioritas: document.getElementById("waPriority").value,
+    kategori: "Belum Diklasifikasi",
+    prioritas: "Sedang",
     status: "Baru",
     judul: document.getElementById("waSubject").value,
     deskripsi: document.getElementById("waMessage").value,
@@ -1641,7 +1637,6 @@ async function submitWhatsappComplaint(event) {
     saveState();
   }
   document.getElementById("whatsappComplaintForm").reset();
-  document.getElementById("waPriority").value = "Sedang";
   document.getElementById("waAdminScope").value = "wilayah";
   updateWhatsappPreview();
   renderAll();
@@ -1664,8 +1659,6 @@ async function submitPublicComplaint(event) {
         reporterContact: document.getElementById("publicReporterPhone").value,
         region: document.getElementById("publicRegion").value,
         targetScope: document.getElementById("publicTargetScope").value,
-        category: document.getElementById("publicCategory").value,
-        priority: document.getElementById("publicPriority").value,
         subject: document.getElementById("publicSubject").value,
         description: document.getElementById("publicDescription").value
       })
@@ -1899,7 +1892,7 @@ function bindEvents() {
   document.getElementById("whatsappComplaintForm").addEventListener("submit", submitWhatsappComplaint);
   document.getElementById("openWhatsappBtn").addEventListener("click", openWhatsappComposer);
   document.getElementById("copyWhatsappFormatBtn").addEventListener("click", copyWhatsappFormat);
-  ["waReporterName", "waReporterPhone", "waRegion", "waAdminScope", "waCategory", "waPriority", "waSubject", "waMessage"].forEach(id => {
+  ["waReporterName", "waReporterPhone", "waRegion", "waAdminScope", "waSubject", "waMessage"].forEach(id => {
     document.getElementById(id).addEventListener("input", updateWhatsappPreview);
     document.getElementById(id).addEventListener("change", updateWhatsappPreview);
   });

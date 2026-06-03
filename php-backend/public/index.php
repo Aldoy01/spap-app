@@ -543,8 +543,8 @@ function whatsapp_ticket_from_message(array $message): array
         'reporterContact' => $contact,
         'channel' => 'WhatsApp',
         'region' => $region,
-        'category' => $fields['kategori'] ?? 'Pelayanan Publik',
-        'priority' => valid_priority($fields['prioritas'] ?? 'Sedang'),
+        'category' => 'Belum Diklasifikasi',
+        'priority' => 'Sedang',
         'subject' => $subject,
         'description' => $description,
         'assignedUnit' => $assignedUnit,
@@ -1098,12 +1098,11 @@ function create_public_complaint(): void
     $name = trim((string) ($input['reporterName'] ?? ''));
     $phone = trim((string) ($input['reporterContact'] ?? ''));
     $region = trim((string) ($input['region'] ?? ''));
-    $category = trim((string) ($input['category'] ?? ''));
     $subject = trim((string) ($input['subject'] ?? ''));
     $description = trim((string) ($input['description'] ?? ''));
     $targetScope = ($input['targetScope'] ?? 'wilayah') === 'pusat' ? 'pusat' : 'wilayah';
 
-    if (!$name || !$phone || !$region || !$category || !$subject || !$description) {
+    if (!$name || !$phone || !$region || !$subject || !$description) {
         json_response(['error' => 'Data pengaduan belum lengkap'], 422);
         return;
     }
@@ -1115,8 +1114,8 @@ function create_public_complaint(): void
         'reporterContact' => $phone,
         'channel' => 'WhatsApp Link',
         'region' => $region,
-        'category' => $category,
-        'priority' => valid_priority((string) ($input['priority'] ?? 'Sedang')),
+        'category' => 'Belum Diklasifikasi',
+        'priority' => 'Sedang',
         'subject' => $subject,
         'description' => $description,
         'assignedUnit' => $assignedUnit,
