@@ -126,7 +126,7 @@ function nav_icon(string $name): string
             <span>Notifikasi</span>
             <strong id="notificationCount">0</strong>
           </button>
-          <button class="btn primary" id="newTicketBtn">Tambah Aspirasi</button>
+          <button class="btn primary" id="newTicketBtn">Tambah Pengaduan</button>
         </div>
       </header>
 

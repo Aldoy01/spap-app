@@ -1356,13 +1356,7 @@ function setPage(page) {
   };
   document.getElementById("pageTitle").textContent = titles[page];
   const button = document.getElementById("newTicketBtn");
-  if (page === "pengaduan") {
-    button.textContent = "Tambah Pengaduan";
-  } else if (page === "aspirasi" || page === "dashboard") {
-    button.textContent = "Tambah Aspirasi";
-  } else {
-    button.textContent = "Tambah Tiket";
-  }
+  button.textContent = "Tambah Pengaduan";
 }
 
 async function addTicket(event) {
@@ -1596,7 +1590,7 @@ function closeTicketDialog() {
 }
 
 function openTicketDialog() {
-  const type = currentPage === "pengaduan" ? "pengaduan" : "aspirasi";
+  const type = "pengaduan";
   document.getElementById("ticketType").value = type;
   updateRecipientFields();
   document.getElementById("dialogTitle").innerHTML = type === "pengaduan"
