@@ -333,15 +333,13 @@ function syncTargetNameDetail({ selectId, detailWrapperId, detailSelectId, manua
   if (!select || !detailWrapper || !detailSelect || !manualWrapper || !manualInput) return;
 
   const manual = select.value === "__manual__";
-  const withDetail = select.value === "__aleg__" || select.value === "__struktur__";
-  const detailOptions = select.value === "__aleg__"
-    ? buildAlegRecipientOptions({ level, selectedDapil, directory })
-    : buildOfficialRecipientOptions(province, level);
+  const withDetail = select.value === "__aleg__";
+  const detailOptions = buildAlegRecipientOptions({ level, selectedDapil, directory });
 
   detailWrapper.classList.toggle("hidden-field", !withDetail);
   detailSelect.required = withDetail;
   if (withDetail) {
-    setSelectOptions(detailSelect, detailOptions, select.value === "__aleg__" ? "Pilih nama aleg" : "Pilih struktur");
+    setSelectOptions(detailSelect, detailOptions, "Pilih nama aleg");
   } else {
     detailSelect.innerHTML = "";
   }
@@ -375,7 +373,8 @@ function resolvedTargetName(selectId, detailId, inputId) {
   const detail = document.getElementById(detailId);
   const input = document.getElementById(inputId);
   if (select?.value === "__manual__") return (input?.value || "").trim();
-  if (select?.value === "__aleg__" || select?.value === "__struktur__") return detail?.value || "";
+  if (select?.value === "__aleg__") return detail?.value || "";
+  if (select?.value === "__struktur__") return "Struktur";
   return "";
 }
 
