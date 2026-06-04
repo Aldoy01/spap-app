@@ -22,7 +22,9 @@ $menuItems = [
 
 function pks_logo(): string
 {
-  return '<div class="pks-logo" aria-label="Logo PKS"><img src="assets/logo-pks.svg" alt="Logo PKS"><strong>PKS</strong></div>';
+  global $assetVersion;
+  $version = htmlspecialchars($assetVersion, ENT_QUOTES, 'UTF-8');
+  return '<div class="pks-logo" aria-label="Logo PKS"><img src="assets/logo-pks.svg?v=' . $version . '" alt="Logo PKS"><strong>PKS</strong></div>';
 }
 
 function nav_icon(string $name): string
