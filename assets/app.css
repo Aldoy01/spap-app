@@ -181,6 +181,10 @@ button, input, select, textarea {
 }
 
 .public-type-toggle span {
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+  overflow: hidden;
   min-height: 54px;
   display: grid;
   place-items: center;
@@ -190,7 +194,48 @@ button, input, select, textarea {
   color: var(--ink);
   font-size: 16px;
   font-weight: 900;
-  transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease, background .2s ease;
+  transition: border-color .22s ease, box-shadow .22s ease, transform .22s ease, background .22s ease, color .22s ease;
+}
+
+.public-type-toggle span::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity .22s ease;
+}
+
+.public-type-toggle span::after {
+  content: "";
+  position: absolute;
+  width: 42px;
+  height: 42px;
+  right: 18px;
+  border-radius: 999px;
+  opacity: 0;
+  transform: scale(.72);
+  transition: opacity .22s ease, transform .22s ease;
+}
+
+.public-type-toggle span::before,
+.public-type-toggle span::after {
+  z-index: -1;
+}
+
+.public-type-toggle .type-complaint::before {
+  background: linear-gradient(135deg, #fff7ed, #fee2e2);
+}
+
+.public-type-toggle .type-complaint::after {
+  background: rgba(240, 90, 40, .18);
+}
+
+.public-type-toggle .type-aspiration::before {
+  background: linear-gradient(135deg, #ecfdf5, #e0f2fe);
+}
+
+.public-type-toggle .type-aspiration::after {
+  background: rgba(16, 185, 129, .18);
 }
 
 .public-type-toggle input:checked + span {
@@ -206,7 +251,37 @@ button, input, select, textarea {
 }
 
 .public-type-toggle label:hover span {
-  transform: translateY(-1px);
+  border-color: rgba(249, 115, 22, .38);
+  box-shadow: 0 18px 36px rgba(15, 23, 42, .12);
+  transform: translateY(-3px);
+}
+
+.public-type-toggle label:hover span::before,
+.public-type-toggle label:hover span::after {
+  opacity: 1;
+}
+
+.public-type-toggle label:hover span::after {
+  transform: scale(1);
+}
+
+.public-type-toggle label:hover .type-complaint {
+  color: #c2410c;
+}
+
+.public-type-toggle label:hover .type-aspiration {
+  border-color: rgba(16, 185, 129, .42);
+  color: #047857;
+}
+
+.public-type-toggle label:active span {
+  transform: translateY(-1px) scale(.99);
+}
+
+.public-type-toggle input:checked + .type-aspiration {
+  border-color: rgba(16, 185, 129, .58);
+  background: linear-gradient(135deg, #10b981, #0ea5e9);
+  box-shadow: 0 16px 34px rgba(14, 165, 233, .2);
 }
 
 .public-complaint-form input,

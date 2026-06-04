@@ -71,11 +71,11 @@ function nav_icon(string $name): string
         <div class="public-type-toggle full" role="radiogroup" aria-label="Jenis layanan">
           <label>
             <input type="radio" name="publicComplaintType" value="pengaduan">
-            <span>Pengaduan</span>
+            <span class="type-complaint">Pengaduan</span>
           </label>
           <label>
             <input type="radio" name="publicComplaintType" value="aspirasi">
-            <span>Aspirasi</span>
+            <span class="type-aspiration">Aspirasi</span>
           </label>
         </div>
         <div class="form-section full public-form-field hidden-field"><span>Data pelapor</span><small>Identitas dasar agar petugas dapat melakukan klarifikasi.</small></div>
