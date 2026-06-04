@@ -420,6 +420,70 @@ function request_webhook_token(array $input = []): string
         ?? ($input['token'] ?? '');
 }
 
+function turnstile_secret_key(): string
+{
+    return getenv_value('TURNSTILE_SECRET_KEY', '');
+}
+
+function request_ip_address(): string
+{
+    return $_SERVER['HTTP_CF_CONNECTING_IP']
+        ?? $_SERVER['HTTP_X_FORWARDED_FOR']
+        ?? $_SERVER['REMOTE_ADDR']
+        ?? '';
+}
+
+function verify_turnstile_token(string $token): bool
+{
+    $secret = turnstile_secret_key();
+    if ($secret === '') {
+        return true;
+    }
+
+    if ($token === '') {
+        return false;
+    }
+
+    $body = http_build_query([
+        'secret' => $secret,
+        'response' => $token,
+        'remoteip' => request_ip_address(),
+    ]);
+
+    if (function_exists('curl_init')) {
+        $curl = curl_init('https://challenges.cloudflare.com/turnstile/v0/siteverify');
+        curl_setopt_array($curl, [
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $body,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 8,
+            CURLOPT_HTTPHEADER => ['Content-Type: application/x-www-form-urlencoded'],
+        ]);
+        $response = curl_exec($curl);
+        $error = curl_errno($curl);
+        curl_close($curl);
+        if ($error || !$response) {
+            return false;
+        }
+    } else {
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'POST',
+                'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
+                'content' => $body,
+                'timeout' => 8,
+            ],
+        ]);
+        $response = file_get_contents('https://challenges.cloudflare.com/turnstile/v0/siteverify', false, $context);
+        if (!$response) {
+            return false;
+        }
+    }
+
+    $decoded = json_decode($response, true);
+    return is_array($decoded) && ($decoded['success'] ?? false) === true;
+}
+
 function verify_whatsapp_webhook(): void
 {
     $expected = webhook_token();
@@ -1110,6 +1174,11 @@ function create_public_complaint(): void
     $subject = trim((string) ($input['subject'] ?? ''));
     $description = trim((string) ($input['description'] ?? ''));
     $targetScope = ($input['targetScope'] ?? 'wilayah') === 'pusat' ? 'pusat' : 'wilayah';
+
+    if (!verify_turnstile_token(trim((string) ($input['captchaToken'] ?? '')))) {
+        json_response(['error' => 'Verifikasi CAPTCHA gagal'], 403);
+        return;
+    }
 
     if (!$name || !$phone || !$region || !$targetLevel || !$targetDapil || !$targetName || !$subject || !$description) {
         json_response(['error' => 'Data pengaduan belum lengkap'], 422);

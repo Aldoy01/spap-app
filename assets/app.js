@@ -166,6 +166,7 @@ let ticketEvents = {};
 let acknowledgedNotifications = new Set(JSON.parse(localStorage.getItem("spap-ack-notifications") || "[]"));
 let kpuDapilCache = {};
 let kpuTargetNameOptions = [];
+let publicTurnstileWidgetId = null;
 const API_BASE = window.SPAP_CONFIG?.apiBaseUrl || (window.location.port === "3000" ? "" : "http://localhost:3000");
 const manageableMenus = ["dashboard", "aspirasi", "pengaduan", "osint", "analytics", "laporan", "settings"];
 const manageableRoles = ["admin", "operator", "verifikator", "koordinator"];
@@ -480,6 +481,63 @@ function setPublicFormFieldsVisible(visible) {
       document.getElementById(id)?.classList.add("hidden-field");
     });
   }
+
+  if (visible) renderPublicCaptcha();
+}
+
+function hasTurnstileCaptcha() {
+  return Boolean(window.SPAP_CONFIG?.turnstileSiteKey);
+}
+
+function renderPublicCaptcha() {
+  const fallback = document.getElementById("publicHumanFallback");
+  const turnstileContainer = document.getElementById("publicTurnstile");
+  if (!fallback || !turnstileContainer) return;
+
+  const useTurnstile = hasTurnstileCaptcha();
+  fallback.classList.toggle("hidden-field", useTurnstile);
+  turnstileContainer.classList.toggle("hidden-field", !useTurnstile);
+
+  if (!useTurnstile) return;
+  if (!window.turnstile) {
+    window.setTimeout(renderPublicCaptcha, 300);
+    return;
+  }
+
+  if (publicTurnstileWidgetId === null) {
+    publicTurnstileWidgetId = window.turnstile.render(turnstileContainer, {
+      sitekey: window.SPAP_CONFIG.turnstileSiteKey,
+      theme: "light",
+      size: "normal"
+    });
+  }
+}
+
+function resetPublicCaptcha() {
+  const fallback = document.getElementById("publicHumanCheck");
+  if (fallback) fallback.checked = false;
+  if (hasTurnstileCaptcha() && window.turnstile && publicTurnstileWidgetId !== null) {
+    window.turnstile.reset(publicTurnstileWidgetId);
+  }
+}
+
+function publicCaptchaToken() {
+  if (!hasTurnstileCaptcha()) {
+    if (!document.getElementById("publicHumanCheck").checked) {
+      toast("Centang verifikasi Saya bukan robot terlebih dahulu");
+      return "";
+    }
+    return "local-fallback";
+  }
+
+  if (!window.turnstile || publicTurnstileWidgetId === null) {
+    toast("CAPTCHA belum siap, tunggu sebentar lalu coba lagi");
+    return "";
+  }
+
+  const token = window.turnstile.getResponse(publicTurnstileWidgetId);
+  if (!token) toast("Selesaikan verifikasi CAPTCHA terlebih dahulu");
+  return token;
 }
 
 function updatePublicComplaintTypeUi() {
@@ -1817,10 +1875,8 @@ async function submitPublicComplaint(event) {
     toast("Pilih Pengaduan atau Aspirasi terlebih dahulu");
     return;
   }
-  if (!document.getElementById("publicHumanCheck").checked) {
-    toast("Centang verifikasi Saya bukan robot terlebih dahulu");
-    return;
-  }
+  const captchaToken = publicCaptchaToken();
+  if (!captchaToken) return;
   submitButton.disabled = true;
   submitButton.textContent = "Mengirim...";
 
@@ -1829,6 +1885,7 @@ async function submitPublicComplaint(event) {
       method: "POST",
       body: JSON.stringify({
         type,
+        captchaToken,
         reporterName: document.getElementById("publicReporterName").value,
         reporterContact: document.getElementById("publicReporterPhone").value,
         region: document.getElementById("publicRegion").value,
@@ -1842,6 +1899,7 @@ async function submitPublicComplaint(event) {
     });
     const data = payload.data || {};
     event.target.reset();
+    resetPublicCaptcha();
     updatePublicRecipientFields();
     setPublicFormFieldsVisible(false);
     updatePublicComplaintTypeUi();
@@ -1854,6 +1912,7 @@ async function submitPublicComplaint(event) {
     result.innerHTML = `<strong>${typeLabel} belum terkirim.</strong><p>Silakan coba lagi atau hubungi admin WhatsApp SPAP.</p>`;
   } finally {
     submitButton.disabled = false;
+    if (type) resetPublicCaptcha();
     updatePublicComplaintTypeUi();
   }
 }
