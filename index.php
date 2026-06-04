@@ -111,8 +111,11 @@ function nav_icon(string $name): string
         </label>
         <label class="full">Nama yang Dituju
           <select id="publicTargetName" required>
-            <option value="">Pilih dapil terlebih dahulu</option>
+            <option value="">Pilih jenis tujuan</option>
           </select>
+        </label>
+        <label class="full hidden-field" id="publicTargetNameDetailWrap">Detail Tujuan
+          <select id="publicTargetNameDetail"></select>
         </label>
         <label class="full hidden-field" id="publicTargetNameManualWrap">Nama yang Dituju Lainnya
           <input id="publicTargetNameManual" placeholder="Ketik nama pengurus, lembaga, atau tujuan lainnya">
@@ -785,8 +788,11 @@ function nav_icon(string $name): string
         </label>
         <label class="full">Nama Tujuan
           <select id="ticketTargetName">
-            <option value="">Pilih Nama Tujuan</option>
+            <option value="">Pilih jenis tujuan</option>
           </select>
+        </label>
+        <label class="full hidden-field" id="ticketTargetNameDetailWrap">Detail Tujuan
+          <select id="ticketTargetNameDetail"></select>
         </label>
         <label class="full hidden-field" id="ticketTargetNameManualWrap">Nama Tujuan Lainnya
           <input id="ticketTargetNameManual" placeholder="Ketik nama pengurus, lembaga, atau tujuan lainnya">

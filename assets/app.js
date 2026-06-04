@@ -307,47 +307,83 @@ function buildOfficialRecipientOptions(province, level) {
   ];
 }
 
-function buildTargetNameOptions({ level, selectedDapil, directory, province }) {
+function buildAlegRecipientOptions({ level, selectedDapil, directory }) {
   const pksDprRiNames = level === "DPR RI" ? buildPksDprRiNames(directory, selectedDapil) : [];
   const fallbackNames = directory.names?.[level] || recipientDirectory.default.names[level] || [];
-  const baseNames = pksDprRiNames.length ? pksDprRiNames : fallbackNames;
-  return [...new Set([...baseNames, ...buildOfficialRecipientOptions(province, level)])];
+  return [...new Set(pksDprRiNames.length ? pksDprRiNames : fallbackNames)];
 }
 
-function addManualTargetOption(select) {
-  select.appendChild(new Option("Lainnya - ketik manual", "__manual__"));
+function setTargetNameTypeOptions(select) {
+  const current = select.value;
+  select.innerHTML = '<option value="">Pilih jenis tujuan</option>';
+  [
+    ["__aleg__", "Nama Aleg"],
+    ["__struktur__", "Struktur"],
+    ["__manual__", "Lainnya"]
+  ].forEach(([value, label]) => select.appendChild(new Option(label, value)));
+  if ([...select.options].some(option => option.value === current)) select.value = current;
+}
+
+function syncTargetNameDetail({ selectId, detailWrapperId, detailSelectId, manualWrapperId, manualInputId, level, selectedDapil, directory, province }) {
+  const select = document.getElementById(selectId);
+  const detailWrapper = document.getElementById(detailWrapperId);
+  const detailSelect = document.getElementById(detailSelectId);
+  const manualWrapper = document.getElementById(manualWrapperId);
+  const manualInput = document.getElementById(manualInputId);
+  if (!select || !detailWrapper || !detailSelect || !manualWrapper || !manualInput) return;
+
+  const manual = select.value === "__manual__";
+  const withDetail = select.value === "__aleg__" || select.value === "__struktur__";
+  const detailOptions = select.value === "__aleg__"
+    ? buildAlegRecipientOptions({ level, selectedDapil, directory })
+    : buildOfficialRecipientOptions(province, level);
+
+  detailWrapper.classList.toggle("hidden-field", !withDetail);
+  detailSelect.required = withDetail;
+  if (withDetail) {
+    setSelectOptions(detailSelect, detailOptions, select.value === "__aleg__" ? "Pilih nama aleg" : "Pilih struktur");
+  } else {
+    detailSelect.innerHTML = "";
+  }
+
+  manualWrapper.classList.toggle("hidden-field", !manual);
+  manualInput.required = manual;
+  if (!manual) manualInput.value = "";
 }
 
 function syncManualTargetInput(selectId, wrapperId, inputId) {
-  const select = document.getElementById(selectId);
-  const wrapper = document.getElementById(wrapperId);
-  const input = document.getElementById(inputId);
-  if (!select || !wrapper || !input) return;
-
-  const manual = select.value === "__manual__";
-  wrapper.classList.toggle("hidden-field", !manual);
-  input.required = manual;
-  if (!manual) input.value = "";
+  const isTicket = selectId === "ticketTargetName";
+  const level = document.getElementById(isTicket ? "ticketTargetLevel" : "publicTargetLevel")?.value || "DPR RI";
+  const selectedDapil = document.getElementById(isTicket ? "ticketTargetDapil" : "publicTargetDapil")?.value || "";
+  const province = document.getElementById(isTicket ? "ticketRegion" : "publicRegion")?.value || "";
+  const directory = isTicket ? currentRecipientDirectory() : currentPublicRecipientDirectory();
+  syncTargetNameDetail({
+    selectId,
+    detailWrapperId: isTicket ? "ticketTargetNameDetailWrap" : "publicTargetNameDetailWrap",
+    detailSelectId: isTicket ? "ticketTargetNameDetail" : "publicTargetNameDetail",
+    manualWrapperId: wrapperId,
+    manualInputId: inputId,
+    level,
+    selectedDapil,
+    directory,
+    province
+  });
 }
 
-function resolvedTargetName(selectId, inputId) {
+function resolvedTargetName(selectId, detailId, inputId) {
   const select = document.getElementById(selectId);
+  const detail = document.getElementById(detailId);
   const input = document.getElementById(inputId);
   if (select?.value === "__manual__") return (input?.value || "").trim();
-  return select?.value || "";
+  if (select?.value === "__aleg__" || select?.value === "__struktur__") return detail?.value || "";
+  return "";
 }
 
 function updateRecipientNameOptions() {
-  const level = document.getElementById("ticketTargetLevel")?.value || "DPR RI";
-  const selectedDapil = document.getElementById("ticketTargetDapil")?.value || "";
-  const province = document.getElementById("ticketRegion")?.value || "";
   const nameSelect = document.getElementById("ticketTargetName");
   if (!nameSelect) return;
 
-  const directory = currentRecipientDirectory();
-  const options = buildTargetNameOptions({ level, selectedDapil, directory, province });
-  setSelectOptions(nameSelect, options, "Pilih Nama Tujuan");
-  addManualTargetOption(nameSelect);
+  setTargetNameTypeOptions(nameSelect);
   syncManualTargetInput("ticketTargetName", "ticketTargetNameManualWrap", "ticketTargetNameManual");
 }
 
@@ -406,16 +442,10 @@ function currentPublicRecipientDirectory() {
 }
 
 function updatePublicTargetNameOptions() {
-  const level = document.getElementById("publicTargetLevel")?.value || "DPR RI";
-  const selectedDapil = document.getElementById("publicTargetDapil")?.value || "";
-  const province = document.getElementById("publicRegion")?.value || "";
   const nameSelect = document.getElementById("publicTargetName");
   if (!nameSelect) return;
 
-  const directory = currentPublicRecipientDirectory();
-  const options = buildTargetNameOptions({ level, selectedDapil, directory, province });
-  setSelectOptions(nameSelect, options, "Pilih Nama Tujuan");
-  addManualTargetOption(nameSelect);
+  setTargetNameTypeOptions(nameSelect);
   syncManualTargetInput("publicTargetName", "publicTargetNameManualWrap", "publicTargetNameManual");
 }
 
@@ -1552,7 +1582,7 @@ async function addTicket(event) {
   const targetDapil = document.getElementById("ticketTargetDapil").value;
   const targetProvince = document.getElementById("ticketTargetProvince").value;
   const targetCity = document.getElementById("ticketTargetCity").value;
-  const targetName = resolvedTargetName("ticketTargetName", "ticketTargetNameManual");
+  const targetName = resolvedTargetName("ticketTargetName", "ticketTargetNameDetail", "ticketTargetNameManual");
   if (!region || !category || !priority) {
     toast("Lengkapi wilayah, kategori, dan prioritas");
     return;
@@ -1779,7 +1809,7 @@ async function submitPublicComplaint(event) {
         targetScope: document.getElementById("publicTargetScope").value,
         targetLevel: document.getElementById("publicTargetLevel").value,
         targetDapil: document.getElementById("publicTargetDapil").value,
-        targetName: resolvedTargetName("publicTargetName", "publicTargetNameManual"),
+        targetName: resolvedTargetName("publicTargetName", "publicTargetNameDetail", "publicTargetNameManual"),
         subject: document.getElementById("publicSubject").value,
         description: document.getElementById("publicDescription").value
       })
