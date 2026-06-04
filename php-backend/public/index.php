@@ -422,7 +422,7 @@ function request_webhook_token(array $input = []): string
 
 function turnstile_secret_key(): string
 {
-    return getenv_value('TURNSTILE_SECRET_KEY', '');
+    return getenv_value('TURNSTILE_SECRET_KEY', '1x0000000000000000000000000000000AA');
 }
 
 function request_ip_address(): string
@@ -436,10 +436,6 @@ function request_ip_address(): string
 function verify_turnstile_token(string $token): bool
 {
     $secret = turnstile_secret_key();
-    if ($secret === '') {
-        return true;
-    }
-
     if ($token === '') {
         return false;
     }

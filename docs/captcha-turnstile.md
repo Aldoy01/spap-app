@@ -26,4 +26,11 @@ Tambahkan di service backend:
 TURNSTILE_SECRET_KEY=secret-key-dari-cloudflare
 ```
 
-Jika variable belum diisi, aplikasi tetap bisa dites lokal memakai checkbox fallback `Saya bukan robot`. Untuk produksi, isi kedua variable agar verifikasi token aktif.
+Jika variable belum diisi, aplikasi memakai test key resmi Cloudflare:
+
+```env
+TURNSTILE_SITE_KEY=1x00000000000000000000AA
+TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
+```
+
+Test key ini membuat widget tetap tampil dan validasi selalu berhasil untuk pengujian. Untuk produksi, ganti kedua variable dengan key asli dari Cloudflare.

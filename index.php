@@ -7,7 +7,7 @@ $appTitle = 'SPAP App - Sistem Pelayanan dan Advokasi Publik';
 $brandName = 'SPAP PKS';
 $brandSubtitle = 'Sistem Pelayanan & Advokasi Publik';
 $apiBaseUrl = getenv('SPAP_API_BASE_URL') ?: 'http://localhost:3000';
-$turnstileSiteKey = getenv('TURNSTILE_SITE_KEY') ?: '';
+$turnstileSiteKey = getenv('TURNSTILE_SITE_KEY') ?: '1x00000000000000000000AA';
 $assetVersion = getenv('RAILWAY_GIT_COMMIT_SHA') ?: (string) time();
 $menuItems = [
   ['page' => 'dashboard', 'icon' => 'dashboard', 'label' => 'Dashboard', 'active' => true],
@@ -58,9 +58,7 @@ function nav_icon(string $name): string
       turnstileSiteKey: <?= json_encode($turnstileSiteKey, JSON_UNESCAPED_SLASHES) ?>
     };
   </script>
-  <?php if ($turnstileSiteKey): ?>
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
-  <?php endif; ?>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 </head>
 <body>
   <section class="public-complaint-screen hidden" id="publicComplaintScreen">
