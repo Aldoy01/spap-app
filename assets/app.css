@@ -163,6 +163,52 @@ button, input, select, textarea {
   font-weight: 900;
 }
 
+.public-type-toggle {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.public-type-toggle label {
+  position: relative;
+  cursor: pointer;
+}
+
+.public-type-toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.public-type-toggle span {
+  min-height: 54px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 900;
+  transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease, background .2s ease;
+}
+
+.public-type-toggle input:checked + span {
+  border-color: rgba(249, 115, 22, .55);
+  background: linear-gradient(135deg, #ff8a1d, #f05a28);
+  color: #fff;
+  box-shadow: 0 16px 34px rgba(240, 90, 40, .22);
+}
+
+.public-type-toggle input:focus-visible + span {
+  outline: 3px solid rgba(249, 115, 22, .2);
+  outline-offset: 2px;
+}
+
+.public-type-toggle label:hover span {
+  transform: translateY(-1px);
+}
+
 .public-complaint-form input,
 .public-complaint-form select,
 .public-complaint-form textarea {

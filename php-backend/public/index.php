@@ -1100,6 +1100,7 @@ function create_ticket(): void
 function create_public_complaint(): void
 {
     $input = input_json();
+    $type = ($input['type'] ?? 'pengaduan') === 'aspirasi' ? 'aspirasi' : 'pengaduan';
     $name = trim((string) ($input['reporterName'] ?? ''));
     $phone = trim((string) ($input['reporterContact'] ?? ''));
     $region = trim((string) ($input['region'] ?? ''));
@@ -1119,7 +1120,7 @@ function create_public_complaint(): void
         ? 'Admin Pusat SPAP - ' . $targetName
         : 'Admin Wilayah - ' . $region . ' - ' . $targetName;
     $ticket = [
-        'type' => 'pengaduan',
+        'type' => $type,
         'reporterName' => $name,
         'reporterContact' => $phone,
         'channel' => 'WhatsApp Link',
@@ -1135,10 +1136,14 @@ function create_public_complaint(): void
         'targetName' => $targetName,
     ];
 
-    $created = insert_ticket_record($ticket, 'Form Publik WhatsApp', 'Pengaduan dibuat dari link WhatsApp Business');
+    $eventNote = $type === 'aspirasi'
+        ? 'Aspirasi dibuat dari link WhatsApp Business'
+        : 'Pengaduan dibuat dari link WhatsApp Business';
+    $created = insert_ticket_record($ticket, 'Form Publik WhatsApp', $eventNote);
     json_response([
         'data' => [
             'id' => $created['public_id'],
+            'type' => $created['type'],
             'status' => $created['status'],
             'assignedUnit' => $created['assigned_unit'],
             'targetName' => $created['target_name'],
@@ -1155,6 +1160,7 @@ function public_complaints_info(): void
         'method' => 'POST',
         'frontendForm' => '/?aduan=wa',
         'requiredFields' => [
+            'type',
             'reporterName',
             'reporterContact',
             'region',

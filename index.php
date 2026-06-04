@@ -61,12 +61,23 @@ function nav_icon(string $name): string
       <div class="public-complaint-head">
         <?= pks_logo() ?>
         <div>
-          <p class="eyebrow">Pengaduan WhatsApp SPAP</p>
-          <h1>Form Pengaduan Masyarakat</h1>
-          <p>Isi data berikut agar pengaduan dari WhatsApp dapat langsung tercatat dan diteruskan ke admin wilayah atau pusat.</p>
+          <p class="eyebrow">Layanan WhatsApp SPAP</p>
+          <h1 id="publicFormTitle">Form Pengaduan Masyarakat</h1>
+          <p id="publicFormIntro">Isi data berikut agar pengaduan dari WhatsApp dapat langsung tercatat dan diteruskan ke admin wilayah atau pusat.</p>
         </div>
       </div>
       <form id="publicComplaintForm" class="public-complaint-form">
+        <div class="form-section full"><span>Jenis layanan</span><small>Pilih apakah data yang dikirim berupa pengaduan atau aspirasi masyarakat.</small></div>
+        <div class="public-type-toggle full" role="radiogroup" aria-label="Jenis layanan">
+          <label>
+            <input type="radio" name="publicComplaintType" value="pengaduan" checked>
+            <span>Pengaduan</span>
+          </label>
+          <label>
+            <input type="radio" name="publicComplaintType" value="aspirasi">
+            <span>Aspirasi</span>
+          </label>
+        </div>
         <div class="form-section full"><span>Data pelapor</span><small>Identitas dasar agar petugas dapat melakukan klarifikasi.</small></div>
         <label>Nama Lengkap
           <input id="publicReporterName" placeholder="Contoh: Budi Santoso" required>
@@ -103,14 +114,14 @@ function nav_icon(string $name): string
             <option value="">Pilih dapil terlebih dahulu</option>
           </select>
         </label>
-        <div class="form-section full"><span>Isi pengaduan</span><small>Gunakan judul singkat dan kronologi yang jelas agar mudah diverifikasi.</small></div>
-        <label class="full">Judul Pengaduan
+        <div class="form-section full"><span id="publicContentSectionTitle">Isi pengaduan</span><small id="publicContentSectionHint">Gunakan judul singkat dan kronologi yang jelas agar mudah diverifikasi.</small></div>
+        <label class="full"><span id="publicSubjectLabel">Judul Pengaduan</span>
           <input id="publicSubject" placeholder="Ringkasan masalah dalam satu kalimat" required>
         </label>
-        <label class="full">Deskripsi Pengaduan
+        <label class="full"><span id="publicDescriptionLabel">Deskripsi Pengaduan</span>
           <textarea id="publicDescription" rows="5" placeholder="Tuliskan lokasi, waktu kejadian, kronologi, dan harapan tindak lanjut..." required></textarea>
         </label>
-        <button class="btn primary" type="submit">Kirim Pengaduan</button>
+        <button class="btn primary" id="publicSubmitBtn" type="submit">Kirim Pengaduan</button>
       </form>
       <div class="public-complaint-result hidden" id="publicComplaintResult"></div>
       <a class="public-login-link" href="/">Masuk sebagai admin/operator</a>

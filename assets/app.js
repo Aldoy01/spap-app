@@ -389,6 +389,40 @@ async function refreshPublicRecipientFieldsFromKpu() {
   updatePublicRecipientFields();
 }
 
+function getPublicComplaintType() {
+  return document.querySelector('input[name="publicComplaintType"]:checked')?.value === "aspirasi" ? "aspirasi" : "pengaduan";
+}
+
+function updatePublicComplaintTypeUi() {
+  const type = getPublicComplaintType();
+  const isAspirasi = type === "aspirasi";
+  const labels = {
+    title: isAspirasi ? "Form Aspirasi Masyarakat" : "Form Pengaduan Masyarakat",
+    intro: isAspirasi
+      ? "Isi data berikut agar aspirasi dari WhatsApp dapat langsung tercatat dan diteruskan ke admin wilayah atau pusat."
+      : "Isi data berikut agar pengaduan dari WhatsApp dapat langsung tercatat dan diteruskan ke admin wilayah atau pusat.",
+    sectionTitle: isAspirasi ? "Isi aspirasi" : "Isi pengaduan",
+    sectionHint: isAspirasi
+      ? "Gunakan judul singkat dan uraian aspirasi yang jelas agar mudah ditindaklanjuti."
+      : "Gunakan judul singkat dan kronologi yang jelas agar mudah diverifikasi.",
+    subject: isAspirasi ? "Judul Aspirasi" : "Judul Pengaduan",
+    description: isAspirasi ? "Deskripsi Aspirasi" : "Deskripsi Pengaduan",
+    submit: isAspirasi ? "Kirim Aspirasi" : "Kirim Pengaduan",
+    placeholder: isAspirasi
+      ? "Tuliskan aspirasi, usulan, lokasi/wilayah terkait, dan harapan tindak lanjut..."
+      : "Tuliskan lokasi, waktu kejadian, kronologi, dan harapan tindak lanjut..."
+  };
+
+  document.getElementById("publicFormTitle").textContent = labels.title;
+  document.getElementById("publicFormIntro").textContent = labels.intro;
+  document.getElementById("publicContentSectionTitle").textContent = labels.sectionTitle;
+  document.getElementById("publicContentSectionHint").textContent = labels.sectionHint;
+  document.getElementById("publicSubjectLabel").textContent = labels.subject;
+  document.getElementById("publicDescriptionLabel").textContent = labels.description;
+  document.getElementById("publicSubmitBtn").textContent = labels.submit;
+  document.getElementById("publicDescription").placeholder = labels.placeholder;
+}
+
 function setConnectionStatus(text, online) {
   const label = document.getElementById("connectionStatus");
   const dot = document.querySelector(".status-dot");
@@ -1682,6 +1716,8 @@ async function submitPublicComplaint(event) {
   event.preventDefault();
   const result = document.getElementById("publicComplaintResult");
   const submitButton = event.target.querySelector('button[type="submit"]');
+  const type = getPublicComplaintType();
+  const typeLabel = type === "aspirasi" ? "Aspirasi" : "Pengaduan";
   submitButton.disabled = true;
   submitButton.textContent = "Mengirim...";
 
@@ -1689,6 +1725,7 @@ async function submitPublicComplaint(event) {
     const payload = await apiRequest("/api/public/complaints", {
       method: "POST",
       body: JSON.stringify({
+        type,
         reporterName: document.getElementById("publicReporterName").value,
         reporterContact: document.getElementById("publicReporterPhone").value,
         region: document.getElementById("publicRegion").value,
@@ -1703,16 +1740,17 @@ async function submitPublicComplaint(event) {
     const data = payload.data || {};
     event.target.reset();
     updatePublicRecipientFields();
+    updatePublicComplaintTypeUi();
     const targetLabel = escapeHtml(data.targetName || data.assignedUnit || "admin SPAP");
     const targetDapil = data.targetDapil ? ` (${escapeHtml(data.targetDapil)})` : "";
     result.classList.remove("hidden");
-    result.innerHTML = `<strong>Pengaduan terkirim.</strong><p>Nomor tiket: <b>${escapeHtml(data.id || "-")}</b>. Pengaduan diteruskan ke ${targetLabel}${targetDapil}.</p>`;
+    result.innerHTML = `<strong>${typeLabel} terkirim.</strong><p>Nomor tiket: <b>${escapeHtml(data.id || "-")}</b>. ${typeLabel} diteruskan ke ${targetLabel}${targetDapil}.</p>`;
   } catch (error) {
     result.classList.remove("hidden");
-    result.innerHTML = "<strong>Pengaduan belum terkirim.</strong><p>Silakan coba lagi atau hubungi admin WhatsApp SPAP.</p>";
+    result.innerHTML = `<strong>${typeLabel} belum terkirim.</strong><p>Silakan coba lagi atau hubungi admin WhatsApp SPAP.</p>`;
   } finally {
     submitButton.disabled = false;
-    submitButton.textContent = "Kirim Pengaduan";
+    updatePublicComplaintTypeUi();
   }
 }
 
@@ -1912,6 +1950,7 @@ async function savePermissions() {
 
 function bindEvents() {
   document.getElementById("publicComplaintForm").addEventListener("submit", submitPublicComplaint);
+  document.querySelectorAll('input[name="publicComplaintType"]').forEach(input => input.addEventListener("change", updatePublicComplaintTypeUi));
   document.getElementById("publicRegion").addEventListener("change", refreshPublicRecipientFieldsFromKpu);
   document.getElementById("publicTargetLevel").addEventListener("change", updatePublicRecipientFields);
   document.getElementById("publicTargetDapil").addEventListener("change", updatePublicTargetNameOptions);
@@ -1969,6 +2008,7 @@ populateProvinceOptions();
 bindEvents();
 updateWhatsappPreview();
 updatePublicRecipientFields();
+updatePublicComplaintTypeUi();
 if (!applyPublicComplaintMode()) {
   restoreSession().then(loadData);
   setPage(currentPage);
