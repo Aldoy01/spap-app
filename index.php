@@ -70,7 +70,7 @@ function nav_icon(string $name): string
         <div class="form-section full"><span>Jenis layanan</span><small>Pilih apakah data yang dikirim berupa pengaduan atau aspirasi masyarakat.</small></div>
         <div class="public-type-toggle full" role="radiogroup" aria-label="Jenis layanan">
           <label>
-            <input type="radio" name="publicComplaintType" value="pengaduan" checked>
+            <input type="radio" name="publicComplaintType" value="pengaduan">
             <span>Pengaduan</span>
           </label>
           <label>
@@ -78,38 +78,38 @@ function nav_icon(string $name): string
             <span>Aspirasi</span>
           </label>
         </div>
-        <div class="form-section full"><span>Data pelapor</span><small>Identitas dasar agar petugas dapat melakukan klarifikasi.</small></div>
-        <label>Nama Lengkap
+        <div class="form-section full public-form-field hidden-field"><span>Data pelapor</span><small>Identitas dasar agar petugas dapat melakukan klarifikasi.</small></div>
+        <label class="public-form-field hidden-field">Nama Lengkap
           <input id="publicReporterName" placeholder="Contoh: Budi Santoso" required>
         </label>
-        <label>No. WhatsApp
+        <label class="public-form-field hidden-field">No. WhatsApp
           <input id="publicReporterPhone" type="tel" placeholder="08xxxxxxxxxx" required>
         </label>
-        <label>Wilayah
+        <label class="public-form-field hidden-field">Wilayah
           <select id="publicRegion" required>
             <option value="">Pilih Wilayah</option>
           </select>
         </label>
-        <div class="form-section full"><span>Tujuan penanganan</span><small>Pilih struktur, dapil, dan nama tujuan agar pengaduan masuk ke pihak yang tepat.</small></div>
-        <label>Alur Penanganan
+        <div class="form-section full public-form-field hidden-field"><span>Tujuan penanganan</span><small>Pilih struktur, dapil, dan nama tujuan agar pengaduan masuk ke pihak yang tepat.</small></div>
+        <label class="public-form-field hidden-field">Alur Penanganan
           <select id="publicTargetScope">
             <option value="wilayah">Admin Wilayah</option>
             <option value="pusat">Admin Pusat</option>
           </select>
         </label>
-        <label>Ditujukan Kepada
+        <label class="public-form-field hidden-field">Ditujukan Kepada
           <select id="publicTargetLevel" required>
             <option>DPR RI</option>
             <option>DPRD Provinsi</option>
             <option>DPRD Kab/Kota</option>
           </select>
         </label>
-        <label>Dapil
+        <label class="public-form-field hidden-field">Dapil
           <select id="publicTargetDapil" required>
             <option value="">Pilih Wilayah terlebih dahulu</option>
           </select>
         </label>
-        <label class="full">Nama yang Dituju
+        <label class="full public-form-field hidden-field">Nama yang Dituju
           <select id="publicTargetName" required>
             <option value="">Pilih jenis tujuan</option>
           </select>
@@ -120,17 +120,16 @@ function nav_icon(string $name): string
         <label class="full hidden-field" id="publicTargetNameManualWrap">Nama yang Dituju Lainnya
           <input id="publicTargetNameManual" placeholder="Ketik nama pengurus, lembaga, atau tujuan lainnya">
         </label>
-        <div class="form-section full"><span id="publicContentSectionTitle">Isi pengaduan</span><small id="publicContentSectionHint">Gunakan judul singkat dan kronologi yang jelas agar mudah diverifikasi.</small></div>
-        <label class="full"><span id="publicSubjectLabel">Judul Pengaduan</span>
+        <div class="form-section full public-form-field hidden-field"><span id="publicContentSectionTitle">Isi pengaduan</span><small id="publicContentSectionHint">Gunakan judul singkat dan kronologi yang jelas agar mudah diverifikasi.</small></div>
+        <label class="full public-form-field hidden-field"><span id="publicSubjectLabel">Judul Pengaduan</span>
           <input id="publicSubject" placeholder="Ringkasan masalah dalam satu kalimat" required>
         </label>
-        <label class="full"><span id="publicDescriptionLabel">Deskripsi Pengaduan</span>
+        <label class="full public-form-field hidden-field"><span id="publicDescriptionLabel">Deskripsi Pengaduan</span>
           <textarea id="publicDescription" rows="5" placeholder="Tuliskan lokasi, waktu kejadian, kronologi, dan harapan tindak lanjut..." required></textarea>
         </label>
-        <button class="btn primary" id="publicSubmitBtn" type="submit">Kirim Pengaduan</button>
+        <button class="btn primary public-form-field hidden-field" id="publicSubmitBtn" type="submit">Kirim Pengaduan</button>
       </form>
       <div class="public-complaint-result hidden" id="publicComplaintResult"></div>
-      <a class="public-login-link" href="/">Masuk sebagai admin/operator</a>
     </div>
   </section>
 

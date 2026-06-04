@@ -466,11 +466,30 @@ async function refreshPublicRecipientFieldsFromKpu() {
 }
 
 function getPublicComplaintType() {
-  return document.querySelector('input[name="publicComplaintType"]:checked')?.value === "aspirasi" ? "aspirasi" : "pengaduan";
+  const selected = document.querySelector('input[name="publicComplaintType"]:checked')?.value || "";
+  return selected === "aspirasi" || selected === "pengaduan" ? selected : "";
+}
+
+function setPublicFormFieldsVisible(visible) {
+  document.querySelectorAll(".public-form-field").forEach(element => {
+    element.classList.toggle("hidden-field", !visible);
+  });
+
+  if (!visible) {
+    ["publicTargetNameDetailWrap", "publicTargetNameManualWrap"].forEach(id => {
+      document.getElementById(id)?.classList.add("hidden-field");
+    });
+  }
 }
 
 function updatePublicComplaintTypeUi() {
   const type = getPublicComplaintType();
+  if (!type) {
+    document.getElementById("publicFormTitle").textContent = "Form Layanan Masyarakat";
+    document.getElementById("publicFormIntro").textContent = "Pilih jenis layanan terlebih dahulu, lalu lengkapi data agar dapat diteruskan ke admin wilayah atau pusat.";
+    return;
+  }
+
   const isAspirasi = type === "aspirasi";
   const labels = {
     title: isAspirasi ? "Form Aspirasi Masyarakat" : "Form Pengaduan Masyarakat",
@@ -1794,6 +1813,10 @@ async function submitPublicComplaint(event) {
   const submitButton = event.target.querySelector('button[type="submit"]');
   const type = getPublicComplaintType();
   const typeLabel = type === "aspirasi" ? "Aspirasi" : "Pengaduan";
+  if (!type) {
+    toast("Pilih Pengaduan atau Aspirasi terlebih dahulu");
+    return;
+  }
   submitButton.disabled = true;
   submitButton.textContent = "Mengirim...";
 
@@ -1816,6 +1839,7 @@ async function submitPublicComplaint(event) {
     const data = payload.data || {};
     event.target.reset();
     updatePublicRecipientFields();
+    setPublicFormFieldsVisible(false);
     updatePublicComplaintTypeUi();
     const targetLabel = escapeHtml(data.targetName || data.assignedUnit || "admin SPAP");
     const targetDapil = data.targetDapil ? ` (${escapeHtml(data.targetDapil)})` : "";
@@ -2026,7 +2050,10 @@ async function savePermissions() {
 
 function bindEvents() {
   document.getElementById("publicComplaintForm").addEventListener("submit", submitPublicComplaint);
-  document.querySelectorAll('input[name="publicComplaintType"]').forEach(input => input.addEventListener("change", updatePublicComplaintTypeUi));
+  document.querySelectorAll('input[name="publicComplaintType"]').forEach(input => input.addEventListener("change", () => {
+    setPublicFormFieldsVisible(true);
+    updatePublicComplaintTypeUi();
+  }));
   document.getElementById("publicRegion").addEventListener("change", refreshPublicRecipientFieldsFromKpu);
   document.getElementById("publicTargetLevel").addEventListener("change", updatePublicRecipientFields);
   document.getElementById("publicTargetDapil").addEventListener("change", updatePublicTargetNameOptions);
