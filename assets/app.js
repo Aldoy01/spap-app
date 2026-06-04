@@ -294,16 +294,61 @@ function buildPksDprRiNames(directory, selectedDapil) {
   );
 }
 
+function buildOfficialRecipientOptions(province, level) {
+  const area = province || "Nasional";
+  const regionalLevel = level === "DPR RI" ? "Pusat" : area;
+  return [
+    `Pengurus DPP PKS - Pusat`,
+    `Pengurus DPW PKS - ${area}`,
+    `Ketua DPW PKS - ${area}`,
+    `Sekretaris DPW PKS - ${area}`,
+    `Bidang Advokasi PKS - ${regionalLevel}`,
+    `Fraksi PKS - ${level} ${area}`
+  ];
+}
+
+function buildTargetNameOptions({ level, selectedDapil, directory, province }) {
+  const pksDprRiNames = level === "DPR RI" ? buildPksDprRiNames(directory, selectedDapil) : [];
+  const fallbackNames = directory.names?.[level] || recipientDirectory.default.names[level] || [];
+  const baseNames = pksDprRiNames.length ? pksDprRiNames : fallbackNames;
+  return [...new Set([...baseNames, ...buildOfficialRecipientOptions(province, level)])];
+}
+
+function addManualTargetOption(select) {
+  select.appendChild(new Option("Lainnya - ketik manual", "__manual__"));
+}
+
+function syncManualTargetInput(selectId, wrapperId, inputId) {
+  const select = document.getElementById(selectId);
+  const wrapper = document.getElementById(wrapperId);
+  const input = document.getElementById(inputId);
+  if (!select || !wrapper || !input) return;
+
+  const manual = select.value === "__manual__";
+  wrapper.classList.toggle("hidden-field", !manual);
+  input.required = manual;
+  if (!manual) input.value = "";
+}
+
+function resolvedTargetName(selectId, inputId) {
+  const select = document.getElementById(selectId);
+  const input = document.getElementById(inputId);
+  if (select?.value === "__manual__") return (input?.value || "").trim();
+  return select?.value || "";
+}
+
 function updateRecipientNameOptions() {
   const level = document.getElementById("ticketTargetLevel")?.value || "DPR RI";
   const selectedDapil = document.getElementById("ticketTargetDapil")?.value || "";
+  const province = document.getElementById("ticketRegion")?.value || "";
   const nameSelect = document.getElementById("ticketTargetName");
   if (!nameSelect) return;
 
   const directory = currentRecipientDirectory();
-  const pksDprRiNames = level === "DPR RI" ? buildPksDprRiNames(directory, selectedDapil) : [];
-  const fallbackNames = directory.names?.[level] || recipientDirectory.default.names[level];
-  setSelectOptions(nameSelect, pksDprRiNames.length ? pksDprRiNames : fallbackNames, "Pilih Nama Tujuan");
+  const options = buildTargetNameOptions({ level, selectedDapil, directory, province });
+  setSelectOptions(nameSelect, options, "Pilih Nama Tujuan");
+  addManualTargetOption(nameSelect);
+  syncManualTargetInput("ticketTargetName", "ticketTargetNameManualWrap", "ticketTargetNameManual");
 }
 
 function buildRecipientNames(level, dapils, province) {
@@ -363,13 +408,15 @@ function currentPublicRecipientDirectory() {
 function updatePublicTargetNameOptions() {
   const level = document.getElementById("publicTargetLevel")?.value || "DPR RI";
   const selectedDapil = document.getElementById("publicTargetDapil")?.value || "";
+  const province = document.getElementById("publicRegion")?.value || "";
   const nameSelect = document.getElementById("publicTargetName");
   if (!nameSelect) return;
 
   const directory = currentPublicRecipientDirectory();
-  const pksDprRiNames = level === "DPR RI" ? buildPksDprRiNames(directory, selectedDapil) : [];
-  const fallbackNames = directory.names?.[level] || recipientDirectory.default.names[level];
-  setSelectOptions(nameSelect, pksDprRiNames.length ? pksDprRiNames : fallbackNames, "Pilih Nama Tujuan");
+  const options = buildTargetNameOptions({ level, selectedDapil, directory, province });
+  setSelectOptions(nameSelect, options, "Pilih Nama Tujuan");
+  addManualTargetOption(nameSelect);
+  syncManualTargetInput("publicTargetName", "publicTargetNameManualWrap", "publicTargetNameManual");
 }
 
 function updatePublicRecipientFields() {
@@ -1505,7 +1552,7 @@ async function addTicket(event) {
   const targetDapil = document.getElementById("ticketTargetDapil").value;
   const targetProvince = document.getElementById("ticketTargetProvince").value;
   const targetCity = document.getElementById("ticketTargetCity").value;
-  const targetName = document.getElementById("ticketTargetName").value;
+  const targetName = resolvedTargetName("ticketTargetName", "ticketTargetNameManual");
   if (!region || !category || !priority) {
     toast("Lengkapi wilayah, kategori, dan prioritas");
     return;
@@ -1732,7 +1779,7 @@ async function submitPublicComplaint(event) {
         targetScope: document.getElementById("publicTargetScope").value,
         targetLevel: document.getElementById("publicTargetLevel").value,
         targetDapil: document.getElementById("publicTargetDapil").value,
-        targetName: document.getElementById("publicTargetName").value,
+        targetName: resolvedTargetName("publicTargetName", "publicTargetNameManual"),
         subject: document.getElementById("publicSubject").value,
         description: document.getElementById("publicDescription").value
       })
@@ -1954,6 +2001,7 @@ function bindEvents() {
   document.getElementById("publicRegion").addEventListener("change", refreshPublicRecipientFieldsFromKpu);
   document.getElementById("publicTargetLevel").addEventListener("change", updatePublicRecipientFields);
   document.getElementById("publicTargetDapil").addEventListener("change", updatePublicTargetNameOptions);
+  document.getElementById("publicTargetName").addEventListener("change", () => syncManualTargetInput("publicTargetName", "publicTargetNameManualWrap", "publicTargetNameManual"));
   document.getElementById("loginForm").addEventListener("submit", login);
   document.getElementById("logoutBtn").addEventListener("click", logout);
   document.querySelectorAll(".nav-item").forEach(button => {
@@ -1969,6 +2017,7 @@ function bindEvents() {
   document.getElementById("ticketRegion").addEventListener("change", refreshRecipientFieldsFromKpu);
   document.getElementById("ticketTargetLevel").addEventListener("change", updateRecipientFields);
   document.getElementById("ticketTargetDapil").addEventListener("change", updateRecipientNameOptions);
+  document.getElementById("ticketTargetName").addEventListener("change", () => syncManualTargetInput("ticketTargetName", "ticketTargetNameManualWrap", "ticketTargetNameManual"));
   document.getElementById("newTicketBtn").addEventListener("click", openTicketDialog);
   document.getElementById("ticketForm").addEventListener("submit", addTicket);
   document.getElementById("whatsappComplaintForm").addEventListener("submit", submitWhatsappComplaint);

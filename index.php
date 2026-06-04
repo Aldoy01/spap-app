@@ -114,6 +114,9 @@ function nav_icon(string $name): string
             <option value="">Pilih dapil terlebih dahulu</option>
           </select>
         </label>
+        <label class="full hidden-field" id="publicTargetNameManualWrap">Nama yang Dituju Lainnya
+          <input id="publicTargetNameManual" placeholder="Ketik nama pengurus, lembaga, atau tujuan lainnya">
+        </label>
         <div class="form-section full"><span id="publicContentSectionTitle">Isi pengaduan</span><small id="publicContentSectionHint">Gunakan judul singkat dan kronologi yang jelas agar mudah diverifikasi.</small></div>
         <label class="full"><span id="publicSubjectLabel">Judul Pengaduan</span>
           <input id="publicSubject" placeholder="Ringkasan masalah dalam satu kalimat" required>
@@ -784,6 +787,9 @@ function nav_icon(string $name): string
           <select id="ticketTargetName">
             <option value="">Pilih Nama Tujuan</option>
           </select>
+        </label>
+        <label class="full hidden-field" id="ticketTargetNameManualWrap">Nama Tujuan Lainnya
+          <input id="ticketTargetNameManual" placeholder="Ketik nama pengurus, lembaga, atau tujuan lainnya">
         </label>
         <div class="form-section full"><span>Isi pengaduan</span><small>Gunakan judul singkat dan kronologi yang jelas agar mudah diverifikasi.</small></div>
         <label>Kategori
