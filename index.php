@@ -129,6 +129,10 @@ function nav_icon(string $name): string
         <label class="full public-form-field hidden-field"><span id="publicDescriptionLabel">Deskripsi Pengaduan</span>
           <textarea id="publicDescription" rows="5" placeholder="Tuliskan lokasi, waktu kejadian, kronologi, dan harapan tindak lanjut..." required></textarea>
         </label>
+        <label class="full public-form-field hidden-field public-human-check">
+          <input id="publicHumanCheck" type="checkbox" required>
+          <span>Saya bukan robot</span>
+        </label>
         <button class="btn primary public-form-field hidden-field" id="publicSubmitBtn" type="submit">Kirim Pengaduan</button>
       </form>
       <div class="public-complaint-result hidden" id="publicComplaintResult"></div>

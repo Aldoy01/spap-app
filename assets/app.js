@@ -1817,6 +1817,10 @@ async function submitPublicComplaint(event) {
     toast("Pilih Pengaduan atau Aspirasi terlebih dahulu");
     return;
   }
+  if (!document.getElementById("publicHumanCheck").checked) {
+    toast("Centang verifikasi Saya bukan robot terlebih dahulu");
+    return;
+  }
   submitButton.disabled = true;
   submitButton.textContent = "Mengirim...";
 
