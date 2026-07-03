@@ -157,13 +157,13 @@ function nav_icon(string $name): string
           <input id="loginEmail" type="email" value="admin@spap.local" required>
         </label>
         <label>Password
-          <input id="loginPassword" type="password" value="admin123" required>
+          <input id="loginPassword" type="password" autocomplete="current-password" required>
         </label>
         <button class="btn primary" type="submit">Masuk</button>
       </form>
       <div class="login-hint">
-        <span>Admin: admin@spap.local / admin123</span>
-        <span>User: operator@spap.local / user123</span>
+        <span>Gunakan akun resmi yang diberikan admin.</span>
+        <span>Password baru wajib kuat dan tidak memakai default umum.</span>
       </div>
     </div>
   </section>
@@ -693,7 +693,10 @@ function nav_icon(string $name): string
                 </select>
               </label>
               <label>Unit/Struktur<input id="userUnit" value="Unit SPAP"></label>
-              <label>Password awal<input id="userPassword" value="user123"></label>
+              <label>Password awal
+                <input id="userPassword" type="password" autocomplete="new-password" placeholder="Minimal 10 karakter, Aa, angka, simbol">
+                <small class="field-hint">Contoh format kuat: SpapUser#2026. Jangan gunakan admin123 atau user123.</small>
+              </label>
               <label>Status
                 <select id="userStatus">
                   <option value="active">Aktif</option>
@@ -729,6 +732,20 @@ function nav_icon(string $name): string
               <table>
                 <thead><tr><th>Role</th><th>Menu</th><th>Lihat</th><th>Tambah</th><th>Ubah</th><th>Hapus</th></tr></thead>
                 <tbody id="permissionRows"></tbody>
+              </table>
+            </div>
+          </section>
+          <section class="panel span-3">
+            <div class="panel-head">
+              <div>
+                <h3>Audit Keamanan</h3>
+                <p>Jejak login, perubahan user, dan reset password untuk monitoring admin</p>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Event</th><th>Aktor</th><th>Target</th><th>IP</th><th>Status</th><th>Waktu</th></tr></thead>
+                <tbody id="securityEventRows"></tbody>
               </table>
             </div>
           </section>

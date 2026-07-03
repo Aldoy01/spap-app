@@ -539,6 +539,25 @@ button, input, select, textarea {
   box-shadow: 0 0 0 4px rgba(34, 197, 94, .18);
 }
 
+.audit-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: .78rem;
+  font-weight: 800;
+}
+
+.audit-pill.success {
+  color: #047857;
+  background: rgba(16, 185, 129, .14);
+}
+
+.audit-pill.danger {
+  color: #b91c1c;
+  background: rgba(239, 68, 68, .14);
+}
+
 .main {
   min-width: 0;
   flex: 1;

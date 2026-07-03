@@ -161,7 +161,7 @@ let currentPage = "dashboard";
 let apiAvailable = false;
 let authToken = localStorage.getItem("spap-auth-token") || "";
 let currentUser = null;
-let adminData = { users: [], permissions: [] };
+let adminData = { users: [], permissions: [], securityEvents: [] };
 let ticketEvents = {};
 let acknowledgedNotifications = new Set(JSON.parse(localStorage.getItem("spap-ack-notifications") || "[]"));
 let kpuDapilCache = {};
@@ -778,12 +778,14 @@ async function loadAdminData() {
   }
   try {
     await loadKpuTargetNameOptions();
-    const [usersPayload, permissionsPayload] = await Promise.all([
+    const [usersPayload, permissionsPayload, securityEventsPayload] = await Promise.all([
       apiRequest("/api/admin/users"),
-      apiRequest("/api/admin/menu-permissions")
+      apiRequest("/api/admin/menu-permissions"),
+      apiRequest("/api/admin/security-events")
     ]);
     adminData.users = usersPayload.data || [];
     adminData.permissions = permissionsPayload.data || [];
+    adminData.securityEvents = securityEventsPayload.data || [];
   } catch (error) {
     console.error("Admin data load failed", error);
   }
@@ -1520,8 +1522,9 @@ function renderReport() {
 function renderSettings() {
   const userRows = document.getElementById("userManagementRows");
   const permissionRows = document.getElementById("permissionRows");
+  const securityRows = document.getElementById("securityEventRows");
   const complaintBox = document.getElementById("complaintManagement");
-  if (!userRows || !permissionRows || !complaintBox) return;
+  if (!userRows || !permissionRows || !securityRows || !complaintBox) return;
 
   populateUserTargetNameOptions();
 
@@ -1557,6 +1560,19 @@ function renderSettings() {
     `;
     }).join("")
     : '<tr><td colspan="7">Data user akan tampil setelah API admin aktif.</td></tr>';
+
+  securityRows.innerHTML = adminData.securityEvents.length
+    ? adminData.securityEvents.map(event => `
+      <tr>
+        <td><strong>${event.event_type}</strong></td>
+        <td>${event.actor_email || "-"}</td>
+        <td>${event.target_email || "-"}</td>
+        <td>${event.ip_address || "-"}</td>
+        <td>${event.success ? '<span class="audit-pill success">Sukses</span>' : '<span class="audit-pill danger">Ditolak</span>'}</td>
+        <td>${new Date(event.created_at).toLocaleString("id-ID")}</td>
+      </tr>
+    `).join("")
+    : '<tr><td colspan="6">Belum ada audit keamanan.</td></tr>';
 
   const permissionMap = new Map(adminData.permissions.map(item => [`${item.role}:${item.menu_key}`, item]));
   permissionRows.innerHTML = manageableRoles.flatMap(role => manageableMenus.map(menu => {
@@ -2028,7 +2044,7 @@ async function createUser(event) {
   });
   adminData.users = [payload.data, ...adminData.users.filter(user => user.email !== payload.data.email)];
   document.getElementById("userForm").reset();
-  document.getElementById("userPassword").value = "user123";
+  document.getElementById("userPassword").value = "";
   document.getElementById("userRegionScope").value = "";
   renderSettings();
   toast("User berhasil disimpan");
@@ -2071,7 +2087,7 @@ async function updateUserRegionScope(id) {
 
 async function resetUserPassword(id, email) {
   if (!apiAvailable || currentUser?.role !== "admin") return;
-  const password = prompt(`Password baru untuk ${email}`, "user123");
+  const password = prompt(`Password baru untuk ${email}\nMinimal 10 karakter dengan huruf besar, huruf kecil, angka, dan simbol.`, "");
   if (!password) return;
 
   await apiRequest(`/api/admin/users/${id}/password`, {

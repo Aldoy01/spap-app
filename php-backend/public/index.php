@@ -86,6 +86,11 @@ function route_request(): void
         return;
     }
 
+    if ($method === 'GET' && $path === '/api/admin/security-events') {
+        list_security_events();
+        return;
+    }
+
     if ($method === 'GET' && $path === '/api/admin/menu-permissions') {
         list_menu_permissions();
         return;
@@ -207,6 +212,8 @@ function ensure_schema(): void
         )",
         'ALTER TABLE users ADD COLUMN IF NOT EXISTS target_name VARCHAR(160)',
         'ALTER TABLE users ADD COLUMN IF NOT EXISTS region_scope VARCHAR(120)',
+        'ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ',
+        'ALTER TABLE users ADD COLUMN IF NOT EXISTS password_changed_at TIMESTAMPTZ',
         "CREATE TABLE IF NOT EXISTS tickets (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             public_id VARCHAR(32) UNIQUE NOT NULL,
@@ -282,10 +289,24 @@ function ensure_schema(): void
             can_delete BOOLEAN NOT NULL DEFAULT false,
             PRIMARY KEY (role, menu_key)
         )",
+        "CREATE TABLE IF NOT EXISTS security_events (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            event_type VARCHAR(80) NOT NULL,
+            actor_user_id UUID,
+            actor_email VARCHAR(160),
+            target_user_id UUID,
+            target_email VARCHAR(160),
+            ip_address VARCHAR(80),
+            user_agent TEXT,
+            success BOOLEAN NOT NULL DEFAULT true,
+            metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+        )",
         'CREATE INDEX IF NOT EXISTS tickets_type_status_idx ON tickets(type, status)',
         'CREATE INDEX IF NOT EXISTS tickets_region_category_idx ON tickets(region, category)',
         'CREATE INDEX IF NOT EXISTS ticket_events_ticket_idx ON ticket_events(ticket_id, created_at DESC)',
         'CREATE INDEX IF NOT EXISTS osint_mentions_keyword_idx ON osint_mentions(keyword, captured_at DESC)',
+        'CREATE INDEX IF NOT EXISTS security_events_created_idx ON security_events(created_at DESC)',
         "INSERT INTO users (name, email, role, organization_unit)
          VALUES
             ('Admin SPAP', 'admin@spap.local', 'admin', 'DPP'),
@@ -341,7 +362,7 @@ function ensure_schema(): void
 
 function seed_user_password(string $email, string $passwordHash): void
 {
-    $statement = db()->prepare('UPDATE users SET password_hash = ?, status = ? WHERE email = ?');
+    $statement = db()->prepare('UPDATE users SET password_hash = ?, status = ?, password_changed_at = COALESCE(password_changed_at, now()) WHERE email = ? AND password_hash IS NULL');
     $statement->execute([$passwordHash, 'active', $email]);
 }
 
@@ -431,6 +452,125 @@ function request_ip_address(): string
         ?? $_SERVER['HTTP_X_FORWARDED_FOR']
         ?? $_SERVER['REMOTE_ADDR']
         ?? '';
+}
+
+function request_user_agent(): string
+{
+    return substr((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 500);
+}
+
+function allowed_roles(): array
+{
+    return ['admin', 'operator', 'verifikator', 'koordinator'];
+}
+
+function allowed_user_statuses(): array
+{
+    return ['active', 'inactive', 'suspended'];
+}
+
+function validate_user_name(string $name): ?string
+{
+    $length = strlen($name);
+    if ($length < 3 || $length > 120) {
+        return 'Nama user harus 3 sampai 120 karakter';
+    }
+    return null;
+}
+
+function validate_email_address(string $email): ?string
+{
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 160) {
+        return 'Format email tidak valid';
+    }
+    return null;
+}
+
+function validate_password_policy(string $password): ?string
+{
+    $commonPasswords = ['admin123', 'user123', 'password', 'password123', 'qwerty123', '12345678'];
+    if (strlen($password) < 10) {
+        return 'Password minimal 10 karakter';
+    }
+    if (in_array(strtolower($password), $commonPasswords, true)) {
+        return 'Password terlalu umum dan mudah ditebak';
+    }
+    if (!preg_match('/[a-z]/', $password) || !preg_match('/[A-Z]/', $password) || !preg_match('/[0-9]/', $password) || !preg_match('/[^A-Za-z0-9]/', $password)) {
+        return 'Password wajib berisi huruf besar, huruf kecil, angka, dan simbol';
+    }
+    return null;
+}
+
+function validate_role_and_status(string $role, string $status): ?string
+{
+    if (!in_array($role, allowed_roles(), true)) {
+        return 'Role user tidak valid';
+    }
+    if (!in_array($status, allowed_user_statuses(), true)) {
+        return 'Status user tidak valid';
+    }
+    return null;
+}
+
+function login_rate_key(string $email): string
+{
+    return 'login-rate:' . hash('sha256', strtolower($email) . '|' . request_ip_address());
+}
+
+function login_rate_remaining(string $email): int
+{
+    $state = cache_get(login_rate_key($email)) ?: [];
+    $lockedUntil = (int) ($state['lockedUntil'] ?? 0);
+    return max(0, $lockedUntil - time());
+}
+
+function register_failed_login(string $email): void
+{
+    $key = login_rate_key($email);
+    $state = cache_get($key) ?: [];
+    $firstAttemptAt = (int) ($state['firstAttemptAt'] ?? time());
+    if ($firstAttemptAt < time() - 900) {
+        $firstAttemptAt = time();
+        $attempts = 0;
+    } else {
+        $attempts = (int) ($state['attempts'] ?? 0);
+    }
+
+    $attempts++;
+    $lockedUntil = $attempts >= 5 ? time() + 900 : (int) ($state['lockedUntil'] ?? 0);
+    cache_set($key, [
+        'attempts' => $attempts,
+        'firstAttemptAt' => $firstAttemptAt,
+        'lockedUntil' => $lockedUntil,
+    ], 900);
+}
+
+function clear_login_rate(string $email): void
+{
+    cache_delete(login_rate_key($email));
+}
+
+function record_security_event(string $eventType, ?array $actor = null, ?array $target = null, bool $success = true, array $metadata = []): void
+{
+    try {
+        $statement = db()->prepare(
+            "INSERT INTO security_events (event_type, actor_user_id, actor_email, target_user_id, target_email, ip_address, user_agent, success, metadata)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, CAST(? AS jsonb))"
+        );
+        $statement->execute([
+            $eventType,
+            $actor['id'] ?? null,
+            $actor['email'] ?? ($metadata['actorEmail'] ?? null),
+            $target['id'] ?? null,
+            $target['email'] ?? ($metadata['targetEmail'] ?? null),
+            request_ip_address(),
+            request_user_agent(),
+            $success,
+            json_encode($metadata, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        ]);
+    } catch (Throwable $error) {
+        error_log('Security event failed: ' . $error->getMessage());
+    }
 }
 
 function verify_turnstile_token(string $token): bool
@@ -675,7 +815,21 @@ function session_user(): ?array
         return null;
     }
     $session = cache_get(token_key($token));
-    return is_array($session) && !empty($session['user']) ? $session['user'] : null;
+    if (!is_array($session) || empty($session['user']['id'])) {
+        return null;
+    }
+
+    $statement = db()->prepare('SELECT * FROM users WHERE id = ? AND status = ? LIMIT 1');
+    $statement->execute([$session['user']['id'], 'active']);
+    $user = $statement->fetch();
+    if (!$user) {
+        cache_delete(token_key($token));
+        return null;
+    }
+
+    $freshUser = public_user($user);
+    cache_set(token_key($token), ['user' => $freshUser], 86400);
+    return $freshUser;
 }
 
 function require_admin(): ?array
@@ -853,18 +1007,34 @@ function login(): void
         json_response(['error' => 'Email dan password wajib diisi'], 422);
         return;
     }
+    if ($message = validate_email_address($email)) {
+        json_response(['error' => $message], 422);
+        return;
+    }
+
+    $rateRemaining = login_rate_remaining($email);
+    if ($rateRemaining > 0) {
+        record_security_event('auth.login_rate_limited', null, null, false, ['actorEmail' => $email]);
+        json_response(['error' => 'Terlalu banyak percobaan login. Coba lagi dalam ' . $rateRemaining . ' detik'], 429);
+        return;
+    }
 
     $statement = db()->prepare('SELECT * FROM users WHERE lower(email) = ? AND status = ? LIMIT 1');
     $statement->execute([$email, 'active']);
     $user = $statement->fetch();
 
     if (!$user || empty($user['password_hash']) || !password_verify($password, $user['password_hash'])) {
+        register_failed_login($email);
+        record_security_event('auth.login_failed', null, null, false, ['actorEmail' => $email]);
         json_response(['error' => 'Email atau password tidak sesuai'], 401);
         return;
     }
 
+    clear_login_rate($email);
+    db()->prepare('UPDATE users SET last_login_at = now() WHERE id = ?')->execute([$user['id']]);
     $token = bin2hex(random_bytes(32));
     cache_set(token_key($token), ['user' => public_user($user)], 86400);
+    record_security_event('auth.login_success', $user, $user, true);
 
     json_response([
         'data' => [
@@ -905,45 +1075,106 @@ function list_users(): void
     json_response(['data' => $statement->fetchAll()]);
 }
 
+function find_user_by_id(string $id): ?array
+{
+    $statement = db()->prepare('SELECT * FROM users WHERE id = ? LIMIT 1');
+    $statement->execute([$id]);
+    $user = $statement->fetch();
+    return $user ?: null;
+}
+
+function active_admin_count(): int
+{
+    $statement = db()->query("SELECT count(*)::int AS total FROM users WHERE role = 'admin' AND status = 'active'");
+    $row = $statement->fetch();
+    return (int) ($row['total'] ?? 0);
+}
+
+function would_remove_last_active_admin(array $target, string $nextRole, string $nextStatus): bool
+{
+    if (($target['role'] ?? '') !== 'admin' || ($target['status'] ?? '') !== 'active') {
+        return false;
+    }
+    if ($nextRole === 'admin' && $nextStatus === 'active') {
+        return false;
+    }
+    return active_admin_count() <= 1;
+}
+
 function create_user(): void
 {
-    if (!require_admin()) {
+    $actor = require_admin();
+    if (!$actor) {
         return;
     }
 
     $input = input_json();
     $name = trim($input['name'] ?? '');
     $email = strtolower(trim($input['email'] ?? ''));
-    $role = $input['role'] ?? 'operator';
-    $unit = $input['organizationUnit'] ?? 'SPAP';
+    $role = trim((string) ($input['role'] ?? 'operator'));
+    $unit = trim((string) ($input['organizationUnit'] ?? 'SPAP'));
     $targetName = trim($input['targetName'] ?? '');
     $regionScope = trim($input['regionScope'] ?? '');
-    $status = $input['status'] ?? 'active';
-    $password = $input['password'] ?? 'user123';
+    $status = trim((string) ($input['status'] ?? 'active'));
+    $password = (string) ($input['password'] ?? '');
 
     if (!$name || !$email) {
         json_response(['error' => 'Nama dan email wajib diisi'], 422);
         return;
     }
+    foreach ([validate_user_name($name), validate_email_address($email), validate_role_and_status($role, $status), validate_password_policy($password)] as $message) {
+        if ($message) {
+            json_response(['error' => $message], 422);
+            return;
+        }
+    }
 
     $statement = db()->prepare(
-        'INSERT INTO users (name, email, password_hash, role, organization_unit, target_name, region_scope, status)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        'INSERT INTO users (name, email, password_hash, role, organization_unit, target_name, region_scope, status, password_changed_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, now())
          ON CONFLICT (email) DO UPDATE
          SET name = EXCLUDED.name, role = EXCLUDED.role, organization_unit = EXCLUDED.organization_unit, target_name = EXCLUDED.target_name, region_scope = EXCLUDED.region_scope, status = EXCLUDED.status
          RETURNING id, name, email, role, organization_unit, target_name, region_scope, status, created_at'
     );
     $statement->execute([$name, $email, password_hash($password, PASSWORD_BCRYPT), $role, $unit, $targetName ?: null, $regionScope ?: null, $status]);
-    json_response(['data' => $statement->fetch()], 201);
+    $user = $statement->fetch();
+    record_security_event('user.created_or_updated', $actor, $user, true, ['role' => $role, 'status' => $status]);
+    json_response(['data' => $user], 201);
 }
 
 function update_user(string $id): void
 {
-    if (!require_admin()) {
+    $actor = require_admin();
+    if (!$actor) {
         return;
     }
 
     $input = input_json();
+    $current = find_user_by_id($id);
+    if (!$current) {
+        json_response(['error' => 'User not found'], 404);
+        return;
+    }
+
+    $nextRole = array_key_exists('role', $input) ? trim((string) $input['role']) : (string) $current['role'];
+    $nextStatus = array_key_exists('status', $input) ? trim((string) $input['status']) : (string) $current['status'];
+    if ($message = validate_role_and_status($nextRole, $nextStatus)) {
+        json_response(['error' => $message], 422);
+        return;
+    }
+    if (array_key_exists('name', $input) && ($message = validate_user_name(trim((string) $input['name'])))) {
+        json_response(['error' => $message], 422);
+        return;
+    }
+    if (($actor['id'] ?? '') === $id && ($nextRole !== 'admin' || $nextStatus !== 'active')) {
+        json_response(['error' => 'Admin tidak dapat menonaktifkan atau menurunkan role akun sendiri'], 422);
+        return;
+    }
+    if (would_remove_last_active_admin($current, $nextRole, $nextStatus)) {
+        json_response(['error' => 'Minimal harus ada satu admin aktif'], 422);
+        return;
+    }
+
     $targetNameProvided = array_key_exists('targetName', $input);
     $targetName = $targetNameProvided ? (trim((string) $input['targetName']) ?: null) : null;
     $regionScopeProvided = array_key_exists('regionScope', $input);
@@ -971,31 +1202,29 @@ function update_user(string $id): void
         $id,
     ]);
     $user = $statement->fetch();
-    if (!$user) {
-        json_response(['error' => 'User not found'], 404);
-        return;
-    }
+    record_security_event('user.updated', $actor, $user, true, ['changedFields' => array_keys($input)]);
     json_response(['data' => $user]);
 }
 
 function reset_user_password(string $id): void
 {
-    if (!require_admin()) {
+    $actor = require_admin();
+    if (!$actor) {
         return;
     }
 
     $input = input_json();
     $password = trim($input['password'] ?? '');
-    if (strlen($password) < 6) {
-        json_response(['error' => 'Password minimal 6 karakter'], 422);
+    if ($message = validate_password_policy($password)) {
+        json_response(['error' => $message], 422);
         return;
     }
 
     $statement = db()->prepare(
         'UPDATE users
-         SET password_hash = ?
+         SET password_hash = ?, password_changed_at = now()
          WHERE id = ?
-         RETURNING id, name, email, role, organization_unit, target_name, status, created_at'
+         RETURNING id, name, email, role, organization_unit, target_name, region_scope, status, created_at'
     );
     $statement->execute([password_hash($password, PASSWORD_BCRYPT), $id]);
     $user = $statement->fetch();
@@ -1003,7 +1232,23 @@ function reset_user_password(string $id): void
         json_response(['error' => 'User not found'], 404);
         return;
     }
+    record_security_event('user.password_reset', $actor, $user, true);
     json_response(['data' => $user]);
+}
+
+function list_security_events(): void
+{
+    if (!require_admin()) {
+        return;
+    }
+
+    $statement = db()->query(
+        'SELECT id, event_type, actor_email, target_email, ip_address, success, metadata, created_at
+         FROM security_events
+         ORDER BY created_at DESC
+         LIMIT 100'
+    );
+    json_response(['data' => $statement->fetchAll()]);
 }
 
 function list_menu_permissions(): void
@@ -1066,9 +1311,13 @@ function save_menu_permissions(): void
 
 function logout(): void
 {
+    $user = session_user();
     $token = bearer_token();
     if ($token) {
         cache_delete(token_key($token));
+    }
+    if ($user) {
+        record_security_event('auth.logout', $user, $user, true);
     }
     json_response(['data' => ['message' => 'Logout berhasil']]);
 }
