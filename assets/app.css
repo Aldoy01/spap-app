@@ -2811,3 +2811,106 @@ dialog::backdrop {
   color: #9a3412 !important;
   box-shadow: none !important;
 }
+
+/* Compact professional service cards for public WA form */
+.public-service-eyebrow {
+  display: none !important;
+}
+
+.public-complaint-head {
+  align-items: center !important;
+  margin-bottom: 20px !important;
+  padding-bottom: 20px !important;
+}
+
+.public-complaint-head h1 {
+  font-size: clamp(1.85rem, 3.2vw, 2.7rem) !important;
+}
+
+.public-complaint-card {
+  max-width: 980px !important;
+  padding: clamp(20px, 3.2vw, 34px) !important;
+}
+
+.public-type-toggle {
+  max-width: 640px;
+  gap: 12px !important;
+}
+
+.public-type-toggle label {
+  min-height: 92px !important;
+}
+
+.public-type-toggle span {
+  min-height: 92px !important;
+  align-items: center !important;
+  gap: 14px;
+  padding: 18px 20px !important;
+  border-radius: 16px !important;
+  font-size: 1.08rem !important;
+}
+
+.public-type-toggle span::before,
+.public-type-toggle span::after {
+  display: none !important;
+  content: none !important;
+}
+
+.public-type-toggle strong {
+  font: inherit;
+  font-weight: 900;
+  color: inherit;
+}
+
+.public-type-icon {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  padding: 9px;
+  border-radius: 13px;
+  background: #fff7ed;
+  color: #f05a28;
+  box-shadow: inset 0 0 0 1px rgba(255, 138, 29, .18);
+  transition: background .2s ease, color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+
+.public-type-toggle label:hover .public-type-icon,
+.public-type-toggle input:checked + span .public-type-icon {
+  background: #f05a28;
+  color: #fff;
+  box-shadow: 0 12px 24px rgba(241, 90, 36, .24);
+  transform: scale(1.04);
+}
+
+.public-type-toggle label:hover span,
+.public-type-toggle input:checked + span {
+  transform: translateY(-2px) !important;
+}
+
+.public-complaint-form .form-section:first-child {
+  padding: 14px 16px !important;
+  background: #ffffff !important;
+  border: 1px solid #e5eaf2 !important;
+  border-left: 0 !important;
+}
+
+.public-complaint-form .form-section:first-child span {
+  font-size: 1rem !important;
+}
+
+@media (max-width: 780px) {
+  .public-type-toggle {
+    max-width: none;
+  }
+
+  .public-type-toggle label,
+  .public-type-toggle span {
+    min-height: 82px !important;
+  }
+
+  .public-type-icon {
+    width: 38px;
+    height: 38px;
+    flex-basis: 38px;
+  }
+}

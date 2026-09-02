@@ -66,7 +66,7 @@ function nav_icon(string $name): string
       <div class="public-complaint-head">
         <?= pks_logo() ?>
         <div>
-          <p class="eyebrow">Layanan WhatsApp SPAP</p>
+          <p class="eyebrow public-service-eyebrow">Layanan WhatsApp SPAP</p>
           <h1 id="publicFormTitle">Form Pengaduan Masyarakat</h1>
           <p id="publicFormIntro">Isi data berikut agar pengaduan dari WhatsApp dapat langsung tercatat dan diteruskan ke admin wilayah atau pusat.</p>
         </div>
@@ -76,11 +76,11 @@ function nav_icon(string $name): string
         <div class="public-type-toggle full" role="radiogroup" aria-label="Jenis layanan">
           <label>
             <input type="radio" name="publicComplaintType" value="pengaduan">
-            <span class="type-complaint">Pengaduan</span>
+            <span class="type-complaint"><svg class="public-type-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 3.8 20h16.4L12 3Z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><path d="M12 8v6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M12 17.2h.01" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg><strong>Pengaduan</strong></span>
           </label>
           <label>
             <input type="radio" name="publicComplaintType" value="aspirasi">
-            <span class="type-aspiration">Aspirasi</span>
+            <span class="type-aspiration"><svg class="public-type-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.8A3.8 3.8 0 0 1 8.8 2h6.4A3.8 3.8 0 0 1 19 5.8v5.9a3.8 3.8 0 0 1-3.8 3.8h-3.8L6 20v-4.8a3.8 3.8 0 0 1-1-2.6V5.8Z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><path d="M9 8h6M9 11.5h4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><strong>Aspirasi</strong></span>
           </label>
         </div>
         <div class="form-section full public-form-field hidden-field"><span>Data pelapor</span><small>Identitas dasar agar petugas dapat melakukan klarifikasi.</small></div>
@@ -888,3 +888,4 @@ function nav_icon(string $name): string
   <script src="assets/app.js?v=<?= htmlspecialchars($assetVersion, ENT_QUOTES, 'UTF-8') ?>"></script>
 </body>
 </html>
+
