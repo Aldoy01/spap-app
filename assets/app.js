@@ -205,12 +205,17 @@ function populateProvinceOptions() {
 
 function isPublicComplaintMode() {
   const params = new URLSearchParams(window.location.search);
-  return params.get("aduan") === "wa" || params.get("form") === "pengaduan";
+  return window.location.hostname === "lapor.pks.id"
+    || params.get("aduan") === "wa"
+    || params.get("form") === "pengaduan";
 }
 
 function applyPublicComplaintMode() {
   const publicScreen = document.getElementById("publicComplaintScreen");
   if (!publicScreen || !isPublicComplaintMode()) return false;
+  if (window.location.hostname === "lapor.pks.id" && window.location.search) {
+    window.history.replaceState({}, document.title, window.location.pathname || "/");
+  }
   publicScreen.classList.remove("hidden");
   document.getElementById("loginScreen").style.display = "none";
   document.getElementById("appShell").style.display = "none";
@@ -2197,3 +2202,4 @@ if (!applyPublicComplaintMode()) {
   restoreSession().then(loadData);
   setPage(currentPage);
 }
+
