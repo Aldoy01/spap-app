@@ -3076,3 +3076,79 @@ dialog::backdrop {
     padding: 0 14px 14px;
   }
 }
+
+/* Public form optional target section - aligned with Data Pelapor and Isi Pengaduan */
+.public-complaint-form .public-optional-target {
+  border: 0 !important;
+  border-left: 4px solid #ff8a1d !important;
+  border-radius: 18px !important;
+  background: #fff7ed !important;
+  box-shadow: none !important;
+  overflow: hidden;
+}
+
+.public-complaint-form .public-optional-target summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: auto;
+  padding: 18px !important;
+  background: #fff7ed !important;
+}
+
+.public-complaint-form .public-optional-target summary span {
+  color: #101828;
+  font-size: 1.05rem;
+  font-weight: 950;
+  letter-spacing: 0;
+}
+
+.public-complaint-form .public-optional-target summary em {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #9a3412;
+  font-size: .74rem;
+  font-style: normal;
+  font-weight: 900;
+  vertical-align: middle;
+}
+
+.public-complaint-form .public-optional-target summary small {
+  display: block;
+  margin-top: 4px;
+  color: #667085;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.public-complaint-form .public-optional-target summary::after {
+  flex: 0 0 auto;
+  background: #ffffff;
+  color: #f05a28;
+  box-shadow: inset 0 0 0 1px rgba(240, 90, 40, .18), 0 8px 20px rgba(240, 90, 40, .12);
+}
+
+.public-complaint-form .public-optional-target[open] summary {
+  border-bottom: 1px solid rgba(226, 232, 240, .9);
+}
+
+.public-complaint-form .public-optional-target-grid {
+  margin-left: -4px;
+  padding: 18px;
+  background: #ffffff;
+}
+
+@media (max-width: 780px) {
+  .public-complaint-form .public-optional-target summary {
+    align-items: flex-start;
+  }
+
+  .public-complaint-form .public-optional-target summary::after {
+    margin-top: 2px;
+  }
+}
