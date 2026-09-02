@@ -433,6 +433,21 @@ function webhook_token(): string
     return getenv_value('WHATSAPP_WEBHOOK_TOKEN', 'spap-whatsapp-secret');
 }
 
+function whatsapp_notify_enabled(): bool
+{
+    return strtolower(getenv_value('WHATSAPP_NOTIFY_ENABLED', 'false')) === 'true';
+}
+
+function whatsapp_access_token(): string
+{
+    return getenv_value('WHATSAPP_ACCESS_TOKEN', '');
+}
+
+function whatsapp_phone_number_id(): string
+{
+    return getenv_value('WHATSAPP_PHONE_NUMBER_ID', '');
+}
+
 function request_webhook_token(array $input = []): string
 {
     return $_GET['token']
@@ -663,7 +678,9 @@ function receive_whatsapp_webhook(): void
             continue;
         }
         $ticket = whatsapp_ticket_from_message($message);
-        $created[] = insert_ticket_record($ticket, 'Webhook WhatsApp', 'Pengaduan otomatis diterima dari WhatsApp');
+        $createdTicket = insert_ticket_record($ticket, 'Webhook WhatsApp', 'Pengaduan otomatis diterima dari WhatsApp');
+        $createdTicket['whatsappNotification'] = send_whatsapp_ticket_received_notice($createdTicket);
+        $created[] = $createdTicket;
     }
 
     json_response(['data' => ['received' => count($messages), 'tickets' => $created]], 201);
@@ -1455,6 +1472,7 @@ function create_public_complaint(): void
         ? 'Aspirasi dibuat dari link WhatsApp Business'
         : 'Pengaduan dibuat dari link WhatsApp Business';
     $created = insert_ticket_record($ticket, 'Form Publik WhatsApp', $eventNote);
+    $whatsappNotification = send_whatsapp_ticket_received_notice($created);
     json_response([
         'data' => [
             'id' => $created['public_id'],
@@ -1463,6 +1481,7 @@ function create_public_complaint(): void
             'assignedUnit' => $created['assigned_unit'],
             'targetName' => $created['target_name'],
             'targetDapil' => $created['target_dapil'],
+            'whatsappNotification' => $whatsappNotification,
         ],
     ], 201);
 }
@@ -1532,6 +1551,141 @@ function insert_ticket_record(array $ticket, string $actorName, string $eventNot
 
     cache_invalidate('tickets:');
     return $created;
+}
+
+
+function send_whatsapp_ticket_received_notice(array $ticket): array
+{
+    $phone = normalize_whatsapp_recipient((string) ($ticket['reporter_contact'] ?? ''));
+    if ($phone === '') {
+        return ['status' => 'skipped', 'reason' => 'Nomor WhatsApp pelapor kosong'];
+    }
+
+    if (!whatsapp_notify_enabled()) {
+        return ['status' => 'skipped', 'reason' => 'WHATSAPP_NOTIFY_ENABLED belum aktif'];
+    }
+
+    $token = whatsapp_access_token();
+    $phoneNumberId = whatsapp_phone_number_id();
+    if ($token === '' || $phoneNumberId === '') {
+        return ['status' => 'skipped', 'reason' => 'WHATSAPP_ACCESS_TOKEN atau WHATSAPP_PHONE_NUMBER_ID belum diisi'];
+    }
+
+    $typeLabel = ($ticket['type'] ?? 'pengaduan') === 'aspirasi' ? 'aspirasi' : 'pengaduan';
+    $message = implode("\n", [
+        'Assalamu alaikum, ' . ($ticket['reporter_name'] ?? 'Bapak/Ibu') . '.',
+        '',
+        'Terima kasih. ' . ucfirst($typeLabel) . ' Anda sudah diterima oleh SPAP.',
+        'Nomor tiket: ' . ($ticket['public_id'] ?? '-'),
+        'Status: diterima dan menunggu proses penanganan.',
+        'Wilayah: ' . ($ticket['region'] ?? '-'),
+        'Tujuan: ' . ($ticket['assigned_unit'] ?? 'Admin SPAP'),
+        '',
+        'Petugas akan melakukan verifikasi dan tindak lanjut sesuai antrean layanan.'
+    ]);
+
+    $payload = [
+        'messaging_product' => 'whatsapp',
+        'recipient_type' => 'individual',
+        'to' => $phone,
+        'type' => 'text',
+        'text' => [
+            'preview_url' => false,
+            'body' => $message,
+        ],
+    ];
+
+    $result = post_json_to_whatsapp('https://graph.facebook.com/v20.0/' . $phoneNumberId . '/messages', $payload, $token);
+    if (($result['ok'] ?? false) === true) {
+        log_ticket_event_by_uuid(
+            (string) ($ticket['id'] ?? ''),
+            'whatsapp_ack_sent',
+            'Pesan WhatsApp penerimaan terkirim ke pelapor',
+            'Sistem WhatsApp'
+        );
+        return ['status' => 'sent', 'to' => $phone];
+    }
+
+    error_log('WhatsApp notification failed: ' . json_encode($result));
+    return ['status' => 'error', 'to' => $phone, 'reason' => $result['error'] ?? 'Gagal mengirim WhatsApp'];
+}
+
+function normalize_whatsapp_recipient(string $phone): string
+{
+    $digits = preg_replace('/\D+/', '', $phone) ?? '';
+    if ($digits === '') {
+        return '';
+    }
+    if (substr($digits, 0, 1) === '0') {
+        return '62' . substr($digits, 1);
+    }
+    if (substr($digits, 0, 1) === '8') {
+        return '62' . $digits;
+    }
+    return $digits;
+}
+
+function post_json_to_whatsapp(string $url, array $payload, string $token): array
+{
+    $body = json_encode($payload);
+    if ($body === false) {
+        return ['ok' => false, 'error' => 'Payload WhatsApp tidak valid'];
+    }
+
+    if (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_HTTPHEADER => [
+                'Authorization: Bearer ' . $token,
+                'Content-Type: application/json',
+            ],
+            CURLOPT_POSTFIELDS => $body,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 10,
+        ]);
+        $response = curl_exec($ch);
+        $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+        curl_close($ch);
+    } else {
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'POST',
+                'header' => "Authorization: Bearer {$token}\r\nContent-Type: application/json\r\n",
+                'content' => $body,
+                'timeout' => 10,
+                'ignore_errors' => true,
+            ],
+        ]);
+        $response = file_get_contents($url, false, $context);
+        $status = 0;
+        if (isset($http_response_header[0]) && preg_match('/\s(\d{3})\s/', $http_response_header[0], $matches)) {
+            $status = (int) $matches[1];
+        }
+        $error = $response === false ? 'HTTP request failed' : '';
+    }
+
+    $decoded = is_string($response) ? json_decode($response, true) : null;
+    if ($status >= 200 && $status < 300) {
+        return ['ok' => true, 'status' => $status, 'response' => $decoded ?: $response];
+    }
+
+    return [
+        'ok' => false,
+        'status' => $status,
+        'error' => $error ?: (($decoded['error']['message'] ?? null) ?: 'WhatsApp API menolak request'),
+        'response' => $decoded ?: $response,
+    ];
+}
+
+function log_ticket_event_by_uuid(string $ticketId, string $eventType, string $note, string $actorName): void
+{
+    if ($ticketId === '') {
+        return;
+    }
+    $event = db()->prepare('INSERT INTO ticket_events (ticket_id, event_type, note, actor_name) VALUES (?, ?, ?, ?)');
+    $event->execute([$ticketId, $eventType, $note, $actorName]);
 }
 
 function sla_hours_for_priority(string $priority): int
@@ -1874,6 +2028,9 @@ function create_report_job(): void
 
     json_response(['data' => $statement->fetch()], 201);
 }
+
+
+
 
 
 
