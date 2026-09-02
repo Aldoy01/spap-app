@@ -2914,3 +2914,24 @@ dialog::backdrop {
     flex-basis: 38px;
   }
 }
+
+/* Center public service choice cards */
+.public-type-toggle {
+  margin-left: auto !important;
+  margin-right: auto !important;
+  justify-content: center !important;
+}
+
+.public-type-toggle label {
+  width: 100%;
+}
+
+.public-type-toggle span {
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+.public-type-toggle strong {
+  text-align: center;
+}
