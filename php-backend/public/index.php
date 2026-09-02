@@ -1425,14 +1425,15 @@ function create_public_complaint(): void
         return;
     }
 
-    if (!$name || !$phone || !$region || !$targetLevel || !$targetDapil || !$targetName || !$subject || !$description) {
-        json_response(['error' => 'Data pengaduan belum lengkap'], 422);
+    if (!$name || !$phone || !$region || !$subject || !$description) {
+        json_response(['error' => 'Data pelapor dan isi pengaduan wajib dilengkapi'], 422);
         return;
     }
 
-    $assignedUnit = $targetScope === 'pusat'
-        ? 'Admin Pusat SPAP - ' . $targetName
-        : 'Admin Wilayah - ' . $region . ' - ' . $targetName;
+    $defaultTarget = $targetScope === 'pusat' ? 'Admin Pusat SPAP' : 'Admin Wilayah - ' . $region;
+    $assignedUnit = $targetName !== ''
+        ? ($targetScope === 'pusat' ? 'Admin Pusat SPAP - ' . $targetName : 'Admin Wilayah - ' . $region . ' - ' . $targetName)
+        : $defaultTarget;
     $ticket = [
         'type' => $type,
         'reporterName' => $name,
@@ -1444,10 +1445,10 @@ function create_public_complaint(): void
         'subject' => $subject,
         'description' => $description,
         'assignedUnit' => $assignedUnit,
-        'targetLevel' => $targetLevel,
-        'targetDapil' => $targetDapil,
+        'targetLevel' => $targetLevel ?: null,
+        'targetDapil' => $targetDapil ?: null,
         'targetProvince' => $region,
-        'targetName' => $targetName,
+        'targetName' => $targetName ?: null,
     ];
 
     $eventNote = $type === 'aspirasi'
@@ -1478,14 +1479,11 @@ function public_complaints_info(): void
             'reporterName',
             'reporterContact',
             'region',
-            'targetScope',
-            'targetLevel',
-            'targetDapil',
-            'targetName',
             'subject',
             'description',
         ],
-        'note' => 'Kategori dan prioritas ditentukan oleh admin/operator setelah pengaduan masuk.',
+        'optionalFields' => ['targetScope', 'targetLevel', 'targetDapil', 'targetName'],
+        'note' => 'Tujuan penanganan bersifat opsional. Kategori dan prioritas ditentukan oleh admin/operator setelah pengaduan masuk.',
     ]);
 }
 
@@ -1876,3 +1874,7 @@ function create_report_job(): void
 
     json_response(['data' => $statement->fetch()], 201);
 }
+
+
+
+

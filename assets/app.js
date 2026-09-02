@@ -340,10 +340,11 @@ function syncTargetNameDetail({ selectId, detailWrapperId, detailSelectId, manua
 
   const manual = select.value === "__manual__";
   const withDetail = select.value === "__aleg__";
+  const optionalPublicTarget = selectId === "publicTargetName";
   const detailOptions = buildAlegRecipientOptions({ level, selectedDapil, directory });
 
   detailWrapper.classList.toggle("hidden-field", !withDetail);
-  detailSelect.required = withDetail;
+  detailSelect.required = withDetail && !optionalPublicTarget;
   if (withDetail) {
     setSelectOptions(detailSelect, detailOptions, "Pilih nama aleg");
   } else {
@@ -351,7 +352,7 @@ function syncTargetNameDetail({ selectId, detailWrapperId, detailSelectId, manua
   }
 
   manualWrapper.classList.toggle("hidden-field", !manual);
-  manualInput.required = manual;
+  manualInput.required = manual && !optionalPublicTarget;
   if (!manual) manualInput.value = "";
 }
 
@@ -1892,6 +1893,7 @@ async function submitPublicComplaint(event) {
   const submitButton = event.target.querySelector('button[type="submit"]');
   const type = getPublicComplaintType();
   const typeLabel = type === "aspirasi" ? "Aspirasi" : "Pengaduan";
+  const targetIsOpen = Boolean(document.querySelector(".public-optional-target")?.open);
   if (!type) {
     toast("Pilih Pengaduan atau Aspirasi terlebih dahulu");
     return;
@@ -1910,10 +1912,10 @@ async function submitPublicComplaint(event) {
         reporterName: document.getElementById("publicReporterName").value,
         reporterContact: document.getElementById("publicReporterPhone").value,
         region: document.getElementById("publicRegion").value,
-        targetScope: document.getElementById("publicTargetScope").value,
-        targetLevel: document.getElementById("publicTargetLevel").value,
-        targetDapil: document.getElementById("publicTargetDapil").value,
-        targetName: resolvedTargetName("publicTargetName", "publicTargetNameDetail", "publicTargetNameManual"),
+        targetScope: targetIsOpen ? document.getElementById("publicTargetScope").value : "",
+        targetLevel: targetIsOpen ? document.getElementById("publicTargetLevel").value : "",
+        targetDapil: targetIsOpen ? document.getElementById("publicTargetDapil").value : "",
+        targetName: targetIsOpen ? resolvedTargetName("publicTargetName", "publicTargetNameDetail", "publicTargetNameManual") : "",
         subject: document.getElementById("publicSubject").value,
         description: document.getElementById("publicDescription").value
       })
@@ -2202,4 +2204,9 @@ if (!applyPublicComplaintMode()) {
   restoreSession().then(loadData);
   setPage(currentPage);
 }
+
+
+
+
+
 

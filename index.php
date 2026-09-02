@@ -95,7 +95,7 @@ function nav_icon(string $name): string
             <option value="">Pilih Wilayah</option>
           </select>
         </label>
-        <div class="form-section full public-form-field hidden-field"><span>Tujuan penanganan</span><small>Pilih struktur, dapil, dan nama tujuan agar pengaduan masuk ke pihak yang tepat.</small></div>
+        <details class="public-optional-target full public-form-field hidden-field"><summary><span>Tujuan penanganan <em>opsional</em></span><small>Klik bila ingin memilih struktur, dapil, atau nama tujuan tertentu.</small></summary><div class="public-optional-target-grid">
         <label class="public-form-field hidden-field">Alur Penanganan
           <select id="publicTargetScope">
             <option value="wilayah">Admin Wilayah</option>
@@ -103,19 +103,19 @@ function nav_icon(string $name): string
           </select>
         </label>
         <label class="public-form-field hidden-field">Ditujukan Kepada
-          <select id="publicTargetLevel" required>
+          <select id="publicTargetLevel">
             <option>DPR RI</option>
             <option>DPRD Provinsi</option>
             <option>DPRD Kab/Kota</option>
           </select>
         </label>
         <label class="public-form-field hidden-field">Dapil
-          <select id="publicTargetDapil" required>
+          <select id="publicTargetDapil">
             <option value="">Pilih Wilayah terlebih dahulu</option>
           </select>
         </label>
         <label class="full public-form-field hidden-field">Nama yang Dituju
-          <select id="publicTargetName" required>
+          <select id="publicTargetName">
             <option value="">Pilih jenis tujuan</option>
           </select>
         </label>
@@ -125,7 +125,8 @@ function nav_icon(string $name): string
         <label class="full hidden-field" id="publicTargetNameManualWrap">Nama yang Dituju Lainnya
           <input id="publicTargetNameManual" placeholder="Ketik nama pengurus, lembaga, atau tujuan lainnya">
         </label>
-        <div class="form-section full public-form-field hidden-field"><span id="publicContentSectionTitle">Isi pengaduan</span><small id="publicContentSectionHint">Gunakan judul singkat dan kronologi yang jelas agar mudah diverifikasi.</small></div>
+                </div></details>
+<div class="form-section full public-form-field hidden-field"><span id="publicContentSectionTitle">Isi pengaduan</span><small id="publicContentSectionHint">Gunakan judul singkat dan kronologi yang jelas agar mudah diverifikasi.</small></div>
         <label class="full public-form-field hidden-field"><span id="publicSubjectLabel">Judul Pengaduan</span>
           <input id="publicSubject" placeholder="Ringkasan masalah dalam satu kalimat" required>
         </label>
@@ -888,5 +889,7 @@ function nav_icon(string $name): string
   <script src="assets/app.js?v=<?= htmlspecialchars($assetVersion, ENT_QUOTES, 'UTF-8') ?>"></script>
 </body>
 </html>
+
+
 
 
