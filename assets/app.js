@@ -518,7 +518,14 @@ function renderPublicCaptcha() {
     publicTurnstileWidgetId = window.turnstile.render(turnstileContainer, {
       sitekey: window.SPAP_CONFIG.turnstileSiteKey,
       theme: "light",
-      size: "normal"
+      size: "normal",
+      "error-callback": () => {
+        if (status) {
+          status.textContent = "Verifikasi Cloudflare gagal dimuat. Pastikan domain form sudah terdaftar di Turnstile.";
+          status.classList.remove("hidden-field");
+        }
+      },
+      "expired-callback": () => toast("Verifikasi CAPTCHA kedaluwarsa, silakan ulangi")
     });
   }
 }
@@ -2202,6 +2209,7 @@ if (!applyPublicComplaintMode()) {
   restoreSession().then(loadData);
   setPage(currentPage);
 }
+
 
 
 

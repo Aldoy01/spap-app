@@ -3165,3 +3165,32 @@ dialog::backdrop {
   font-size: .92rem;
   font-weight: 850;
 }
+
+/* Compact Cloudflare Turnstile widget on public form */
+.public-complaint-form .public-captcha-card {
+  width: min(100%, 380px) !important;
+  justify-self: start;
+  gap: 8px !important;
+  padding: 14px !important;
+  border-radius: 16px !important;
+  background: #ffffff !important;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, .06) !important;
+}
+
+.public-complaint-form .public-turnstile {
+  width: min(100%, 320px);
+  min-height: 68px;
+  overflow: hidden;
+}
+
+.public-complaint-form .public-turnstile iframe {
+  max-width: 100% !important;
+}
+
+.public-complaint-form .public-captcha-card small {
+  max-width: 320px;
+  color: #667085;
+  font-size: .78rem;
+  font-weight: 750;
+  line-height: 1.45;
+}
