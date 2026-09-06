@@ -458,7 +458,7 @@ function request_webhook_token(array $input = []): string
 
 function turnstile_secret_key(): string
 {
-    return getenv_value('TURNSTILE_SECRET_KEY', '1x0000000000000000000000000000000AA');
+    return getenv_value('TURNSTILE_SECRET_KEY', '');
 }
 
 function request_ip_address(): string
@@ -591,7 +591,7 @@ function record_security_event(string $eventType, ?array $actor = null, ?array $
 function verify_turnstile_token(string $token): bool
 {
     $secret = turnstile_secret_key();
-    if ($token === '') {
+    if ($secret === '' || $token === '') {
         return false;
     }
 
@@ -2028,6 +2028,7 @@ function create_report_job(): void
 
     json_response(['data' => $statement->fetch()], 201);
 }
+
 
 
 

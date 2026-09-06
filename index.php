@@ -7,7 +7,7 @@ $appTitle = 'SPAP App - Sistem Pelayanan dan Advokasi Publik';
 $brandName = 'SPAP PKS';
 $brandSubtitle = 'Sistem Pelayanan & Advokasi Publik';
 $apiBaseUrl = getenv('SPAP_API_BASE_URL') ?: 'http://localhost:3000';
-$turnstileSiteKey = getenv('TURNSTILE_SITE_KEY') ?: '1x00000000000000000000AA';
+$turnstileSiteKey = getenv('TURNSTILE_SITE_KEY') ?: '';
 $assetVersion = getenv('RAILWAY_GIT_COMMIT_SHA') ?: (string) time();
 $menuItems = [
   ['page' => 'dashboard', 'icon' => 'dashboard', 'label' => 'Dashboard', 'active' => true],
@@ -135,11 +135,8 @@ function nav_icon(string $name): string
         </label>
         <div class="full public-form-field hidden-field public-captcha-card" id="publicCaptchaWrap">
           <div id="publicTurnstile" class="public-turnstile"></div>
-          <label class="public-human-check" id="publicHumanFallback">
-            <input id="publicHumanCheck" type="checkbox">
-            <span>Saya bukan robot</span>
-          </label>
-          <small>Verifikasi keamanan dijalankan sebelum data dikirim ke server.</small>
+          <div class="public-turnstile-status hidden-field" id="publicTurnstileStatus">Cloudflare Turnstile belum dikonfigurasi.</div>
+          <small>Verifikasi Cloudflare Turnstile wajib diselesaikan sebelum data dikirim ke server.</small>
         </div>
         <button class="btn primary public-form-field hidden-field" id="publicSubmitBtn" type="submit">Kirim Pengaduan</button>
       </form>
@@ -889,6 +886,7 @@ function nav_icon(string $name): string
   <script src="assets/app.js?v=<?= htmlspecialchars($assetVersion, ENT_QUOTES, 'UTF-8') ?>"></script>
 </body>
 </html>
+
 
 
 

@@ -496,15 +496,19 @@ function hasTurnstileCaptcha() {
 }
 
 function renderPublicCaptcha() {
-  const fallback = document.getElementById("publicHumanFallback");
+  const status = document.getElementById("publicTurnstileStatus");
   const turnstileContainer = document.getElementById("publicTurnstile");
-  if (!fallback || !turnstileContainer) return;
+  if (!turnstileContainer) return;
 
   const useTurnstile = hasTurnstileCaptcha();
-  fallback.classList.toggle("hidden-field", useTurnstile);
+  if (status) status.classList.toggle("hidden-field", useTurnstile);
   turnstileContainer.classList.toggle("hidden-field", !useTurnstile);
 
-  if (!useTurnstile) return;
+  if (!useTurnstile) {
+    publicTurnstileWidgetId = null;
+    return;
+  }
+
   if (!window.turnstile) {
     window.setTimeout(renderPublicCaptcha, 300);
     return;
@@ -520,8 +524,6 @@ function renderPublicCaptcha() {
 }
 
 function resetPublicCaptcha() {
-  const fallback = document.getElementById("publicHumanCheck");
-  if (fallback) fallback.checked = false;
   if (hasTurnstileCaptcha() && window.turnstile && publicTurnstileWidgetId !== null) {
     window.turnstile.reset(publicTurnstileWidgetId);
   }
@@ -529,11 +531,8 @@ function resetPublicCaptcha() {
 
 function publicCaptchaToken() {
   if (!hasTurnstileCaptcha()) {
-    if (!document.getElementById("publicHumanCheck").checked) {
-      toast("Centang verifikasi Saya bukan robot terlebih dahulu");
-      return "";
-    }
-    return "local-fallback";
+    toast("Cloudflare Turnstile belum dikonfigurasi");
+    return "";
   }
 
   if (!window.turnstile || publicTurnstileWidgetId === null) {
@@ -542,10 +541,9 @@ function publicCaptchaToken() {
   }
 
   const token = window.turnstile.getResponse(publicTurnstileWidgetId);
-  if (!token) toast("Selesaikan verifikasi CAPTCHA terlebih dahulu");
+  if (!token) toast("Selesaikan verifikasi Cloudflare Turnstile terlebih dahulu");
   return token;
 }
-
 function updatePublicComplaintTypeUi() {
   const type = getPublicComplaintType();
   if (!type) {
@@ -2204,6 +2202,7 @@ if (!applyPublicComplaintMode()) {
   restoreSession().then(loadData);
   setPage(currentPage);
 }
+
 
 
 

@@ -3152,3 +3152,16 @@ dialog::backdrop {
     margin-top: 2px;
   }
 }
+
+.public-turnstile-status {
+  display: flex;
+  align-items: center;
+  min-height: 54px;
+  padding: 12px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  background: #fff1f2;
+  color: #9f1239;
+  font-size: .92rem;
+  font-weight: 850;
+}
