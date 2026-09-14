@@ -356,8 +356,28 @@ function ensure_schema(): void
     seed_user_password('operator@spap.local', '$2y$10$CynqGjenPLMJnhh33m.nLepJRQvpo/BuJZr60ZWo5dj5WERsIUXqe');
     seed_user_password('verifikator@spap.local', '$2y$10$CynqGjenPLMJnhh33m.nLepJRQvpo/BuJZr60ZWo5dj5WERsIUXqe');
     seed_user_password('koordinator@spap.local', '$2y$10$CynqGjenPLMJnhh33m.nLepJRQvpo/BuJZr60ZWo5dj5WERsIUXqe');
+    apply_admin_password_override();
 
     $ready = true;
+}
+
+
+function apply_admin_password_override(): void
+{
+    $password = getenv_value('SPAP_ADMIN_PASSWORD', '');
+    if ($password === '') {
+        return;
+    }
+
+    if (strlen($password) < 10) {
+        error_log('SPAP_ADMIN_PASSWORD ignored: minimal 10 karakter');
+        return;
+    }
+
+    $statement = db()->prepare("UPDATE users
+        SET password_hash = ?, status = 'active', role = 'admin', password_changed_at = now()
+        WHERE email = 'admin@spap.local'");
+    $statement->execute([password_hash($password, PASSWORD_BCRYPT)]);
 }
 
 function seed_user_password(string $email, string $passwordHash): void
@@ -2028,6 +2048,9 @@ function create_report_job(): void
 
     json_response(['data' => $statement->fetch()], 201);
 }
+
+
+
 
 
 
