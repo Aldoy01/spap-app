@@ -1,7 +1,7 @@
 FROM php:7.4-apache
 
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends libpq-dev libzip-dev unzip \
+RUN apt-get -o Acquire::Retries=5 update \
+  && apt-get -o Acquire::Retries=5 install -y --fix-missing --no-install-recommends libpq-dev libzip-dev unzip \
   && docker-php-ext-install pdo pdo_pgsql pgsql \
   && pecl install redis-5.3.7 \
   && docker-php-ext-enable redis \
