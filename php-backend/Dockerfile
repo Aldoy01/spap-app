@@ -1,9 +1,9 @@
-FROM php:7.4-apache
+FROM php:8.2-apache
 
 RUN apt-get -o Acquire::Retries=5 update \
   && apt-get -o Acquire::Retries=5 install -y --fix-missing --no-install-recommends libpq-dev libzip-dev unzip \
   && docker-php-ext-install pdo pdo_pgsql pgsql \
-  && pecl install redis-5.3.7 \
+  && pecl install redis \
   && docker-php-ext-enable redis \
   && echo 'ServerName localhost' > /etc/apache2/conf-available/servername.conf \
   && a2enconf servername \
