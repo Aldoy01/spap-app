@@ -1623,28 +1623,51 @@ function send_ticket_email_notice(array $ticket, string $subject, string $messag
 
     $ticketId = $ticket['public_id'] ?? '-';
     $type = ($ticket['type'] ?? 'pengaduan') === 'aspirasi' ? 'Aspirasi' : 'Pengaduan';
+    $fromAddress = email_from_address();
+    $fromName = email_from_name();
+    $updatedAt = date('d M Y H:i') . ' WIB';
     $body = implode("\n", [
-        'Assalamu alaikum, ' . ($ticket['reporter_name'] ?? 'Bapak/Ibu') . '.',
+        'SPAP - Sistem Pelayanan dan Advokasi Publik',
+        '================================================',
         '',
+        'Yth. Bapak/Ibu ' . ($ticket['reporter_name'] ?? 'Pelapor') . ',',
+        '',
+        'Terima kasih. Berikut informasi terbaru terkait laporan Anda di sistem SPAP.',
+        '',
+        'Pesan:',
         $message,
         '',
-        'Nomor tiket: ' . $ticketId,
-        'Jenis: ' . $type,
-        'Status: ' . ($ticket['status'] ?? '-'),
-        'Judul: ' . ($ticket['subject'] ?? '-'),
-        'Wilayah: ' . ($ticket['region'] ?? '-'),
-        'PIC/Tujuan: ' . ($ticket['assigned_unit'] ?? 'Admin SPAP'),
+        'Ringkasan tiket:',
+        '- Nomor tiket     : ' . $ticketId,
+        '- Jenis layanan   : ' . $type,
+        '- Status saat ini : ' . ($ticket['status'] ?? '-'),
+        '- Judul           : ' . ($ticket['subject'] ?? '-'),
+        '- Wilayah         : ' . ($ticket['region'] ?? '-'),
+        '- PIC/Tujuan      : ' . ($ticket['assigned_unit'] ?? 'Admin SPAP'),
+        '- Waktu update    : ' . $updatedAt,
         '',
-        'Email ini dikirim otomatis oleh SPAP App.'
+        'Catatan penting:',
+        'Email ini dikirim otomatis dari alamat noreply. Mohon tidak membalas email ini.',
+        'Simpan nomor tiket di atas untuk memudahkan pengecekan perkembangan laporan.',
+        '',
+        'Hormat kami,',
+        'Tim SPAP',
+        '',
+        '--',
+        'Pesan otomatis. Mohon tidak membalas email ini.'
     ]);
 
     $headers = [
-        'From: ' . email_from_name() . ' <' . email_from_address() . '>',
-        'Reply-To: ' . email_from_address(),
+        'From: ' . $fromName . ' <' . $fromAddress . '>',
+        'Reply-To: ' . $fromAddress,
+        'Auto-Submitted: auto-generated',
+        'X-Auto-Response-Suppress: All',
+        'Precedence: bulk',
+        'MIME-Version: 1.0',
         'Content-Type: text/plain; charset=UTF-8',
     ];
 
-    $sent = function_exists('mail') && mail($email, '[' . $ticketId . '] ' . $subject, $body, implode("\r\n", $headers));
+    $sent = function_exists('mail') && mail($email, '[SPAP][' . $ticketId . '] ' . $subject, $body, implode("\r\n", $headers));
     if ($sent) {
         log_ticket_event_by_uuid((string) ($ticket['id'] ?? ''), 'email_notice_sent', 'Email perkembangan terkirim ke pelapor', 'Sistem Email');
         return ['status' => 'sent', 'to' => $email];
@@ -2132,4 +2155,3 @@ function create_report_job(): void
 
     json_response(['data' => $statement->fetch()], 201);
 }
-
