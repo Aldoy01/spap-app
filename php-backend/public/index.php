@@ -484,6 +484,41 @@ function email_from_name(): string
     return getenv_value('EMAIL_FROM_NAME', 'SPAP App');
 }
 
+function email_reply_to_address(): string
+{
+    return getenv_value('EMAIL_REPLY_TO', email_from_address());
+}
+
+function email_transport(): string
+{
+    return strtolower(getenv_value('EMAIL_TRANSPORT', 'mail'));
+}
+
+function smtp_host(): string
+{
+    return getenv_value('SMTP_HOST', '');
+}
+
+function smtp_port(): int
+{
+    return (int) getenv_value('SMTP_PORT', '587');
+}
+
+function smtp_username(): string
+{
+    return getenv_value('SMTP_USERNAME', '');
+}
+
+function smtp_password(): string
+{
+    return getenv_value('SMTP_PASSWORD', '');
+}
+
+function smtp_secure(): string
+{
+    return strtolower(getenv_value('SMTP_SECURE', 'tls'));
+}
+
 function request_webhook_token(array $input = []): string
 {
     return $_GET['token']
@@ -1658,23 +1693,121 @@ function send_ticket_email_notice(array $ticket, string $subject, string $messag
     ]);
 
     $headers = [
-        'From: ' . $fromName . ' <' . $fromAddress . '>',
-        'Reply-To: ' . $fromAddress,
-        'Auto-Submitted: auto-generated',
-        'X-Auto-Response-Suppress: All',
-        'Precedence: bulk',
-        'MIME-Version: 1.0',
-        'Content-Type: text/plain; charset=UTF-8',
+        'From' => $fromName . ' <' . $fromAddress . '>',
+        'Reply-To' => email_reply_to_address(),
+        'Auto-Submitted' => 'auto-generated',
+        'X-Auto-Response-Suppress' => 'All',
+        'Precedence' => 'bulk',
+        'MIME-Version' => '1.0',
+        'Content-Type' => 'text/plain; charset=UTF-8',
     ];
+    $emailSubject = '[SPAP][' . $ticketId . '] ' . $subject;
+    $result = send_email_message($email, $emailSubject, $body, $headers);
 
-    $sent = function_exists('mail') && mail($email, '[SPAP][' . $ticketId . '] ' . $subject, $body, implode("\r\n", $headers));
-    if ($sent) {
+    if (($result['status'] ?? '') === 'sent') {
         log_ticket_event_by_uuid((string) ($ticket['id'] ?? ''), 'email_notice_sent', 'Email perkembangan terkirim ke pelapor', 'Sistem Email');
-        return ['status' => 'sent', 'to' => $email];
+        return ['status' => 'sent', 'to' => $email, 'transport' => $result['transport'] ?? email_transport()];
     }
 
-    error_log('Email notification failed for ticket ' . $ticketId . ' to ' . $email);
-    return ['status' => 'error', 'to' => $email, 'reason' => 'Gagal mengirim email dari server'];
+    error_log('Email notification failed for ticket ' . $ticketId . ' to ' . $email . ': ' . ($result['reason'] ?? 'unknown'));
+    return ['status' => 'error', 'to' => $email, 'reason' => $result['reason'] ?? 'Gagal mengirim email dari server'];
+}
+
+function send_email_message(string $to, string $subject, string $body, array $headers): array
+{
+    if (email_transport() === 'smtp' || smtp_host() !== '') {
+        return send_smtp_email($to, $subject, $body, $headers);
+    }
+
+    if (!function_exists('mail')) {
+        return ['status' => 'error', 'reason' => 'Fungsi mail() tidak tersedia'];
+    }
+
+    $rawHeaders = [];
+    foreach ($headers as $name => $value) {
+        $rawHeaders[] = $name . ': ' . $value;
+    }
+
+    $sent = mail($to, $subject, $body, implode("\r\n", $rawHeaders));
+    return $sent
+        ? ['status' => 'sent', 'transport' => 'mail']
+        : ['status' => 'error', 'reason' => 'mail() gagal mengirim email'];
+}
+
+function send_smtp_email(string $to, string $subject, string $body, array $headers): array
+{
+    $host = smtp_host();
+    $port = smtp_port();
+    $username = smtp_username();
+    $password = smtp_password();
+    $secure = smtp_secure();
+    $fromAddress = email_from_address();
+
+    if ($host === '' || $username === '' || $password === '') {
+        return ['status' => 'error', 'reason' => 'SMTP_HOST, SMTP_USERNAME, atau SMTP_PASSWORD belum diisi'];
+    }
+
+    $socketHost = $secure === 'ssl' ? 'ssl://' . $host : $host;
+    $socket = @fsockopen($socketHost, $port, $errno, $errstr, 20);
+    if (!$socket) {
+        return ['status' => 'error', 'reason' => 'SMTP connect gagal: ' . $errstr];
+    }
+
+    stream_set_timeout($socket, 20);
+    $expect = function (array $codes) use ($socket): string {
+        $response = '';
+        while (($line = fgets($socket, 515)) !== false) {
+            $response .= $line;
+            if (strlen($line) >= 4 && $line[3] === ' ') {
+                break;
+            }
+        }
+        $code = substr($response, 0, 3);
+        if (!in_array($code, $codes, true)) {
+            throw new RuntimeException(trim($response));
+        }
+        return $response;
+    };
+    $command = function (string $line, array $codes) use ($socket, $expect): string {
+        fwrite($socket, $line . "\r\n");
+        return $expect($codes);
+    };
+
+    try {
+        $expect(['220']);
+        $hostName = $_SERVER['SERVER_NAME'] ?? 'spap.local';
+        $command('EHLO ' . $hostName, ['250']);
+        if ($secure === 'tls') {
+            $command('STARTTLS', ['220']);
+            if (!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
+                throw new RuntimeException('STARTTLS gagal diaktifkan');
+            }
+            $command('EHLO ' . $hostName, ['250']);
+        }
+        $command('AUTH LOGIN', ['334']);
+        $command(base64_encode($username), ['334']);
+        $command(base64_encode($password), ['235']);
+        $command('MAIL FROM:<' . ($username ?: $fromAddress) . '>', ['250']);
+        $command('RCPT TO:<' . $to . '>', ['250', '251']);
+        $command('DATA', ['354']);
+
+        $rawHeaders = [
+            'To: ' . $to,
+            'Subject: ' . $subject,
+        ];
+        foreach ($headers as $name => $value) {
+            $rawHeaders[] = $name . ': ' . $value;
+        }
+        $payload = implode("\r\n", $rawHeaders) . "\r\n\r\n" . str_replace("\n.", "\n..", str_replace("\r\n", "\n", $body));
+        fwrite($socket, $payload . "\r\n.\r\n");
+        $expect(['250']);
+        $command('QUIT', ['221']);
+        fclose($socket);
+        return ['status' => 'sent', 'transport' => 'smtp'];
+    } catch (Throwable $error) {
+        fclose($socket);
+        return ['status' => 'error', 'reason' => 'SMTP gagal: ' . $error->getMessage()];
+    }
 }
 function send_whatsapp_ticket_received_notice(array $ticket): array
 {
