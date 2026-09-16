@@ -1622,7 +1622,7 @@ function insert_ticket_record(array $ticket, string $actorName, string $eventNot
           (public_id, type, reporter_name, reporter_contact, reporter_email, channel, region, category, priority, status, subject, description, assigned_unit,
            target_level, target_dapil, target_province, target_city, target_name, sla_due_at)
          VALUES
-          (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Baru', ?, ?, ?, ?, ?, ?, ?, ?, ?, now() + (? * interval '1 hour'))
+          (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Baru', ?, ?, ?, ?, ?, ?, ?, ?, now() + (? * interval '1 hour'))
          RETURNING *"
     );
     $slaHours = sla_hours_for_priority($ticket['priority'] ?? 'Sedang');
