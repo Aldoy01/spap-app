@@ -91,7 +91,7 @@ function nav_icon(string $name): string
           <input id="publicReporterPhone" type="tel" placeholder="08xxxxxxxxxx" required>
         </label>
         <label class="public-form-field hidden-field">Email
-          <input id="publicReporterEmail" type="email" placeholder="nama@email.com">
+          <input id="publicReporterEmail" type="email" placeholder="nama@email.com" required>
         </label>
         <label class="public-form-field hidden-field">Wilayah
           <select id="publicRegion" required>
@@ -785,7 +785,7 @@ function nav_icon(string $name): string
           <input id="ticketName" placeholder="Contoh: Budi Santoso" required>
         </label>
         <label>Email
-          <input id="ticketEmail" type="email" placeholder="nama@email.com">
+          <input id="ticketEmail" type="email" placeholder="nama@email.com" required>
         </label>
         <label>No. Telepon / WhatsApp
           <input id="ticketPhone" type="tel" placeholder="08xxxxxxxxxx">

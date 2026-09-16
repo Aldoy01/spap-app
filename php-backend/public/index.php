@@ -469,6 +469,20 @@ function whatsapp_phone_number_id(): string
 {
     return getenv_value('WHATSAPP_PHONE_NUMBER_ID', '');
 }
+function email_notify_enabled(): bool
+{
+    return strtolower(getenv_value('EMAIL_NOTIFY_ENABLED', 'false')) === 'true';
+}
+
+function email_from_address(): string
+{
+    return getenv_value('EMAIL_FROM', 'noreply@spap.local');
+}
+
+function email_from_name(): string
+{
+    return getenv_value('EMAIL_FROM_NAME', 'SPAP App');
+}
 
 function request_webhook_token(array $input = []): string
 {
@@ -1441,7 +1455,15 @@ function create_ticket(): void
         return;
     }
 
+    $email = strtolower(trim((string) ($ticket['reporterEmail'] ?? '')));
+    if ($email === '' || validate_email_address($email)) {
+        json_response(['error' => 'Email pelapor wajib diisi dengan format valid'], 422);
+        return;
+    }
+    $ticket['reporterEmail'] = $email;
+
     $created = insert_ticket_record($ticket, $actor['name'] ?? 'Operator SPAP', 'Tiket dibuat dari aplikasi SPAP');
+    send_ticket_email_notice($created, 'Tiket SPAP diterima', 'Tiket Anda sudah diterima dan tercatat di sistem SPAP.');
     json_response(['data' => $created], 201);
 }
 
@@ -1465,8 +1487,8 @@ function create_public_complaint(): void
         return;
     }
 
-    if (!$name || !$phone || !$region || !$subject || !$description) {
-        json_response(['error' => 'Data pelapor dan isi pengaduan wajib dilengkapi'], 422);
+    if (!$name || !$phone || !$email || !$region || !$subject || !$description) {
+        json_response(['error' => 'Data pelapor, email, dan isi pengaduan wajib dilengkapi'], 422);
         return;
     }
 
@@ -1502,6 +1524,7 @@ function create_public_complaint(): void
         : 'Pengaduan dibuat dari link WhatsApp Business';
     $created = insert_ticket_record($ticket, 'Form Publik WhatsApp', $eventNote);
     $whatsappNotification = send_whatsapp_ticket_received_notice($created);
+    $emailNotification = send_ticket_email_notice($created, 'Tiket SPAP diterima', 'Tiket Anda sudah diterima dan menunggu proses penanganan.');
     json_response([
         'data' => [
             'id' => $created['public_id'],
@@ -1511,6 +1534,7 @@ function create_public_complaint(): void
             'targetName' => $created['target_name'],
             'targetDapil' => $created['target_dapil'],
             'whatsappNotification' => $whatsappNotification,
+            'emailNotification' => $emailNotification,
         ],
     ], 201);
 }
@@ -1526,11 +1550,12 @@ function public_complaints_info(): void
             'type',
             'reporterName',
             'reporterContact',
+            'reporterEmail',
             'region',
             'subject',
             'description',
         ],
-        'optionalFields' => ['reporterEmail', 'targetScope', 'targetLevel', 'targetDapil', 'targetName'],
+        'optionalFields' => ['targetScope', 'targetLevel', 'targetDapil', 'targetName'],
         'note' => 'Tujuan penanganan bersifat opsional. Kategori dan prioritas ditentukan oleh admin/operator setelah pengaduan masuk.',
     ]);
 }
@@ -1584,6 +1609,50 @@ function insert_ticket_record(array $ticket, string $actorName, string $eventNot
 }
 
 
+
+function send_ticket_email_notice(array $ticket, string $subject, string $message): array
+{
+    $email = trim((string) ($ticket['reporter_email'] ?? ''));
+    if ($email === '') {
+        return ['status' => 'skipped', 'reason' => 'Email pelapor kosong'];
+    }
+
+    if (!email_notify_enabled()) {
+        return ['status' => 'skipped', 'reason' => 'EMAIL_NOTIFY_ENABLED belum aktif'];
+    }
+
+    $ticketId = $ticket['public_id'] ?? '-';
+    $type = ($ticket['type'] ?? 'pengaduan') === 'aspirasi' ? 'Aspirasi' : 'Pengaduan';
+    $body = implode("\n", [
+        'Assalamu alaikum, ' . ($ticket['reporter_name'] ?? 'Bapak/Ibu') . '.',
+        '',
+        $message,
+        '',
+        'Nomor tiket: ' . $ticketId,
+        'Jenis: ' . $type,
+        'Status: ' . ($ticket['status'] ?? '-'),
+        'Judul: ' . ($ticket['subject'] ?? '-'),
+        'Wilayah: ' . ($ticket['region'] ?? '-'),
+        'PIC/Tujuan: ' . ($ticket['assigned_unit'] ?? 'Admin SPAP'),
+        '',
+        'Email ini dikirim otomatis oleh SPAP App.'
+    ]);
+
+    $headers = [
+        'From: ' . email_from_name() . ' <' . email_from_address() . '>',
+        'Reply-To: ' . email_from_address(),
+        'Content-Type: text/plain; charset=UTF-8',
+    ];
+
+    $sent = function_exists('mail') && mail($email, '[' . $ticketId . '] ' . $subject, $body, implode("\r\n", $headers));
+    if ($sent) {
+        log_ticket_event_by_uuid((string) ($ticket['id'] ?? ''), 'email_notice_sent', 'Email perkembangan terkirim ke pelapor', 'Sistem Email');
+        return ['status' => 'sent', 'to' => $email];
+    }
+
+    error_log('Email notification failed for ticket ' . $ticketId . ' to ' . $email);
+    return ['status' => 'error', 'to' => $email, 'reason' => 'Gagal mengirim email dari server'];
+}
 function send_whatsapp_ticket_received_notice(array $ticket): array
 {
     $phone = normalize_whatsapp_recipient((string) ($ticket['reporter_contact'] ?? ''));
@@ -1785,13 +1854,15 @@ function update_ticket_status(string $publicId): void
         $input['actorName'] ?? ($actor['name'] ?? 'Operator SPAP'),
     ]);
 
+    send_ticket_email_notice($ticket, 'Perkembangan tiket SPAP', 'Status tiket Anda diperbarui menjadi: ' . $status . '. ' . ($input['note'] ?? ''));
+
     cache_invalidate('tickets:');
     json_response(['data' => $ticket]);
 }
 
 function ticket_by_public_id(string $publicId): ?array
 {
-    $statement = db()->prepare('SELECT id, public_id, type, region, target_province, target_name FROM tickets WHERE public_id = ? LIMIT 1');
+    $statement = db()->prepare('SELECT id, public_id, type, reporter_name, reporter_email, status, subject, region, assigned_unit, target_province, target_name FROM tickets WHERE public_id = ? LIMIT 1');
     $statement->execute([$publicId]);
     $ticket = $statement->fetch();
     return $ticket ?: null;
@@ -1858,8 +1929,11 @@ function create_ticket_event(string $publicId): void
         $note,
         $input['actorName'] ?? ($actor['name'] ?? 'Operator SPAP'),
     ]);
+    $eventRow = $statement->fetch();
 
-    json_response(['data' => $statement->fetch()], 201);
+    send_ticket_email_notice($ticket, 'Catatan baru tiket SPAP', 'Ada catatan perkembangan baru untuk tiket Anda: ' . $note);
+
+    json_response(['data' => $eventRow], 201);
 }
 
 function list_osint_mentions(): void
