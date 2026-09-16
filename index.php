@@ -90,6 +90,9 @@ function nav_icon(string $name): string
         <label class="public-form-field hidden-field">No. WhatsApp
           <input id="publicReporterPhone" type="tel" placeholder="08xxxxxxxxxx" required>
         </label>
+        <label class="public-form-field hidden-field">Email
+          <input id="publicReporterEmail" type="email" placeholder="nama@email.com">
+        </label>
         <label class="public-form-field hidden-field">Wilayah
           <select id="publicRegion" required>
             <option value="">Pilih Wilayah</option>
@@ -886,8 +889,4 @@ function nav_icon(string $name): string
   <script src="assets/app.js?v=<?= htmlspecialchars($assetVersion, ENT_QUOTES, 'UTF-8') ?>"></script>
 </body>
 </html>
-
-
-
-
 

@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS tickets (
   type VARCHAR(20) NOT NULL CHECK (type IN ('aspirasi', 'pengaduan')),
   reporter_name VARCHAR(140) NOT NULL,
   reporter_contact VARCHAR(120),
+  reporter_email VARCHAR(160),
   channel VARCHAR(40) NOT NULL,
   region VARCHAR(120) NOT NULL,
   category VARCHAR(80) NOT NULL,
@@ -105,3 +106,4 @@ VALUES
   ('Facebook', '#PendidikanGratis', 'Pendidikan', 'Positif', 5430, 'Program bantuan pendidikan mendapat respon positif dari orang tua.', 'Amplifikasi program dan kumpulkan testimoni.'),
   ('Instagram', '#Infrastruktur', 'Infrastruktur', 'Netral', 6720, 'Warga menandai kondisi jalan rusak dan meminta advokasi.', 'Petakan wilayah keluhan untuk koordinasi DPC.')
 ON CONFLICT DO NOTHING;
+

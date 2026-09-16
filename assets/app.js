@@ -730,6 +730,8 @@ function normalizeTicket(row) {
     judul: row.subject || row.judul,
     deskripsi: row.description || row.deskripsi,
     kanal: row.channel || row.kanal || "API",
+    email: row.reporter_email || row.reporterEmail || row.email || "",
+    phone: row.reporter_contact || row.reporterContact || row.phone || "",
     pic: row.assigned_unit || row.pic || "Triage SPAP",
     lokasi: row.region || row.lokasi || row.wilayah,
     targetLevel: row.target_level || row.targetLevel || "",
@@ -1296,7 +1298,7 @@ function ticketMatchesRegion(item, region) {
 }
 
 function ticketMatches(item, search, status, priority, region = selectedRegionFilter()) {
-  const haystack = `${item.id} ${item.nama} ${item.judul} ${item.kategori} ${item.wilayah} ${item.deskripsi}`.toLowerCase();
+  const haystack = `${item.id} ${item.nama} ${item.email || ""} ${item.phone || ""} ${item.judul} ${item.kategori} ${item.wilayah} ${item.deskripsi}`.toLowerCase();
   return (!search || haystack.includes(search.toLowerCase()))
     && (status === "Semua" || item.status === status)
     && (priority === "Semua" || item.prioritas === priority)
@@ -1363,7 +1365,7 @@ function renderDetailContent(type, item) {
 
   return `
     <div class="detail-grid">
-      <div class="detail-box"><strong>Pelapor</strong><br>${item.nama}</div>
+      <div class="detail-box"><strong>Pelapor</strong><br>${item.nama}<br><small>${item.email || "Email belum diisi"}</small><br><small>${item.phone || "Kontak belum diisi"}</small></div>
       <div class="detail-box"><strong>Wilayah</strong><br>${item.wilayah}</div>
       <div class="detail-box"><strong>Kategori</strong><br>${item.kategori}</div>
       <div class="detail-box"><strong>PIC</strong><br>${item.pic}</div>
@@ -1727,7 +1729,8 @@ async function addTicket(event) {
         body: JSON.stringify({
           type,
           reporterName: item.nama,
-          reporterContact: phone || email,
+          reporterContact: phone,
+          reporterEmail: email,
           channel: item.kanal,
           region: item.wilayah,
           category: item.kategori,
@@ -1916,6 +1919,7 @@ async function submitPublicComplaint(event) {
         captchaToken,
         reporterName: document.getElementById("publicReporterName").value,
         reporterContact: document.getElementById("publicReporterPhone").value,
+        reporterEmail: document.getElementById("publicReporterEmail").value,
         region: document.getElementById("publicRegion").value,
         targetScope: targetIsOpen ? document.getElementById("publicTargetScope").value : "",
         targetLevel: targetIsOpen ? document.getElementById("publicTargetLevel").value : "",
@@ -2209,11 +2213,4 @@ if (!applyPublicComplaintMode()) {
   restoreSession().then(loadData);
   setPage(currentPage);
 }
-
-
-
-
-
-
-
 

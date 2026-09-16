@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS tickets (
   type ENUM('aspirasi', 'pengaduan') NOT NULL,
   reporter_name VARCHAR(140) NOT NULL,
   reporter_contact VARCHAR(120),
+  reporter_email VARCHAR(160),
   channel VARCHAR(40) NOT NULL,
   region VARCHAR(120) NOT NULL,
   category VARCHAR(80) NOT NULL,
@@ -72,3 +73,4 @@ CREATE TABLE IF NOT EXISTS report_jobs (
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   completed_at TIMESTAMP NULL
 );
+

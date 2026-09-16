@@ -220,6 +220,7 @@ function ensure_schema(): void
             type VARCHAR(20) NOT NULL CHECK (type IN ('aspirasi', 'pengaduan')),
             reporter_name VARCHAR(140) NOT NULL,
             reporter_contact VARCHAR(120),
+            reporter_email VARCHAR(160),
             channel VARCHAR(40) NOT NULL,
             region VARCHAR(120) NOT NULL,
             category VARCHAR(80) NOT NULL,
@@ -239,6 +240,7 @@ function ensure_schema(): void
             created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
             updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
         )",
+        'ALTER TABLE tickets ADD COLUMN IF NOT EXISTS reporter_email VARCHAR(160)',
         'ALTER TABLE tickets ADD COLUMN IF NOT EXISTS target_level VARCHAR(80)',
         'ALTER TABLE tickets ADD COLUMN IF NOT EXISTS target_dapil VARCHAR(120)',
         'ALTER TABLE tickets ADD COLUMN IF NOT EXISTS target_province VARCHAR(120)',
@@ -1414,7 +1416,7 @@ function list_tickets(): void
         return;
     }
 
-    $sql = 'SELECT public_id, type, reporter_name, reporter_contact, channel, region, category, priority, status,
+    $sql = 'SELECT public_id, type, reporter_name, reporter_contact, reporter_email, channel, region, category, priority, status,
                    subject, description, assigned_unit, target_level, target_dapil, target_province, target_city, target_name,
                    sla_due_at, resolved_at, created_at, updated_at
             FROM tickets';
@@ -1449,6 +1451,7 @@ function create_public_complaint(): void
     $type = ($input['type'] ?? 'pengaduan') === 'aspirasi' ? 'aspirasi' : 'pengaduan';
     $name = trim((string) ($input['reporterName'] ?? ''));
     $phone = trim((string) ($input['reporterContact'] ?? ''));
+    $email = strtolower(trim((string) ($input['reporterEmail'] ?? '')));
     $region = trim((string) ($input['region'] ?? ''));
     $targetLevel = trim((string) ($input['targetLevel'] ?? ''));
     $targetDapil = trim((string) ($input['targetDapil'] ?? ''));
@@ -1467,6 +1470,11 @@ function create_public_complaint(): void
         return;
     }
 
+    if ($email !== '' && validate_email_address($email)) {
+        json_response(['error' => 'Format email pelapor tidak valid'], 422);
+        return;
+    }
+
     $defaultTarget = $targetScope === 'pusat' ? 'Admin Pusat SPAP' : 'Admin Wilayah - ' . $region;
     $assignedUnit = $targetName !== ''
         ? ($targetScope === 'pusat' ? 'Admin Pusat SPAP - ' . $targetName : 'Admin Wilayah - ' . $region . ' - ' . $targetName)
@@ -1475,6 +1483,7 @@ function create_public_complaint(): void
         'type' => $type,
         'reporterName' => $name,
         'reporterContact' => $phone,
+        'reporterEmail' => $email ?: null,
         'channel' => 'WhatsApp Link',
         'region' => $region,
         'category' => 'Belum Diklasifikasi',
@@ -1521,7 +1530,7 @@ function public_complaints_info(): void
             'subject',
             'description',
         ],
-        'optionalFields' => ['targetScope', 'targetLevel', 'targetDapil', 'targetName'],
+        'optionalFields' => ['reporterEmail', 'targetScope', 'targetLevel', 'targetDapil', 'targetName'],
         'note' => 'Tujuan penanganan bersifat opsional. Kategori dan prioritas ditentukan oleh admin/operator setelah pengaduan masuk.',
     ]);
 }
@@ -1538,10 +1547,10 @@ function insert_ticket_record(array $ticket, string $actorName, string $eventNot
 
     $statement = db()->prepare(
         "INSERT INTO tickets
-          (public_id, type, reporter_name, reporter_contact, channel, region, category, priority, status, subject, description, assigned_unit,
+          (public_id, type, reporter_name, reporter_contact, reporter_email, channel, region, category, priority, status, subject, description, assigned_unit,
            target_level, target_dapil, target_province, target_city, target_name, sla_due_at)
          VALUES
-          (?, ?, ?, ?, ?, ?, ?, ?, 'Baru', ?, ?, ?, ?, ?, ?, ?, ?, now() + (? * interval '1 hour'))
+          (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Baru', ?, ?, ?, ?, ?, ?, ?, ?, ?, now() + (? * interval '1 hour'))
          RETURNING *"
     );
     $slaHours = sla_hours_for_priority($ticket['priority'] ?? 'Sedang');
@@ -1550,6 +1559,7 @@ function insert_ticket_record(array $ticket, string $actorName, string $eventNot
         $type,
         $ticket['reporterName'] ?? 'Pelapor',
         $ticket['reporterContact'] ?? null,
+        $ticket['reporterEmail'] ?? null,
         $ticket['channel'] ?? 'Input Operator',
         $ticket['region'] ?? 'Nasional',
         $ticket['category'] ?? 'Umum',
@@ -2048,14 +2058,4 @@ function create_report_job(): void
 
     json_response(['data' => $statement->fetch()], 201);
 }
-
-
-
-
-
-
-
-
-
-
 
