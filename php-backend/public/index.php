@@ -91,6 +91,11 @@ function route_request(): void
         return;
     }
 
+    if ($method === 'POST' && $path === '/api/admin/email-test') {
+        send_admin_email_test();
+        return;
+    }
+
     if ($method === 'GET' && $path === '/api/admin/menu-permissions') {
         list_menu_permissions();
         return;
@@ -1657,6 +1662,64 @@ function insert_ticket_record(array $ticket, string $actorName, string $eventNot
 
 
 
+function send_admin_email_test(): void
+{
+    $actor = require_admin();
+    if (!$actor) {
+        return;
+    }
+
+    $input = input_json();
+    $to = strtolower(trim((string) ($input['to'] ?? ($actor['email'] ?? ''))));
+    if ($to === '' || validate_email_address($to)) {
+        json_response(['error' => 'Email tujuan test tidak valid'], 422);
+        return;
+    }
+
+    if (!email_notify_enabled()) {
+        json_response([
+            'status' => 'skipped',
+            'reason' => 'EMAIL_NOTIFY_ENABLED belum aktif',
+        ], 422);
+        return;
+    }
+
+    $subject = '[SPAP] Test email SMTP';
+    $body = implode("\n", [
+        'SPAP - Test Email SMTP',
+        '========================',
+        '',
+        'Email ini dikirim untuk menguji konfigurasi SMTP SPAP.',
+        'Jika email ini diterima, konfigurasi pengiriman email sudah aktif.',
+        '',
+        'Waktu test: ' . date('d M Y H:i') . ' WIB',
+        'Penguji: ' . ($actor['name'] ?? 'Admin SPAP'),
+        '',
+        '--',
+        'Pesan otomatis. Mohon tidak membalas email ini.',
+    ]);
+    $headers = [
+        'From' => email_from_name() . ' <' . email_from_address() . '>',
+        'Reply-To' => email_reply_to_address(),
+        'Auto-Submitted' => 'auto-generated',
+        'X-Auto-Response-Suppress' => 'All',
+        'Precedence' => 'bulk',
+        'MIME-Version' => '1.0',
+        'Content-Type' => 'text/plain; charset=UTF-8',
+    ];
+
+    $result = send_email_message($to, $subject, $body, $headers);
+    json_response([
+        'to' => $to,
+        'from' => email_from_address(),
+        'replyTo' => email_reply_to_address(),
+        'transport' => email_transport(),
+        'smtpHost' => smtp_host(),
+        'smtpPort' => smtp_port(),
+        'smtpSecure' => smtp_secure(),
+        'result' => $result,
+    ], ($result['status'] ?? '') === 'sent' ? 200 : 502);
+}
 function send_ticket_email_notice(array $ticket, string $subject, string $message): array
 {
     $email = trim((string) ($ticket['reporter_email'] ?? ''));
@@ -1806,6 +1869,8 @@ function send_smtp_email(string $to, string $subject, string $body, array $heade
         $rawHeaders = [
             'To: ' . $to,
             'Subject: ' . $subject,
+            'Date: ' . date(DATE_RFC2822),
+            'Message-ID: <' . bin2hex(random_bytes(12)) . '@spap.local>',
         ];
         foreach ($headers as $name => $value) {
             $rawHeaders[] = $name . ': ' . $value;
