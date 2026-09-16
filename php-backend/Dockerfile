@@ -5,11 +5,17 @@ RUN apt-get update \
   && docker-php-ext-install pdo pdo_pgsql pgsql \
   && pecl install redis-5.3.7 \
   && docker-php-ext-enable redis \
-  && rm -f /etc/apache2/mods-enabled/mpm_event.* /etc/apache2/mods-enabled/mpm_worker.* \
-  && a2dismod mpm_event mpm_worker || true \
-  && a2enmod mpm_prefork \
-  && a2enmod rewrite headers \
+  && echo 'ServerName localhost' > /etc/apache2/conf-available/servername.conf \
+  && a2enconf servername \
   && rm -rf /var/lib/apt/lists/*
+
+RUN php -m | grep -x pdo_pgsql \
+  && php -m | grep -x pgsql
+
+RUN rm -f /etc/apache2/mods-enabled/mpm_event.* /etc/apache2/mods-enabled/mpm_worker.* \
+  && a2dismod mpm_event mpm_worker || true
+
+RUN a2enmod mpm_prefork rewrite headers
 
 WORKDIR /var/www/html
 
