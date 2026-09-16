@@ -1558,8 +1558,20 @@ function create_public_complaint(): void
         ? 'Aspirasi dibuat dari link WhatsApp Business'
         : 'Pengaduan dibuat dari link WhatsApp Business';
     $created = insert_ticket_record($ticket, 'Form Publik WhatsApp', $eventNote);
-    $whatsappNotification = send_whatsapp_ticket_received_notice($created);
-    $emailNotification = send_ticket_email_notice($created, 'Tiket SPAP diterima', 'Tiket Anda sudah diterima dan menunggu proses penanganan.');
+    $whatsappNotification = ['status' => 'skipped'];
+    $emailNotification = ['status' => 'skipped'];
+    try {
+        $whatsappNotification = send_whatsapp_ticket_received_notice($created);
+    } catch (Throwable $error) {
+        error_log('WhatsApp notification failed after public complaint create: ' . $error->getMessage());
+        $whatsappNotification = ['status' => 'error', 'reason' => 'Notifikasi WhatsApp gagal diproses'];
+    }
+    try {
+        $emailNotification = send_ticket_email_notice($created, 'Tiket SPAP diterima', 'Tiket Anda sudah diterima dan menunggu proses penanganan.');
+    } catch (Throwable $error) {
+        error_log('Email notification failed after public complaint create: ' . $error->getMessage());
+        $emailNotification = ['status' => 'error', 'reason' => 'Notifikasi email gagal diproses'];
+    }
     json_response([
         'data' => [
             'id' => $created['public_id'],

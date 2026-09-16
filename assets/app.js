@@ -621,10 +621,11 @@ async function apiRequest(path, options = {}) {
     cache: "no-store",
     ...options
   });
+  const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(`API ${response.status}: ${path}`);
+    throw new Error(payload.error || payload.message || `API ${response.status}: ${path}`);
   }
-  return response.json();
+  return payload;
 }
 
 function applyAuthState() {
@@ -1940,8 +1941,9 @@ async function submitPublicComplaint(event) {
     result.classList.remove("hidden");
     result.innerHTML = `<strong>${typeLabel} terkirim.</strong><p>Nomor tiket: <b>${escapeHtml(data.id || "-")}</b>. ${typeLabel} diteruskan ke ${targetLabel}${targetDapil}.</p>`;
   } catch (error) {
+    const message = error?.message || "Silakan coba lagi atau hubungi admin WhatsApp SPAP.";
     result.classList.remove("hidden");
-    result.innerHTML = `<strong>${typeLabel} belum terkirim.</strong><p>Silakan coba lagi atau hubungi admin WhatsApp SPAP.</p>`;
+    result.innerHTML = `<strong>${typeLabel} belum terkirim.</strong><p>${escapeHtml(message)}</p>`;
   } finally {
     submitButton.disabled = false;
     if (type) resetPublicCaptcha();
@@ -2213,4 +2215,3 @@ if (!applyPublicComplaintMode()) {
   restoreSession().then(loadData);
   setPage(currentPage);
 }
-
