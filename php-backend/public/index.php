@@ -1822,7 +1822,14 @@ function send_smtp_email(string $to, string $subject, string $body, array $heade
         return ['status' => 'error', 'reason' => 'SMTP_HOST, SMTP_USERNAME, atau SMTP_PASSWORD belum diisi'];
     }
 
-    $socketHost = $secure === 'ssl' ? 'ssl://' . $host : $host;
+    $connectionHost = $host;
+    if (!filter_var($host, FILTER_VALIDATE_IP)) {
+        $resolvedHost = gethostbyname($host);
+        if ($resolvedHost !== $host) {
+            $connectionHost = $resolvedHost;
+        }
+    }
+    $socketHost = $secure === 'ssl' ? 'ssl://' . $connectionHost : $connectionHost;
     $socket = @fsockopen($socketHost, $port, $errno, $errstr, 20);
     if (!$socket) {
         return ['status' => 'error', 'reason' => 'SMTP connect gagal: ' . $errstr];
