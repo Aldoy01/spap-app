@@ -1938,8 +1938,13 @@ async function submitPublicComplaint(event) {
     updatePublicComplaintTypeUi();
     const targetLabel = escapeHtml(data.targetName || data.assignedUnit || "admin SPAP");
     const targetDapil = data.targetDapil ? ` (${escapeHtml(data.targetDapil)})` : "";
+    const emailNotification = data.emailNotification || {};
+    const emailStatus = emailNotification.status || "skipped";
+    const emailMessage = emailStatus === "sent"
+      ? `Email konfirmasi dikirim ke ${escapeHtml(emailNotification.to || "alamat pelapor")}.`
+      : `Email konfirmasi belum terkirim: ${escapeHtml(emailNotification.reason || "konfigurasi SMTP belum aktif")}.`;
     result.classList.remove("hidden");
-    result.innerHTML = `<strong>${typeLabel} terkirim.</strong><p>Nomor tiket: <b>${escapeHtml(data.id || "-")}</b>. ${typeLabel} diteruskan ke ${targetLabel}${targetDapil}.</p>`;
+    result.innerHTML = `<strong>${typeLabel} terkirim.</strong><p>Nomor tiket: <b>${escapeHtml(data.id || "-")}</b>. ${typeLabel} diteruskan ke ${targetLabel}${targetDapil}.</p><p>${emailMessage}</p>`;
   } catch (error) {
     const message = error?.message || "Silakan coba lagi atau hubungi admin WhatsApp SPAP.";
     result.classList.remove("hidden");
