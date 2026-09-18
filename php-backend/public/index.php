@@ -524,6 +524,11 @@ function smtp_secure(): string
     return strtolower(getenv_value('SMTP_SECURE', 'tls'));
 }
 
+function email_api_key(): string
+{
+    return getenv_value('EMAIL_API_KEY', '');
+}
+
 function request_webhook_token(array $input = []): string
 {
     return $_GET['token']
@@ -1790,6 +1795,10 @@ function send_ticket_email_notice(array $ticket, string $subject, string $messag
 
 function send_email_message(string $to, string $subject, string $body, array $headers): array
 {
+    if (email_transport() === 'resend') {
+        return send_resend_email($to, $subject, $body, $headers);
+    }
+
     if (email_transport() === 'smtp' || smtp_host() !== '') {
         return send_smtp_email($to, $subject, $body, $headers);
     }
@@ -1807,6 +1816,55 @@ function send_email_message(string $to, string $subject, string $body, array $he
     return $sent
         ? ['status' => 'sent', 'transport' => 'mail']
         : ['status' => 'error', 'reason' => 'mail() gagal mengirim email'];
+}
+
+function send_resend_email(string $to, string $subject, string $body, array $headers): array
+{
+    $apiKey = email_api_key();
+    if ($apiKey === '') {
+        return ['status' => 'error', 'reason' => 'EMAIL_API_KEY belum diisi'];
+    }
+    if (!function_exists('curl_init')) {
+        return ['status' => 'error', 'reason' => 'Ekstensi cURL tidak tersedia'];
+    }
+
+    $payload = [
+        'from' => email_from_name() . ' <' . email_from_address() . '>',
+        'to' => [$to],
+        'subject' => $subject,
+        'text' => $body,
+    ];
+    $replyTo = email_reply_to_address();
+    if ($replyTo !== '') {
+        $payload['reply_to'] = [$replyTo];
+    }
+
+    $curl = curl_init('https://api.resend.com/emails');
+    curl_setopt_array($curl, [
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 15,
+        CURLOPT_HTTPHEADER => [
+            'Authorization: Bearer ' . $apiKey,
+            'Content-Type: application/json',
+        ],
+    ]);
+    $response = curl_exec($curl);
+    $error = curl_error($curl);
+    $status = (int) curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    curl_close($curl);
+
+    if ($response === false || $error !== '') {
+        return ['status' => 'error', 'reason' => 'Resend request gagal: ' . $error];
+    }
+    $decoded = json_decode($response, true);
+    if ($status < 200 || $status >= 300) {
+        $reason = is_array($decoded) ? ($decoded['message'] ?? $decoded['name'] ?? '') : '';
+        return ['status' => 'error', 'reason' => 'Resend HTTP ' . $status . ($reason !== '' ? ': ' . $reason : '')];
+    }
+
+    return ['status' => 'sent', 'transport' => 'resend'];
 }
 
 function send_smtp_email(string $to, string $subject, string $body, array $headers): array
