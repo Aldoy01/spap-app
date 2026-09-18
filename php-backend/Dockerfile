@@ -1,15 +1,16 @@
 FROM php:8.2-apache
 
 RUN apt-get -o Acquire::Retries=5 update \
-  && apt-get -o Acquire::Retries=5 install -y --fix-missing --no-install-recommends libpq-dev libzip-dev unzip \
-  && docker-php-ext-install pdo pdo_pgsql pgsql \
+  && apt-get -o Acquire::Retries=5 install -y --fix-missing --no-install-recommends libcurl4-openssl-dev libpq-dev libzip-dev unzip \
+  && docker-php-ext-install curl pdo pdo_pgsql pgsql \
   && pecl install redis \
   && docker-php-ext-enable redis \
   && echo 'ServerName localhost' > /etc/apache2/conf-available/servername.conf \
   && a2enconf servername \
   && rm -rf /var/lib/apt/lists/*
 
-RUN php -m | grep -x pdo_pgsql \
+RUN php -m | grep -x curl \
+  && php -m | grep -x pdo_pgsql \
   && php -m | grep -x pgsql
 
 RUN rm -f /etc/apache2/mods-enabled/mpm_event.* /etc/apache2/mods-enabled/mpm_worker.* \
