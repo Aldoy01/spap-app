@@ -801,9 +801,12 @@ select.is-locked {
 .metric::after {
   content: "";
   position: absolute;
-  inset: 0 0 auto;
-  height: 3px;
-  background: var(--metric-accent, #f97316);
+  right: -26px;
+  top: -28px;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  background: rgba(255, 138, 29, .12);
 }
 
 .metric:hover {
@@ -841,52 +844,24 @@ select.is-locked {
 }
 
 .kpi-icon {
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
   display: grid;
   place-items: center;
-  border: 1px solid var(--metric-icon-border, #dbeafe);
-  border-radius: 10px;
-  background: var(--metric-icon-bg, #eff6ff);
-  color: var(--metric-accent, #2563eb);
+  border-radius: 14px;
+  background: linear-gradient(135deg, #fff0e4, #ffffff);
+  color: var(--brand-dark);
+  box-shadow: var(--shadow-soft);
 }
 
 .kpi-icon svg {
-  width: 23px;
-  height: 23px;
+  width: 22px;
+  height: 22px;
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.8;
+  stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
-}
-
-.dashboard-kpi > strong {
-  color: #172033;
-}
-
-.metric-tickets {
-  --metric-accent: #2563eb;
-  --metric-icon-bg: #eff6ff;
-  --metric-icon-border: #bfdbfe;
-}
-
-.metric-completed {
-  --metric-accent: #15803d;
-  --metric-icon-bg: #f0fdf4;
-  --metric-icon-border: #bbf7d0;
-}
-
-.metric-critical {
-  --metric-accent: #dc2626;
-  --metric-icon-bg: #fef2f2;
-  --metric-icon-border: #fecaca;
-}
-
-.metric-whatsapp {
-  --metric-accent: #0f766e;
-  --metric-icon-bg: #f0fdfa;
-  --metric-icon-border: #99f6e4;
 }
 
 .dashboard-kpi span {
