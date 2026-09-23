@@ -909,15 +909,25 @@ function renderMetrics() {
   const whatsapp = tickets.filter(t => t.kanal === "WhatsApp").length;
   const resolutionRate = percent(selesai, total);
   const criticalRate = percent(kritis, total);
+  const metricIcons = {
+    tickets: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6L5.5 5Z"/></svg>',
+    completed: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.3 2.3 4.8-5"/></svg>',
+    critical: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 4.2 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',
+    whatsapp: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h9a4 4 0 0 1 4 4Z"/><path d="M8 10h.01M12 10h.01M16 10h.01"/></svg>'
+  };
   const metrics = [
-    ["Total Tiket", total.toLocaleString("id-ID"), `${aktif} masih aktif`],
-    ["Rasio Selesai", `${resolutionRate}%`, `${selesai} tiket selesai`],
-    ["Prioritas Kritis", kritis.toLocaleString("id-ID"), `${criticalRate}% dari total`],
-    ["Kanal WhatsApp", whatsapp.toLocaleString("id-ID"), `${percent(whatsapp, total)}% tiket masuk`]
+    { label: "Total Tiket", value: total.toLocaleString("id-ID"), trend: `${aktif} masih aktif`, icon: "tickets", tone: "tickets" },
+    { label: "Rasio Selesai", value: `${resolutionRate}%`, trend: `${selesai} tiket selesai`, icon: "completed", tone: "completed" },
+    { label: "Prioritas Kritis", value: kritis.toLocaleString("id-ID"), trend: `${criticalRate}% dari total`, icon: "critical", tone: "critical" },
+    { label: "Kanal WhatsApp", value: whatsapp.toLocaleString("id-ID"), trend: `${percent(whatsapp, total)}% tiket masuk`, icon: "whatsapp", tone: "whatsapp" }
   ];
-  const icons = ["T", "S", "K", "WA"];
-  document.getElementById("metricGrid").innerHTML = metrics.map(([label, value, trend], index) => `
-    <article class="metric dashboard-kpi"><div class="kpi-icon">${icons[index]}</div><strong>${value}</strong><span>${label}</span><em class="${label === "Prioritas Kritis" && kritis ? "down" : ""}">${trend}</em></article>
+  document.getElementById("metricGrid").innerHTML = metrics.map(metric => `
+    <article class="metric dashboard-kpi metric-${metric.tone}">
+      <div class="kpi-icon">${metricIcons[metric.icon]}</div>
+      <strong>${metric.value}</strong>
+      <span>${metric.label}</span>
+      <em class="${metric.label === "Prioritas Kritis" && kritis ? "down" : ""}">${metric.trend}</em>
+    </article>
   `).join("");
 }
 
