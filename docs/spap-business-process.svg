@@ -1,0 +1,103 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">Alur Proses Bisnis Pengaduan SPAP</title>
+  <desc id="desc">Diagram proses dari pengaduan masyarakat masuk, validasi, triage, disposisi, tindak lanjut, eskalasi SLA, hingga selesai.</desc>
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#172033" flood-opacity="0.10"/></filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z" fill="#7a8798"/></marker>
+    <marker id="arrowRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z" fill="#dc2626"/></marker>
+    <style>
+      text{font-family:Inter,Segoe UI,Arial,sans-serif;fill:#172033;letter-spacing:0}.title{font-size:38px;font-weight:800}.subtitle{font-size:17px;fill:#667085}.lane{font-size:13px;font-weight:800}.step{font-size:14px;font-weight:900;fill:#fff}.card-title{font-size:21px;font-weight:800}.body{font-size:14px;fill:#5f6b7a}.chip{font-size:12px;font-weight:800}.footer{font-size:13px;fill:#667085}.arrow{stroke:#7a8798;stroke-width:3;fill:none;marker-end:url(#arrow)}.arrow-red{stroke:#dc2626;stroke-width:3;fill:none;marker-end:url(#arrowRed)}
+    </style>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#f6f8fb"/>
+  <rect x="0" y="0" width="1920" height="12" fill="#f97316"/>
+  <text id="heading" x="72" y="78" class="title">Alur Proses Bisnis Pengaduan SPAP</text>
+  <text x="72" y="112" class="subtitle">Dari laporan masyarakat diterima hingga penanganan selesai dan pelapor mendapatkan pembaruan.</text>
+  <rect x="1540" y="52" width="308" height="64" rx="12" fill="#fff" stroke="#e3e8ef"/>
+  <circle cx="1575" cy="84" r="16" fill="#eaf7ef"/><path d="m1568 84 5 5 10-11" fill="none" stroke="#15803d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="1605" y="80" font-size="14" font-weight="800">SPAP</text><text x="1605" y="101" font-size="12" fill="#667085">Pelayanan dan Advokasi Publik</text>
+
+  <rect x="72" y="152" width="1776" height="64" rx="12" fill="#fff" stroke="#e3e8ef"/>
+  <text x="98" y="178" class="lane" fill="#9a3412">KANAL MASUK</text>
+  <text x="98" y="200" class="body">Form web / tautan WhatsApp</text>
+  <text x="570" y="178" class="lane" fill="#1d4ed8">SISTEM SPAP</text>
+  <text x="570" y="200" class="body">Validasi, tiket, notifikasi, audit</text>
+  <text x="1088" y="178" class="lane" fill="#047857">ADMIN / PIC</text>
+  <text x="1088" y="200" class="body">Triage, disposisi, penanganan</text>
+  <text x="1518" y="178" class="lane" fill="#be123c">KONTROL SLA</text>
+  <text x="1518" y="200" class="body">Monitoring dan eskalasi otomatis</text>
+
+  <!-- Main process cards -->
+  <g filter="url(#shadow)">
+    <rect x="72" y="278" width="260" height="292" rx="14" fill="#fff" stroke="#fed7aa"/>
+    <rect x="72" y="278" width="260" height="6" rx="3" fill="#f97316"/>
+    <circle cx="108" cy="322" r="20" fill="#f97316"/><text x="108" y="327" text-anchor="middle" class="step">01</text>
+    <text x="140" y="328" class="card-title">Laporan Masuk</text>
+    <text x="98" y="372" class="body"><tspan x="98" dy="0">Pelapor memilih Pengaduan</tspan><tspan x="98" dy="23">atau Aspirasi, lalu mengisi:</tspan><tspan x="98" dy="28">• Identitas dan email</tspan><tspan x="98" dy="23">• Wilayah</tspan><tspan x="98" dy="23">• Judul dan kronologi</tspan><tspan x="98" dy="23">• Tujuan (opsional)</tspan></text>
+    <rect x="98" y="518" width="176" height="28" rx="14" fill="#fff7ed"/><text x="186" y="537" text-anchor="middle" class="chip" fill="#c2410c">Turnstile anti-robot</text>
+
+    <rect x="374" y="278" width="260" height="292" rx="14" fill="#fff" stroke="#bfdbfe"/>
+    <rect x="374" y="278" width="260" height="6" rx="3" fill="#2563eb"/>
+    <circle cx="410" cy="322" r="20" fill="#2563eb"/><text x="410" y="327" text-anchor="middle" class="step">02</text>
+    <text x="442" y="328" class="card-title">Validasi Sistem</text>
+    <text x="400" y="372" class="body"><tspan x="400">Sistem memeriksa:</tspan><tspan x="400" dy="28">• Token keamanan</tspan><tspan x="400" dy="23">• Data wajib dan format email</tspan><tspan x="400" dy="23">• Wilayah dan tujuan</tspan><tspan x="400" dy="23">• Duplikasi / data tidak valid</tspan></text>
+    <rect x="400" y="502" width="114" height="28" rx="14" fill="#eff6ff"/><text x="457" y="521" text-anchor="middle" class="chip" fill="#1d4ed8">Valid</text>
+    <rect x="522" y="502" width="86" height="28" rx="14" fill="#fff1f2"/><text x="565" y="521" text-anchor="middle" class="chip" fill="#be123c">Tolak</text>
+
+    <rect x="676" y="278" width="260" height="292" rx="14" fill="#fff" stroke="#bfdbfe"/>
+    <rect x="676" y="278" width="260" height="6" rx="3" fill="#2563eb"/>
+    <circle cx="712" cy="322" r="20" fill="#2563eb"/><text x="712" y="327" text-anchor="middle" class="step">03</text>
+    <text x="744" y="328" class="card-title">Registrasi Tiket</text>
+    <text x="702" y="372" class="body"><tspan x="702">Data disimpan ke database:</tspan><tspan x="702" dy="28">• Nomor tiket dibuat</tspan><tspan x="702" dy="23">• Status awal: Baru</tspan><tspan x="702" dy="23">• Riwayat aktivitas dicatat</tspan><tspan x="702" dy="23">• Bukti penerimaan dikirim</tspan><tspan x="702" dy="23">  melalui email / WhatsApp</tspan></text>
+    <rect x="702" y="518" width="104" height="28" rx="14" fill="#eff6ff"/><text x="754" y="537" text-anchor="middle" class="chip" fill="#1d4ed8">BARU</text>
+
+    <rect x="978" y="278" width="260" height="292" rx="14" fill="#fff" stroke="#bbf7d0"/>
+    <rect x="978" y="278" width="260" height="6" rx="3" fill="#16a34a"/>
+    <circle cx="1014" cy="322" r="20" fill="#16a34a"/><text x="1014" y="327" text-anchor="middle" class="step">04</text>
+    <text x="1046" y="328" class="card-title">Triage Admin</text>
+    <text x="1004" y="372" class="body"><tspan x="1004">Admin pusat / wilayah:</tspan><tspan x="1004" dy="28">• Verifikasi substansi</tspan><tspan x="1004" dy="23">• Tetapkan kategori</tspan><tspan x="1004" dy="23">• Tetapkan prioritas</tspan><tspan x="1004" dy="23">• Tentukan SLA</tspan><tspan x="1004" dy="23">• Tentukan struktur tujuan</tspan></text>
+    <rect x="1004" y="518" width="174" height="28" rx="14" fill="#f0fdf4"/><text x="1091" y="537" text-anchor="middle" class="chip" fill="#15803d">KLASIFIKASI &amp; SLA</text>
+
+    <rect x="1280" y="278" width="260" height="292" rx="14" fill="#fff" stroke="#bbf7d0"/>
+    <rect x="1280" y="278" width="260" height="6" rx="3" fill="#16a34a"/>
+    <circle cx="1316" cy="322" r="20" fill="#16a34a"/><text x="1316" y="327" text-anchor="middle" class="step">05</text>
+    <text x="1348" y="328" class="card-title">Disposisi &amp; Proses</text>
+    <text x="1306" y="372" class="body"><tspan x="1306">Tiket diteruskan kepada:</tspan><tspan x="1306" dy="28">• PIC / operator</tspan><tspan x="1306" dy="23">• Struktur wilayah / pusat</tspan><tspan x="1306" dy="23">• Anggota sesuai tujuan</tspan><tspan x="1306" dy="28">PIC mencatat tindak lanjut</tspan><tspan x="1306" dy="23">dan bukti penanganan.</tspan></text>
+    <rect x="1306" y="518" width="118" height="28" rx="14" fill="#ecfeff"/><text x="1365" y="537" text-anchor="middle" class="chip" fill="#0e7490">DIPROSES</text>
+
+    <rect x="1582" y="278" width="266" height="292" rx="14" fill="#fff" stroke="#bbf7d0"/>
+    <rect x="1582" y="278" width="266" height="6" rx="3" fill="#16a34a"/>
+    <circle cx="1618" cy="322" r="20" fill="#16a34a"/><text x="1618" y="327" text-anchor="middle" class="step">06</text>
+    <text x="1650" y="328" class="card-title">Verifikasi &amp; Selesai</text>
+    <text x="1608" y="372" class="body"><tspan x="1608">Hasil penanganan diperiksa:</tspan><tspan x="1608" dy="28">• Solusi dan catatan lengkap</tspan><tspan x="1608" dy="23">• Bukti tindak lanjut tersedia</tspan><tspan x="1608" dy="23">• Waktu selesai tercatat</tspan><tspan x="1608" dy="23">• Pelapor menerima informasi</tspan><tspan x="1608" dy="23">  perkembangan terakhir</tspan></text>
+    <rect x="1608" y="518" width="106" height="28" rx="14" fill="#f0fdf4"/><text x="1661" y="537" text-anchor="middle" class="chip" fill="#15803d">SELESAI</text>
+  </g>
+
+  <!-- Main arrows -->
+  <path class="arrow" d="M332 424H364"/><path class="arrow" d="M634 424H666"/><path class="arrow" d="M936 424H968"/><path class="arrow" d="M1238 424H1270"/><path class="arrow" d="M1540 424H1572"/>
+
+  <!-- SLA branch -->
+  <rect x="574" y="660" width="772" height="216" rx="16" fill="#fff" stroke="#fecaca" filter="url(#shadow)"/>
+  <rect x="574" y="660" width="8" height="216" rx="4" fill="#dc2626"/>
+  <circle cx="626" cy="712" r="22" fill="#fef2f2"/><path d="M626 699v15l10 6" fill="none" stroke="#dc2626" stroke-width="3" stroke-linecap="round"/>
+  <text x="666" y="707" class="card-title">Kontrol SLA dan Eskalasi Otomatis</text>
+  <text x="666" y="738" class="body">Selama tiket belum selesai, sistem memonitor tenggat dan prioritas penanganan.</text>
+  <rect x="620" y="772" width="202" height="58" rx="10" fill="#fff7ed" stroke="#fed7aa"/><text x="721" y="796" text-anchor="middle" class="chip" fill="#c2410c">SLA MASIH AMAN</text><text x="721" y="817" text-anchor="middle" class="body">Lanjutkan penanganan</text>
+  <rect x="846" y="772" width="216" height="58" rx="10" fill="#fff1f2" stroke="#fecdd3"/><text x="954" y="796" text-anchor="middle" class="chip" fill="#be123c">SLA TERLEWATI / KRITIS</text><text x="954" y="817" text-anchor="middle" class="body">Status menjadi Eskalasi</text>
+  <rect x="1086" y="772" width="214" height="58" rx="10" fill="#fdf2f8" stroke="#fbcfe8"/><text x="1193" y="796" text-anchor="middle" class="chip" fill="#be185d">NAIK KE STRUKTUR ATAS</text><text x="1193" y="817" text-anchor="middle" class="body">PIC dan SLA diperbarui</text>
+  <path class="arrow-red" d="M1410 570V628H1346"/>
+  <text x="1426" y="617" class="chip" fill="#be123c">monitor</text>
+  <path class="arrow" d="M1300 846H1480V570"/>
+  <text x="1396" y="838" class="chip" fill="#475569">kembali diproses</text>
+
+  <!-- Supporting controls -->
+  <rect x="72" y="930" width="1776" height="92" rx="14" fill="#172033"/>
+  <text x="104" y="963" font-size="14" font-weight="800" fill="#fff">Kontrol pada setiap tahap</text>
+  <text x="104" y="994" font-size="13" fill="#cbd5e1">Audit trail perubahan status</text>
+  <circle cx="365" cy="989" r="4" fill="#f97316"/><text x="382" y="994" font-size="13" fill="#cbd5e1">Pembatasan akses berdasarkan role dan wilayah</text>
+  <circle cx="762" cy="989" r="4" fill="#f97316"/><text x="779" y="994" font-size="13" fill="#cbd5e1">Notifikasi email setiap perkembangan</text>
+  <circle cx="1115" cy="989" r="4" fill="#f97316"/><text x="1132" y="994" font-size="13" fill="#cbd5e1">Dashboard SLA dan eskalasi</text>
+  <circle cx="1425" cy="989" r="4" fill="#f97316"/><text x="1442" y="994" font-size="13" fill="#cbd5e1">Data tersimpan di PostgreSQL</text>
+  <text x="1848" y="1056" text-anchor="end" class="footer">SPAP • Alur Pengaduan dan Aspirasi</text>
+</svg>
