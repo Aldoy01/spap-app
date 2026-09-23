@@ -651,40 +651,30 @@ function nav_icon(string $name): string
 
       <section class="page" id="settings">
         <div class="dashboard-grid">
-          <section class="panel">
-            <div class="panel-head">
+          <section class="panel span-3 settings-user-panel">
+            <div class="panel-head settings-user-head">
               <div>
-                <h3>Status Sistem</h3>
-                <p>Kondisi layanan dan database Railway</p>
-              </div>
-            </div>
-            <div class="warning-list">
-              <div class="warning positif"><strong>Backend PHP 7 aktif</strong><p>Endpoint health tersedia di port 3000.</p></div>
-              <div class="warning positif"><strong>PostgreSQL sehat</strong><p>Data tiket dan OSINT tersimpan di database utama.</p></div>
-              <div class="warning positif"><strong>Session fallback aktif</strong><p>Redis opsional; session bisa memakai PostgreSQL.</p></div>
-            </div>
-          </section>
-          <section class="panel span-2">
-            <div class="panel-head">
-              <div>
+                <p class="settings-kicker">Administrasi akun</p>
                 <h3>Tambah User</h3>
-                <p>Admin dapat membuat akun operator, verifikator, koordinator, atau admin</p>
+                <p>Buat akun baru dan tentukan kewenangan aksesnya di dalam SPAP.</p>
               </div>
             </div>
-            <form id="userForm" class="form-grid">
-              <label>Nama<input id="userName" required></label>
-              <label>Email<input id="userEmail" type="email" required></label>
-              <label class="full user-target-field">Nama Tujuan / Anggota yang Diakses
-                <input id="userTargetName" list="userTargetNameOptions" placeholder="Pilih atau ketik nama anggota yang dituju">
-                <datalist id="userTargetNameOptions"></datalist>
-                <small class="field-hint">Kosongkan untuk akses semua data sesuai role. Isi nama anggota agar user hanya melihat aspirasi/pengaduan yang ditujukan ke nama tersebut.</small>
+            <form id="userForm" class="form-grid user-form">
+              <div class="user-form-section full">
+                <span class="user-form-step">01</span>
+                <div><strong>Identitas akun</strong><small>Informasi dasar untuk mengenali pengguna.</small></div>
+              </div>
+              <label>Nama lengkap
+                <input id="userName" placeholder="Contoh: Budi Santoso" autocomplete="name" required>
               </label>
-              <label class="full user-region-field">Wilayah Akses
-                <select id="userRegionScope">
-                  <option value="">Semua Wilayah</option>
-                </select>
-                <small class="field-hint">Isi wilayah untuk membuat user wilayah. User hanya melihat tiket dari provinsi tersebut atau tujuan provinsi yang sama.</small>
+              <label>Email
+                <input id="userEmail" type="email" placeholder="nama@organisasi.id" autocomplete="email" required>
               </label>
+
+              <div class="user-form-section full">
+                <span class="user-form-step">02</span>
+                <div><strong>Cakupan akses</strong><small>Batasi data berdasarkan peran, wilayah, atau nama tujuan.</small></div>
+              </div>
               <label>Role
                 <select id="userRole">
                   <option value="operator">Operator</option>
@@ -693,18 +683,38 @@ function nav_icon(string $name): string
                   <option value="admin">Admin</option>
                 </select>
               </label>
-              <label>Unit/Struktur<input id="userUnit" value="Unit SPAP"></label>
-              <label>Password awal
-                <input id="userPassword" type="password" autocomplete="new-password" placeholder="Minimal 10 karakter, Aa, angka, simbol">
-                <small class="field-hint">Contoh format kuat: SpapUser#2026. Jangan gunakan admin123 atau user123.</small>
+              <label>Unit / Struktur
+                <input id="userUnit" value="Unit SPAP" placeholder="Contoh: DPW Banten">
               </label>
-              <label>Status
+              <label class="user-region-field">Wilayah akses
+                <select id="userRegionScope">
+                  <option value="">Semua Wilayah</option>
+                </select>
+                <small class="field-hint">User wilayah hanya dapat melihat laporan dari provinsi yang dipilih.</small>
+              </label>
+              <label class="user-target-field">Nama tujuan / anggota
+                <input id="userTargetName" list="userTargetNameOptions" placeholder="Pilih atau ketik nama tujuan">
+                <datalist id="userTargetNameOptions"></datalist>
+                <small class="field-hint">Opsional. Isi agar akses hanya berlaku untuk laporan yang ditujukan kepada nama tersebut.</small>
+              </label>
+
+              <div class="user-form-section full">
+                <span class="user-form-step">03</span>
+                <div><strong>Keamanan akun</strong><small>Tetapkan password awal dan status pengguna.</small></div>
+              </div>
+              <label>Password awal
+                <input id="userPassword" type="password" autocomplete="new-password" placeholder="Minimal 10 karakter">
+                <small class="field-hint">Gunakan huruf besar, huruf kecil, angka, dan simbol.</small>
+              </label>
+              <label>Status akun
                 <select id="userStatus">
                   <option value="active">Aktif</option>
                   <option value="inactive">Nonaktif</option>
                 </select>
               </label>
-              <button class="btn primary" type="submit">Simpan User</button>
+              <div class="user-form-actions full">
+                <button class="btn primary" type="submit">Simpan User</button>
+              </div>
             </form>
           </section>
           <section class="panel span-3">

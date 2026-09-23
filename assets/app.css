@@ -2196,6 +2196,134 @@ dialog::backdrop {
   background: #eff6ff;
 }
 
+.settings-user-panel {
+  padding: 0;
+  overflow: hidden;
+}
+
+.settings-user-head {
+  margin: 0;
+  padding: 24px 28px 20px;
+  border-bottom: 1px solid var(--line);
+  background: #fbfcff;
+}
+
+.settings-kicker {
+  margin: 0 0 6px !important;
+  color: #ea580c !important;
+  font-size: 11px !important;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.settings-user-head h3 {
+  font-size: 24px;
+}
+
+.user-form {
+  gap: 18px 22px;
+  padding: 24px 28px 28px;
+}
+
+.user-form label {
+  gap: 7px;
+  color: #263244;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.user-form input,
+.user-form select {
+  min-height: 48px;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.user-form input::placeholder {
+  color: #9aa4b2;
+}
+
+.user-form-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+  padding: 16px 0 12px;
+  border-top: 1px solid var(--line);
+}
+
+.user-form-section:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.user-form-step {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #e9f8ef;
+  color: #087443;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.user-form-section div {
+  display: grid;
+  gap: 3px;
+}
+
+.user-form-section strong {
+  color: var(--brand-dark);
+  font-size: 15px;
+}
+
+.user-form-section small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.user-form .user-target-field,
+.user-form .user-region-field {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.user-form .field-hint {
+  margin-top: 1px;
+  font-size: 11px;
+}
+
+.user-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.user-form-actions .btn {
+  min-width: 190px;
+  min-height: 48px;
+}
+@media (max-width: 640px) {
+  .settings-user-head,
+  .user-form {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .user-form-actions .btn {
+    width: 100%;
+  }
+}
 .management-list {
   display: grid;
   gap: 12px;
