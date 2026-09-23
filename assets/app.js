@@ -205,6 +205,7 @@ function populateProvinceOptions() {
 
 function isPublicComplaintMode() {
   const params = new URLSearchParams(window.location.search);
+  if (params.get("admin") === "login") return false;
   return window.location.hostname === "lapor.pks.id"
     || params.get("aduan") === "wa"
     || params.get("form") === "pengaduan";
