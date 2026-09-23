@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: ' . getenv_value('CORS_ORIGIN', '*'));
+apply_cors_headers();
 header('Access-Control-Allow-Methods: GET, POST, PATCH, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
@@ -18,6 +18,26 @@ try {
     json_response(['error' => 'Internal server error'], 500);
 }
 
+function apply_cors_headers(): void
+{
+    $configured = preg_split('/\s*,\s*/', getenv_value('CORS_ORIGIN', ''), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+    $allowedOrigins = array_values(array_unique(array_merge($configured, [
+        'https://lapor.pks.id',
+        'https://spap-frontend-production.up.railway.app',
+        'http://localhost:8080',
+    ])));
+    $requestOrigin = trim((string) ($_SERVER['HTTP_ORIGIN'] ?? ''));
+
+    if (in_array('*', $allowedOrigins, true)) {
+        header('Access-Control-Allow-Origin: *');
+        return;
+    }
+
+    if ($requestOrigin !== '' && in_array($requestOrigin, $allowedOrigins, true)) {
+        header('Access-Control-Allow-Origin: ' . $requestOrigin);
+        header('Vary: Origin');
+    }
+}
 function route_request(): void
 {
     $method = $_SERVER['REQUEST_METHOD'];
