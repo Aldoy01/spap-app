@@ -1602,21 +1602,140 @@ th {
 
 .badge {
   display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 28px;
+  padding: 5px 10px;
+  border: 1px solid #dfe5ec;
   border-radius: 999px;
-  padding: 6px 10px;
+  background: #f8fafc;
+  color: #475569;
   font-size: 12px;
   font-weight: 800;
-  background: #eef2f7;
+  line-height: 1;
+  white-space: nowrap;
+  vertical-align: middle;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .05);
 }
 
-.badge.Kritis { color: #fff; background: var(--red); }
-.badge.Tinggi { color: #fff; background: var(--brand-dark); }
-.badge.Sedang { color: #111827; background: #fde68a; }
-.badge.Rendah { color: #fff; background: var(--teal); }
-.badge.Baru { color: #fff; background: var(--blue); }
-.badge.Diproses { color: #111827; background: #bfdbfe; }
-.badge.Eskalasi { color: #fff; background: var(--red); }
-.badge.Selesai { color: #fff; background: var(--green); }
+.badge::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.badge.Kritis {
+  color: #be123c;
+  border-color: #fecdd3;
+  background: #fff1f2;
+}
+
+.badge.Kritis::before {
+  content: "!";
+  width: 15px;
+  height: 15px;
+  flex-basis: 15px;
+  display: grid;
+  place-items: center;
+  background: #be123c;
+  color: #fff;
+  font-size: 10px;
+}
+
+.badge.Tinggi {
+  color: #c2410c;
+  border-color: #fed7aa;
+  background: #fff7ed;
+}
+
+.badge.Tinggi::before {
+  width: 0;
+  height: 0;
+  flex-basis: 0;
+  border-right: 5px solid transparent;
+  border-bottom: 9px solid currentColor;
+  border-left: 5px solid transparent;
+  border-radius: 1px;
+  background: transparent;
+}
+
+.badge.Sedang {
+  color: #a16207;
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.badge.Sedang::before {
+  width: 10px;
+  height: 2px;
+  flex-basis: 10px;
+  border-radius: 2px;
+  box-shadow: 0 -4px 0 currentColor, 0 4px 0 currentColor;
+}
+
+.badge.Rendah {
+  color: #047857;
+  border-color: #a7f3d0;
+  background: #ecfdf5;
+}
+
+.badge.Baru {
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+  background: #eff6ff;
+}
+
+.badge.Baru::before {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .14);
+}
+
+.badge.Diproses {
+  color: #0e7490;
+  border-color: #a5f3fc;
+  background: #ecfeff;
+}
+
+.badge.Diproses::before {
+  width: 12px;
+  height: 12px;
+  flex-basis: 12px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  background: transparent;
+}
+
+.badge.Eskalasi {
+  color: #be185d;
+  border-color: #fbcfe8;
+  background: #fdf2f8;
+}
+
+.badge.Eskalasi::before {
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  transform: rotate(45deg);
+}
+
+.badge.Selesai {
+  color: #15803d;
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.badge.Selesai::before {
+  width: 5px;
+  height: 9px;
+  flex-basis: 5px;
+  border: solid currentColor;
+  border-width: 0 2px 2px 0;
+  border-radius: 0;
+  background: transparent;
+  transform: rotate(45deg) translateY(-1px);
+}
 
 .ticket-grid, .topic-grid, .workflow-grid {
   display: grid;
