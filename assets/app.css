@@ -3450,3 +3450,272 @@ dialog::backdrop {
   font-weight: 750;
   line-height: 1.45;
 }
+
+/* Modern public complaint and aspiration form */
+.public-complaint-screen {
+  background: #f4f6f8 !important;
+}
+
+.public-complaint-card {
+  max-width: 1000px !important;
+  padding: clamp(22px, 3.5vw, 38px) !important;
+  border: 1px solid #e3e8ef !important;
+  border-radius: 18px !important;
+  background: #fff !important;
+  box-shadow: 0 22px 64px rgba(15, 23, 42, .10) !important;
+}
+
+.public-complaint-head {
+  gap: 18px !important;
+  margin-bottom: 24px !important;
+  padding-bottom: 24px !important;
+}
+
+.public-complaint-head h1 {
+  margin-bottom: 8px;
+  font-size: clamp(1.75rem, 3vw, 2.45rem) !important;
+  line-height: 1.15;
+}
+
+.public-complaint-head p:not(.eyebrow) {
+  max-width: 720px;
+  margin: 0;
+  font-size: .98rem;
+  line-height: 1.65;
+}
+
+.public-complaint-form {
+  gap: 18px 22px !important;
+}
+
+.public-required-note {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin: -4px 0 2px;
+  color: #667085;
+  font-size: .78rem;
+  font-weight: 700;
+}
+
+.public-required-note p {
+  margin: 0;
+}
+
+.required-mark {
+  color: #dc2626 !important;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.public-complaint-form .form-section {
+  position: relative;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px !important;
+  min-height: 68px;
+  margin-top: 14px !important;
+  padding: 14px 18px 14px 64px !important;
+  border: 1px solid #e3e8ef !important;
+  border-left: 1px solid #e3e8ef !important;
+  border-radius: 12px !important;
+  background: #f8fafc !important;
+}
+
+.public-complaint-form .form-section::before {
+  content: attr(data-step);
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: #fff1e8;
+  color: #c2410c;
+  font-size: .72rem;
+  font-weight: 900;
+  transform: translateY(-50%);
+}
+
+.public-complaint-form .form-section > span,
+.public-complaint-form .form-section:first-child span {
+  color: #172033 !important;
+  font-size: .96rem !important;
+  font-weight: 850 !important;
+  text-transform: none !important;
+}
+
+.public-complaint-form .form-section > small {
+  color: #667085 !important;
+  font-size: .78rem !important;
+  font-weight: 600;
+  line-height: 1.45;
+  text-align: left !important;
+}
+
+.public-complaint-form label {
+  gap: 8px !important;
+  color: #344054 !important;
+  font-size: .88rem !important;
+  font-weight: 750 !important;
+}
+
+.public-field-label {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  color: #344054;
+  font-size: .88rem;
+  font-weight: 800;
+}
+
+.public-field-hint {
+  color: #667085;
+  font-size: .75rem;
+  font-weight: 550;
+  line-height: 1.45;
+}
+
+.public-complaint-form input,
+.public-complaint-form select,
+.public-complaint-form textarea {
+  min-height: 52px !important;
+  padding: 13px 15px !important;
+  border: 1px solid #cfd8e3 !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  color: #172033;
+  font-size: .94rem !important;
+  font-weight: 500 !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .03);
+}
+
+.public-complaint-form textarea {
+  min-height: 154px !important;
+  line-height: 1.6;
+}
+
+.public-complaint-form input:hover,
+.public-complaint-form select:hover,
+.public-complaint-form textarea:hover {
+  border-color: #aeb9c7 !important;
+}
+
+.public-complaint-form input:focus,
+.public-complaint-form select:focus,
+.public-complaint-form textarea:focus {
+  border-color: #f97316 !important;
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, .12) !important;
+}
+
+.public-type-toggle {
+  max-width: 620px;
+}
+
+.public-type-toggle span {
+  border-radius: 12px !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, .05);
+}
+
+.public-type-toggle input:focus-visible + span {
+  outline: 3px solid rgba(249, 115, 22, .22);
+  outline-offset: 2px;
+}
+
+.public-complaint-form .public-optional-target {
+  margin-top: 10px;
+  border: 1px solid #e3e8ef !important;
+  border-left: 1px solid #e3e8ef !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+}
+
+.public-complaint-form .public-optional-target summary {
+  padding: 16px 18px !important;
+  background: #f8fafc !important;
+}
+
+.public-complaint-form .public-optional-target summary em {
+  background: #eef2f6;
+  color: #475467;
+}
+
+.public-complaint-form .public-optional-target-grid {
+  margin-left: 0;
+  padding: 20px;
+}
+
+.public-complaint-form .public-captcha-card {
+  width: min(100%, 430px) !important;
+  gap: 12px !important;
+  padding: 18px !important;
+  border: 1px solid #e3e8ef !important;
+  border-radius: 12px !important;
+  background: #f8fafc !important;
+  box-shadow: none !important;
+}
+
+.public-captcha-title {
+  display: grid;
+  gap: 3px;
+}
+
+.public-captcha-title span {
+  color: #344054;
+  font-size: .88rem;
+  font-weight: 850;
+}
+
+.public-captcha-title small,
+.public-complaint-form .public-captcha-card .public-captcha-help {
+  color: #667085;
+  font-size: .75rem;
+  font-weight: 550;
+  line-height: 1.45;
+}
+
+.public-complaint-form button[type="submit"] {
+  min-width: 250px;
+  min-height: 52px;
+  border-radius: 10px !important;
+  font-size: .95rem;
+  font-weight: 850;
+  box-shadow: 0 10px 24px rgba(240, 90, 40, .22);
+}
+
+@media (max-width: 780px) {
+  .public-complaint-card {
+    padding: 20px 16px !important;
+    border-radius: 14px !important;
+  }
+
+  .public-required-note {
+    justify-content: flex-start;
+  }
+
+  .public-complaint-form .form-section {
+    min-height: 74px;
+    padding: 13px 14px 13px 56px !important;
+  }
+
+  .public-complaint-form .form-section::before {
+    left: 14px;
+  }
+
+  .public-type-toggle {
+    gap: 10px !important;
+  }
+
+  .public-complaint-form .public-optional-target-grid {
+    padding: 16px 14px;
+  }
+
+  .public-complaint-form .public-captcha-card,
+  .public-complaint-form button[type="submit"] {
+    width: 100% !important;
+    min-width: 0;
+  }
+}

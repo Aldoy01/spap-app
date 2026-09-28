@@ -555,27 +555,27 @@ function publicCaptchaToken() {
 function updatePublicComplaintTypeUi() {
   const type = getPublicComplaintType();
   if (!type) {
-    document.getElementById("publicFormTitle").textContent = "Form Layanan Masyarakat";
-    document.getElementById("publicFormIntro").textContent = "Pilih jenis layanan terlebih dahulu, lalu lengkapi data agar dapat diteruskan ke admin wilayah atau pusat.";
+    document.getElementById("publicFormTitle").textContent = "Layanan Pengaduan dan Aspirasi";
+    document.getElementById("publicFormIntro").textContent = "Pilih jenis layanan, kemudian lengkapi informasi agar dapat diverifikasi dan diteruskan kepada petugas yang berwenang.";
     return;
   }
 
   const isAspirasi = type === "aspirasi";
   const labels = {
-    title: isAspirasi ? "Form Aspirasi Masyarakat" : "Form Pengaduan Masyarakat",
+    title: isAspirasi ? "Sampaikan Aspirasi" : "Sampaikan Pengaduan",
     intro: isAspirasi
-      ? "Isi data berikut agar aspirasi dari WhatsApp dapat langsung tercatat dan diteruskan ke admin wilayah atau pusat."
-      : "Isi data berikut agar pengaduan dari WhatsApp dapat langsung tercatat dan diteruskan ke admin wilayah atau pusat.",
+      ? "Sampaikan gagasan atau usulan secara jelas agar dapat diteruskan kepada struktur yang berwenang."
+      : "Laporkan permasalahan secara lengkap agar dapat diverifikasi dan ditindaklanjuti oleh petugas.",
     sectionTitle: isAspirasi ? "Isi aspirasi" : "Isi pengaduan",
     sectionHint: isAspirasi
-      ? "Gunakan judul singkat dan uraian aspirasi yang jelas agar mudah ditindaklanjuti."
-      : "Gunakan judul singkat dan kronologi yang jelas agar mudah diverifikasi.",
-    subject: isAspirasi ? "Judul Aspirasi" : "Judul Pengaduan",
-    description: isAspirasi ? "Deskripsi Aspirasi" : "Deskripsi Pengaduan",
+      ? "Tuliskan usulan, konteks, dan hasil yang diharapkan secara jelas."
+      : "Tuliskan fakta, lokasi, waktu, dan kronologi secara runtut.",
+    subject: isAspirasi ? "Judul aspirasi" : "Judul pengaduan",
+    description: isAspirasi ? "Uraian aspirasi" : "Uraian pengaduan",
     submit: isAspirasi ? "Kirim Aspirasi" : "Kirim Pengaduan",
     placeholder: isAspirasi
-      ? "Tuliskan aspirasi, usulan, lokasi/wilayah terkait, dan harapan tindak lanjut..."
-      : "Tuliskan lokasi, waktu kejadian, kronologi, dan harapan tindak lanjut..."
+      ? "Jelaskan usulan, wilayah terkait, latar belakang, dan hasil yang Anda harapkan."
+      : "Jelaskan lokasi, waktu, kronologi, pihak terkait, dan hasil yang Anda harapkan."
   };
 
   document.getElementById("publicFormTitle").textContent = labels.title;

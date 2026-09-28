@@ -66,80 +66,114 @@ function nav_icon(string $name): string
       <div class="public-complaint-head">
         <?= pks_logo() ?>
         <div>
-          <p class="eyebrow public-service-eyebrow">Layanan WhatsApp SPAP</p>
-          <h1 id="publicFormTitle">Form Pengaduan Masyarakat</h1>
-          <p id="publicFormIntro">Isi data berikut agar pengaduan dari WhatsApp dapat langsung tercatat dan diteruskan ke admin wilayah atau pusat.</p>
+          <p class="eyebrow public-service-eyebrow">Layanan Publik SPAP</p>
+          <h1 id="publicFormTitle">Layanan Pengaduan dan Aspirasi</h1>
+          <p id="publicFormIntro">Sampaikan laporan atau aspirasi Anda secara jelas. Setiap data akan tercatat dan diteruskan kepada petugas yang berwenang.</p>
         </div>
       </div>
       <form id="publicComplaintForm" class="public-complaint-form">
-        <div class="form-section full"><span>Jenis layanan</span><small>Pilih apakah data yang dikirim berupa pengaduan atau aspirasi masyarakat.</small></div>
+        <div class="public-required-note full">
+          <span class="required-mark" aria-hidden="true">*</span>
+          <p>Kolom bertanda bintang wajib diisi.</p>
+        </div>
+
+        <div class="form-section full required-section" data-step="01">
+          <span>Jenis layanan <b class="required-mark" aria-hidden="true">*</b></span>
+          <small>Pilih layanan yang paling sesuai dengan informasi yang ingin Anda sampaikan.</small>
+        </div>
         <div class="public-type-toggle full" role="radiogroup" aria-label="Jenis layanan">
           <label>
-            <input type="radio" name="publicComplaintType" value="pengaduan">
+            <input type="radio" name="publicComplaintType" value="pengaduan" required>
             <span class="type-complaint"><img class="public-type-image" src="assets/icon-pengaduan.png?v=<?= htmlspecialchars($assetVersion, ENT_QUOTES, 'UTF-8') ?>" alt="Ikon Pengaduan"><strong>Pengaduan</strong></span>
           </label>
           <label>
-            <input type="radio" name="publicComplaintType" value="aspirasi">
+            <input type="radio" name="publicComplaintType" value="aspirasi" required>
             <span class="type-aspiration"><img class="public-type-image" src="assets/icon-aspirasi.png?v=<?= htmlspecialchars($assetVersion, ENT_QUOTES, 'UTF-8') ?>" alt="Ikon Aspirasi"><strong>Aspirasi</strong></span>
           </label>
         </div>
-        <div class="form-section full public-form-field hidden-field"><span>Data pelapor</span><small>Identitas dasar agar petugas dapat melakukan klarifikasi.</small></div>
-        <label class="public-form-field hidden-field">Nama Lengkap
-          <input id="publicReporterName" placeholder="Contoh: Budi Santoso" required>
+
+        <div class="form-section full public-form-field hidden-field" data-step="02">
+          <span>Data pelapor</span>
+          <small>Informasi kontak diperlukan untuk verifikasi dan pembaruan perkembangan laporan.</small>
+        </div>
+        <label class="public-form-field hidden-field">
+          <span class="public-field-label">Nama lengkap <b class="required-mark" aria-hidden="true">*</b></span>
+          <input id="publicReporterName" placeholder="Masukkan nama lengkap" autocomplete="name" required>
+          <small class="public-field-hint">Gunakan nama yang dapat dikenali petugas saat melakukan klarifikasi.</small>
         </label>
-        <label class="public-form-field hidden-field">No. WhatsApp
-          <input id="publicReporterPhone" type="tel" placeholder="08xxxxxxxxxx" required>
+        <label class="public-form-field hidden-field">
+          <span class="public-field-label">Nomor WhatsApp <b class="required-mark" aria-hidden="true">*</b></span>
+          <input id="publicReporterPhone" type="tel" placeholder="Contoh: 0812 3456 7890" autocomplete="tel" inputmode="tel" required>
+          <small class="public-field-hint">Pastikan nomor aktif agar petugas dapat menghubungi Anda bila diperlukan.</small>
         </label>
-        <label class="public-form-field hidden-field">Email
-          <input id="publicReporterEmail" type="email" placeholder="nama@email.com" required>
+        <label class="public-form-field hidden-field">
+          <span class="public-field-label">Email <b class="required-mark" aria-hidden="true">*</b></span>
+          <input id="publicReporterEmail" type="email" placeholder="nama@email.com" autocomplete="email" required>
+          <small class="public-field-hint">Nomor tiket dan perkembangan penanganan akan dikirim ke email ini.</small>
         </label>
-        <label class="public-form-field hidden-field">Wilayah
+        <label class="public-form-field hidden-field">
+          <span class="public-field-label">Wilayah laporan <b class="required-mark" aria-hidden="true">*</b></span>
           <select id="publicRegion" required>
-            <option value="">Pilih Wilayah</option>
+            <option value="">Pilih provinsi terkait</option>
           </select>
+          <small class="public-field-hint">Pilih wilayah lokasi kejadian atau wilayah yang berkaitan dengan aspirasi.</small>
         </label>
-        <details class="public-optional-target full public-form-field hidden-field"><summary><span>Tujuan penanganan <em>opsional</em></span><small>Klik bila ingin memilih struktur, dapil, atau nama tujuan tertentu.</small></summary><div class="public-optional-target-grid">
-        <label class="public-form-field hidden-field">Alur Penanganan
-          <select id="publicTargetScope">
-            <option value="wilayah">Admin Wilayah</option>
-            <option value="pusat">Admin Pusat</option>
-          </select>
+
+        <details class="public-optional-target full public-form-field hidden-field">
+          <summary><span>Tujuan penanganan <em>Opsional</em></span><small>Buka bagian ini jika laporan ingin ditujukan kepada struktur, dapil, atau anggota tertentu.</small></summary>
+          <div class="public-optional-target-grid">
+            <label class="public-form-field hidden-field"><span class="public-field-label">Alur penanganan</span>
+              <select id="publicTargetScope">
+                <option value="wilayah">Admin Wilayah</option>
+                <option value="pusat">Admin Pusat</option>
+              </select>
+            </label>
+            <label class="public-form-field hidden-field"><span class="public-field-label">Tingkat tujuan</span>
+              <select id="publicTargetLevel">
+                <option>DPR RI</option>
+                <option>DPRD Provinsi</option>
+                <option>DPRD Kab/Kota</option>
+              </select>
+            </label>
+            <label class="public-form-field hidden-field"><span class="public-field-label">Daerah pemilihan</span>
+              <select id="publicTargetDapil">
+                <option value="">Pilih wilayah terlebih dahulu</option>
+              </select>
+            </label>
+            <label class="full public-form-field hidden-field"><span class="public-field-label">Nama yang dituju</span>
+              <select id="publicTargetName">
+                <option value="">Pilih jenis tujuan</option>
+              </select>
+            </label>
+            <label class="full hidden-field" id="publicTargetNameDetailWrap"><span class="public-field-label">Detail tujuan</span>
+              <select id="publicTargetNameDetail"></select>
+            </label>
+            <label class="full hidden-field" id="publicTargetNameManualWrap"><span class="public-field-label">Tujuan lainnya</span>
+              <input id="publicTargetNameManual" placeholder="Tuliskan nama pengurus, lembaga, atau tujuan lainnya">
+            </label>
+          </div>
+        </details>
+
+        <div class="form-section full public-form-field hidden-field" data-step="03">
+          <span id="publicContentSectionTitle">Isi pengaduan</span>
+          <small id="publicContentSectionHint">Sampaikan informasi secara lengkap, faktual, dan mudah dipahami.</small>
+        </div>
+        <label class="full public-form-field hidden-field">
+          <span class="public-field-label"><span id="publicSubjectLabel">Judul pengaduan</span> <b class="required-mark" aria-hidden="true">*</b></span>
+          <input id="publicSubject" placeholder="Tuliskan inti laporan secara singkat" required>
+          <small class="public-field-hint">Gunakan judul yang spesifik agar laporan mudah dikenali.</small>
         </label>
-        <label class="public-form-field hidden-field">Ditujukan Kepada
-          <select id="publicTargetLevel">
-            <option>DPR RI</option>
-            <option>DPRD Provinsi</option>
-            <option>DPRD Kab/Kota</option>
-          </select>
+        <label class="full public-form-field hidden-field">
+          <span class="public-field-label"><span id="publicDescriptionLabel">Uraian pengaduan</span> <b class="required-mark" aria-hidden="true">*</b></span>
+          <textarea id="publicDescription" rows="6" placeholder="Jelaskan lokasi, waktu, kronologi, pihak terkait, dan hasil yang Anda harapkan." required></textarea>
+          <small class="public-field-hint">Hindari mencantumkan kata sandi, PIN, atau data rahasia lainnya.</small>
         </label>
-        <label class="public-form-field hidden-field">Dapil
-          <select id="publicTargetDapil">
-            <option value="">Pilih Wilayah terlebih dahulu</option>
-          </select>
-        </label>
-        <label class="full public-form-field hidden-field">Nama yang Dituju
-          <select id="publicTargetName">
-            <option value="">Pilih jenis tujuan</option>
-          </select>
-        </label>
-        <label class="full hidden-field" id="publicTargetNameDetailWrap">Detail Tujuan
-          <select id="publicTargetNameDetail"></select>
-        </label>
-        <label class="full hidden-field" id="publicTargetNameManualWrap">Nama yang Dituju Lainnya
-          <input id="publicTargetNameManual" placeholder="Ketik nama pengurus, lembaga, atau tujuan lainnya">
-        </label>
-                </div></details>
-<div class="form-section full public-form-field hidden-field"><span id="publicContentSectionTitle">Isi pengaduan</span><small id="publicContentSectionHint">Gunakan judul singkat dan kronologi yang jelas agar mudah diverifikasi.</small></div>
-        <label class="full public-form-field hidden-field"><span id="publicSubjectLabel">Judul Pengaduan</span>
-          <input id="publicSubject" placeholder="Ringkasan masalah dalam satu kalimat" required>
-        </label>
-        <label class="full public-form-field hidden-field"><span id="publicDescriptionLabel">Deskripsi Pengaduan</span>
-          <textarea id="publicDescription" rows="5" placeholder="Tuliskan lokasi, waktu kejadian, kronologi, dan harapan tindak lanjut..." required></textarea>
-        </label>
+
         <div class="full public-form-field hidden-field public-captcha-card" id="publicCaptchaWrap">
+          <div class="public-captcha-title"><span>Verifikasi keamanan <b class="required-mark" aria-hidden="true">*</b></span><small>Pastikan pengiriman dilakukan oleh pengguna nyata.</small></div>
           <div id="publicTurnstile" class="public-turnstile"></div>
           <div class="public-turnstile-status hidden-field" id="publicTurnstileStatus">Cloudflare Turnstile belum dikonfigurasi.</div>
-          <small>Verifikasi Cloudflare Turnstile wajib diselesaikan sebelum data dikirim ke server.</small>
+          <small class="public-captcha-help">Selesaikan verifikasi sebelum mengirimkan laporan.</small>
         </div>
         <button class="btn primary public-form-field hidden-field" id="publicSubmitBtn" type="submit">Kirim Pengaduan</button>
       </form>
