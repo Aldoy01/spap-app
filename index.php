@@ -196,6 +196,24 @@ function nav_icon(string $name): string
         </label>
         <button class="btn primary" type="submit">Masuk</button>
       </form>
+      <section class="otp-panel hidden-field" id="otpPanel" aria-labelledby="otpTitle">
+        <div class="otp-heading">
+          <span class="otp-shield" aria-hidden="true">&#10003;</span>
+          <div>
+            <p class="eyebrow">Verifikasi dua langkah</p>
+            <h2 id="otpTitle">Masukkan kode OTP</h2>
+          </div>
+        </div>
+        <p class="otp-copy">Kode 6 digit telah dikirim ke <strong id="otpDestination">email admin</strong>. Kode hanya berlaku selama 5 menit.</p>
+        <form id="otpForm" class="login-form otp-form">
+          <label for="loginOtp">Kode keamanan
+            <input id="loginOtp" class="otp-code-input" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="000000" required>
+          </label>
+          <p class="otp-countdown" id="otpCountdown" aria-live="polite">Berlaku 05:00</p>
+          <button class="btn primary" id="verifyOtpBtn" type="submit">Verifikasi OTP</button>
+          <button class="btn ghost" id="cancelOtpBtn" type="button">Kembali ke Login</button>
+        </form>
+      </section>
       <div class="login-hint">
         <span>Gunakan akun resmi yang diberikan admin.</span>
         <span>Password baru wajib kuat dan tidak memakai default umum.</span>

@@ -167,6 +167,9 @@ let acknowledgedNotifications = new Set(JSON.parse(localStorage.getItem("spap-ac
 let kpuDapilCache = {};
 let kpuTargetNameOptions = [];
 let publicTurnstileWidgetId = null;
+let otpChallengeToken = "";
+let otpExpiresAt = 0;
+let otpTimerId = null;
 const API_BASE = window.SPAP_CONFIG?.apiBaseUrl || (window.location.port === "3000" ? "" : "http://localhost:3000");
 const manageableMenus = ["dashboard", "aspirasi", "pengaduan", "osint", "analytics", "laporan", "settings"];
 const manageableRoles = ["admin", "operator", "verifikator", "koordinator"];
@@ -673,6 +676,61 @@ async function restoreSession() {
   applyAuthState();
 }
 
+function resetOtpStep() {
+  if (otpTimerId) window.clearInterval(otpTimerId);
+  otpTimerId = null;
+  otpChallengeToken = "";
+  otpExpiresAt = 0;
+  document.getElementById("otpPanel")?.classList.add("hidden-field");
+  document.getElementById("loginForm")?.classList.remove("hidden-field");
+  const input = document.getElementById("loginOtp");
+  if (input) input.value = "";
+}
+
+function updateOtpCountdown() {
+  const countdown = document.getElementById("otpCountdown");
+  const submit = document.getElementById("verifyOtpBtn");
+  const remaining = Math.max(0, Math.ceil((otpExpiresAt - Date.now()) / 1000));
+  const minutes = String(Math.floor(remaining / 60)).padStart(2, "0");
+  const seconds = String(remaining % 60).padStart(2, "0");
+  if (countdown) countdown.textContent = remaining ? `Berlaku ${minutes}:${seconds}` : "Kode telah kedaluwarsa";
+  if (submit) submit.disabled = remaining === 0;
+  if (!remaining && otpTimerId) {
+    window.clearInterval(otpTimerId);
+    otpTimerId = null;
+  }
+}
+
+function showOtpStep(data) {
+  otpChallengeToken = data.challengeToken || "";
+  otpExpiresAt = Date.now() + (Number(data.expiresIn) || 300) * 1000;
+  document.getElementById("loginForm").classList.add("hidden-field");
+  document.getElementById("otpPanel").classList.remove("hidden-field");
+  document.getElementById("otpDestination").textContent = data.destination || "email admin";
+  document.getElementById("verifyOtpBtn").disabled = false;
+  updateOtpCountdown();
+  otpTimerId = window.setInterval(updateOtpCountdown, 1000);
+  document.getElementById("loginOtp").focus();
+}
+
+async function completeFrontendLogin(payload) {
+  authToken = payload.data.token;
+  currentUser = payload.data.user;
+  localStorage.setItem("spap-auth-token", authToken);
+  currentPage = "dashboard";
+  resetOtpStep();
+  applyAuthState();
+  setPage(currentPage);
+
+  try {
+    await loadData();
+  } catch (error) {
+    console.error("Dashboard load after login failed", error);
+  }
+
+  toast(`Selamat datang, ${currentUser.name}`);
+}
+
 async function login(event) {
   event.preventDefault();
   let payload;
@@ -691,20 +749,36 @@ async function login(event) {
     return;
   }
 
-  authToken = payload.data.token;
-  currentUser = payload.data.user;
-  localStorage.setItem("spap-auth-token", authToken);
-  currentPage = "dashboard";
-  applyAuthState();
-  setPage(currentPage);
-
-  try {
-    await loadData();
-  } catch (error) {
-    console.error("Dashboard load after login failed", error);
+  if (payload.data?.requiresOtp) {
+    showOtpStep(payload.data);
+    toast("Kode OTP telah dikirim ke email admin");
+    return;
   }
 
-  toast(`Selamat datang, ${currentUser.name}`);
+  await completeFrontendLogin(payload);
+}
+
+async function verifyLoginOtp(event) {
+  event.preventDefault();
+  if (!otpChallengeToken || Date.now() >= otpExpiresAt) {
+    toast("Kode OTP telah kedaluwarsa. Silakan login kembali.");
+    return;
+  }
+
+  try {
+    const payload = await apiRequest("/api/auth/otp/verify", {
+      method: "POST",
+      body: JSON.stringify({
+        challengeToken: otpChallengeToken,
+        otp: document.getElementById("loginOtp").value.trim()
+      })
+    });
+    await completeFrontendLogin(payload);
+  } catch (error) {
+    console.error("OTP verification failed", error);
+    document.getElementById("loginOtp").select();
+    toast(error.message || "Kode OTP tidak valid");
+  }
 }
 
 async function logout() {
@@ -2172,6 +2246,11 @@ function bindEvents() {
   document.getElementById("publicTargetDapil").addEventListener("change", updatePublicTargetNameOptions);
   document.getElementById("publicTargetName").addEventListener("change", () => syncManualTargetInput("publicTargetName", "publicTargetNameManualWrap", "publicTargetNameManual"));
   document.getElementById("loginForm").addEventListener("submit", login);
+  document.getElementById("otpForm").addEventListener("submit", verifyLoginOtp);
+  document.getElementById("cancelOtpBtn").addEventListener("click", () => {
+    resetOtpStep();
+    document.getElementById("loginPassword").focus();
+  });
   document.getElementById("logoutBtn").addEventListener("click", logout);
   document.querySelectorAll(".nav-item").forEach(button => {
     button.addEventListener("click", () => {

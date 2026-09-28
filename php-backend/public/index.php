@@ -76,6 +76,11 @@ function route_request(): void
         return;
     }
 
+    if ($method === 'POST' && $path === '/api/auth/otp/verify') {
+        verify_admin_login_otp();
+        return;
+    }
+
     if ($method === 'GET' && $path === '/api/auth/me') {
         current_user();
         return;
@@ -1115,6 +1120,138 @@ function health(): void
     json_response(['status' => 'ok', 'runtime' => 'php7', 'services' => ['db' => $dbStatus, 'cache' => $cacheStatus]]);
 }
 
+function admin_otp_enabled(): bool
+{
+    return strtolower(getenv_value('ADMIN_OTP_ENABLED', 'false')) === 'true';
+}
+
+function admin_otp_recipient(array $user): string
+{
+    $configured = strtolower(trim(getenv_value('ADMIN_OTP_EMAIL', '')));
+    if ($configured !== '') {
+        return $configured;
+    }
+
+    $email = strtolower(trim((string) ($user['email'] ?? '')));
+    return str_ends_with($email, '.local') ? '' : $email;
+}
+
+function admin_otp_key(string $challengeToken): string
+{
+    return 'admin-login-otp:' . hash('sha256', $challengeToken);
+}
+
+function admin_otp_user_key(array $user): string
+{
+    return 'admin-login-otp-user:' . hash('sha256', (string) $user['id'] . '|' . request_ip_address());
+}
+
+function mask_email_address(string $email): string
+{
+    [$local, $domain] = array_pad(explode('@', $email, 2), 2, '');
+    if ($domain === '') {
+        return 'email admin';
+    }
+    $visible = substr($local, 0, min(2, strlen($local)));
+    return $visible . str_repeat('*', max(3, strlen($local) - strlen($visible))) . '@' . $domain;
+}
+
+function send_admin_login_otp(array $user, string $recipient, string $otp): array
+{
+    $body = implode("\n", [
+        'SPAP - Verifikasi Login Admin',
+        '================================',
+        '',
+        'Kode OTP Anda:',
+        $otp,
+        '',
+        'Kode berlaku selama 5 menit dan hanya dapat digunakan satu kali.',
+        'Jangan berikan kode ini kepada siapa pun.',
+        '',
+        'Percobaan login untuk: ' . ($user['email'] ?? 'admin'),
+        'Waktu: ' . date('d M Y H:i') . ' WIB',
+        '',
+        'Jika Anda tidak melakukan login, abaikan email ini dan segera periksa keamanan akun.',
+        '',
+        '--',
+        'Pesan otomatis SPAP. Mohon tidak membalas email ini.',
+    ]);
+    $headers = [
+        'From' => email_from_name() . ' <' . email_from_address() . '>',
+        'Reply-To' => email_reply_to_address(),
+        'Auto-Submitted' => 'auto-generated',
+        'X-Auto-Response-Suppress' => 'All',
+        'MIME-Version' => '1.0',
+        'Content-Type' => 'text/plain; charset=UTF-8',
+    ];
+
+    return send_email_message($recipient, '[SPAP] Kode OTP Login Admin', $body, $headers);
+}
+
+function begin_admin_login_otp(array $user): void
+{
+    $recipient = admin_otp_recipient($user);
+    if ($recipient === '' || validate_email_address($recipient)) {
+        record_security_event('auth.otp_configuration_error', $user, $user, false);
+        json_response(['error' => 'Email OTP admin belum dikonfigurasi'], 503);
+        return;
+    }
+
+    $userKey = admin_otp_user_key($user);
+    $previous = cache_get($userKey);
+    if (!empty($previous['challengeToken'])) {
+        cache_delete(admin_otp_key((string) $previous['challengeToken']));
+    }
+
+    $challengeToken = bin2hex(random_bytes(32));
+    $otp = (string) random_int(100000, 999999);
+    $expiresAt = time() + 300;
+    cache_set(admin_otp_key($challengeToken), [
+        'userId' => $user['id'],
+        'email' => $user['email'],
+        'otpHash' => hash_hmac('sha256', $otp, $challengeToken),
+        'attempts' => 0,
+        'expiresAt' => $expiresAt,
+    ], 300);
+    cache_set($userKey, ['challengeToken' => $challengeToken], 300);
+
+    $delivery = send_admin_login_otp($user, $recipient, $otp);
+    if (($delivery['status'] ?? '') !== 'sent') {
+        cache_delete(admin_otp_key($challengeToken));
+        cache_delete($userKey);
+        error_log('Admin OTP email failed: ' . ($delivery['reason'] ?? 'unknown'));
+        record_security_event('auth.otp_delivery_failed', $user, $user, false);
+        json_response(['error' => 'Kode OTP tidak dapat dikirim. Periksa konfigurasi email.'], 503);
+        return;
+    }
+
+    record_security_event('auth.otp_sent', $user, $user, true, ['expiresIn' => 300]);
+    json_response([
+        'data' => [
+            'requiresOtp' => true,
+            'challengeToken' => $challengeToken,
+            'expiresIn' => 300,
+            'destination' => mask_email_address($recipient),
+        ],
+    ], 202);
+}
+
+function complete_login(array $user): void
+{
+    clear_login_rate((string) $user['email']);
+    db()->prepare('UPDATE users SET last_login_at = now() WHERE id = ?')->execute([$user['id']]);
+    $token = bin2hex(random_bytes(32));
+    cache_set(token_key($token), ['user' => public_user($user)], 86400);
+    record_security_event('auth.login_success', $user, $user, true);
+
+    json_response([
+        'data' => [
+            'token' => $token,
+            'user' => public_user($user),
+        ],
+    ]);
+}
+
 function login(): void
 {
     $input = input_json();
@@ -1149,17 +1286,65 @@ function login(): void
     }
 
     clear_login_rate($email);
-    db()->prepare('UPDATE users SET last_login_at = now() WHERE id = ?')->execute([$user['id']]);
-    $token = bin2hex(random_bytes(32));
-    cache_set(token_key($token), ['user' => public_user($user)], 86400);
-    record_security_event('auth.login_success', $user, $user, true);
+    if (($user['role'] ?? '') === 'admin' && admin_otp_enabled()) {
+        begin_admin_login_otp($user);
+        return;
+    }
 
-    json_response([
-        'data' => [
-            'token' => $token,
-            'user' => public_user($user),
-        ],
-    ]);
+    complete_login($user);
+}
+
+function verify_admin_login_otp(): void
+{
+    $input = input_json();
+    $challengeToken = trim((string) ($input['challengeToken'] ?? ''));
+    $otp = trim((string) ($input['otp'] ?? ''));
+
+    if (!preg_match('/^[a-f0-9]{64}$/', $challengeToken) || !preg_match('/^\d{6}$/', $otp)) {
+        json_response(['error' => 'Kode OTP atau token verifikasi tidak valid'], 422);
+        return;
+    }
+
+    $key = admin_otp_key($challengeToken);
+    $challenge = cache_get($key);
+    if (!$challenge || (int) ($challenge['expiresAt'] ?? 0) < time()) {
+        cache_delete($key);
+        record_security_event('auth.otp_expired', null, null, false, ['actorEmail' => $challenge['email'] ?? null]);
+        json_response(['error' => 'Kode OTP sudah kedaluwarsa. Silakan login kembali.'], 401);
+        return;
+    }
+
+    $attempts = (int) ($challenge['attempts'] ?? 0) + 1;
+    $expectedHash = (string) ($challenge['otpHash'] ?? '');
+    $actualHash = hash_hmac('sha256', $otp, $challengeToken);
+    if ($expectedHash === '' || !hash_equals($expectedHash, $actualHash)) {
+        $remainingAttempts = max(0, 5 - $attempts);
+        if ($remainingAttempts === 0) {
+            cache_delete($key);
+        } else {
+            $challenge['attempts'] = $attempts;
+            $remainingTtl = max(1, (int) $challenge['expiresAt'] - time());
+            cache_set($key, $challenge, $remainingTtl);
+        }
+        record_security_event('auth.otp_failed', null, null, false, ['actorEmail' => $challenge['email'] ?? null, 'remainingAttempts' => $remainingAttempts]);
+        json_response(['error' => $remainingAttempts > 0
+            ? 'Kode OTP tidak sesuai. Sisa percobaan: ' . $remainingAttempts
+            : 'Batas percobaan OTP tercapai. Silakan login kembali.'], 401);
+        return;
+    }
+
+    $statement = db()->prepare("SELECT * FROM users WHERE id = ? AND status = 'active' AND role = 'admin' LIMIT 1");
+    $statement->execute([$challenge['userId'] ?? '']);
+    $user = $statement->fetch();
+    cache_delete($key);
+    if (!$user) {
+        json_response(['error' => 'Akun admin tidak tersedia'], 401);
+        return;
+    }
+
+    cache_delete(admin_otp_user_key($user));
+    record_security_event('auth.otp_verified', $user, $user, true);
+    complete_login($user);
 }
 
 function current_user(): void

@@ -102,6 +102,66 @@ button, input, select, textarea {
   font-size: 12px;
 }
 
+
+.otp-panel {
+  display: grid;
+  gap: 18px;
+  margin-top: 4px;
+}
+
+.otp-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.otp-heading h2 {
+  margin: 3px 0 0;
+  font-size: 24px;
+}
+
+.otp-heading .eyebrow {
+  margin: 0;
+}
+
+.otp-shield {
+  display: grid;
+  flex: 0 0 46px;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border-radius: 50%;
+  background: #e9f8ef;
+  color: #08783e;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.otp-copy {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.otp-code-input {
+  min-height: 58px;
+  text-align: center;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 8px;
+}
+
+.otp-countdown {
+  margin: -4px 0 0;
+  color: #475467;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.otp-form .btn.ghost {
+  margin-top: 0;
+}
 .public-complaint-screen {
   min-height: 100vh;
   display: grid;
@@ -2636,6 +2696,7 @@ dialog::backdrop {
 }
 
 /* Public WhatsApp complaint form refresh */
+
 .public-complaint-screen {
   min-height: 100vh;
   padding: 34px 18px;
@@ -2904,7 +2965,8 @@ dialog::backdrop {
 }
 
 @media (max-width: 780px) {
-  .public-complaint-screen {
+
+.public-complaint-screen {
     padding: 18px 12px;
   }
 
@@ -2935,6 +2997,7 @@ dialog::backdrop {
 }
 
 /* Final polish for lapor.pks.id WhatsApp form */
+
 .public-complaint-screen {
   display: grid;
   place-items: start center;
@@ -3452,6 +3515,7 @@ dialog::backdrop {
 }
 
 /* Modern public complaint and aspiration form */
+
 .public-complaint-screen {
   background: #f4f6f8 !important;
 }
