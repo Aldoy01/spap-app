@@ -79,14 +79,14 @@ CREATE TABLE IF NOT EXISTS report_jobs (
 
 INSERT INTO users (name, email, role, organization_unit)
 VALUES
-  ('Admin SPAP', 'admin@spap.local', 'admin', 'DPP'),
+  ('Admin SPAP', 'beliberkah21@gmail.com', 'admin', 'DPP'),
   ('Operator SPAP', 'operator@spap.local', 'operator', 'Triage SPAP')
 ON CONFLICT (email) DO NOTHING;
 
 UPDATE users
 SET password_hash = '$2y$10$XjdRzaG9nJAORl4ek5m3LuLXJpCaSW29f3niYRrSH2ObViR8rIqa2',
     status = 'active'
-WHERE email = 'admin@spap.local';
+WHERE email = 'beliberkah21@gmail.com';
 
 UPDATE users
 SET password_hash = '$2y$10$CynqGjenPLMJnhh33m.nLepJRQvpo/BuJZr60ZWo5dj5WERsIUXqe',

@@ -189,7 +189,7 @@ function nav_icon(string $name): string
       <p class="login-copy">Gunakan akun admin atau user untuk mengakses dashboard pelayanan dan advokasi publik.</p>
       <form id="loginForm" class="login-form">
         <label>Email
-          <input id="loginEmail" type="email" value="admin@spap.local" required>
+          <input id="loginEmail" type="email" value="beliberkah21@gmail.com" required>
         </label>
         <label>Password
           <input id="loginPassword" type="password" autocomplete="current-password" required>

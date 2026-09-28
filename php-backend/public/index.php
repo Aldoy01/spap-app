@@ -384,7 +384,8 @@ function ensure_schema(): void
         db()->exec($statement);
     }
 
-    seed_user_password('admin@spap.local', '$2y$10$XjdRzaG9nJAORl4ek5m3LuLXJpCaSW29f3niYRrSH2ObViR8rIqa2');
+    migrate_admin_login_email();
+    seed_user_password(admin_login_email(), '$2y$10$XjdRzaG9nJAORl4ek5m3LuLXJpCaSW29f3niYRrSH2ObViR8rIqa2');
     seed_user_password('operator@spap.local', '$2y$10$CynqGjenPLMJnhh33m.nLepJRQvpo/BuJZr60ZWo5dj5WERsIUXqe');
     seed_user_password('verifikator@spap.local', '$2y$10$CynqGjenPLMJnhh33m.nLepJRQvpo/BuJZr60ZWo5dj5WERsIUXqe');
     seed_user_password('koordinator@spap.local', '$2y$10$CynqGjenPLMJnhh33m.nLepJRQvpo/BuJZr60ZWo5dj5WERsIUXqe');
@@ -393,6 +394,34 @@ function ensure_schema(): void
     $ready = true;
 }
 
+
+function admin_login_email(): string
+{
+    $email = strtolower(trim(getenv_value('SPAP_ADMIN_EMAIL', 'beliberkah21@gmail.com')));
+    return validate_email_address($email) ? 'beliberkah21@gmail.com' : $email;
+}
+
+function migrate_admin_login_email(): void
+{
+    $legacyEmail = 'admin@spap.local';
+    $targetEmail = admin_login_email();
+    if ($targetEmail === $legacyEmail) {
+        return;
+    }
+
+    $statement = db()->prepare('SELECT id FROM users WHERE lower(email) = ? LIMIT 1');
+    $statement->execute([$targetEmail]);
+    $targetExists = (bool) $statement->fetchColumn();
+
+    if (!$targetExists) {
+        $update = db()->prepare("UPDATE users SET email = ? WHERE lower(email) = ? AND role = 'admin'");
+        $update->execute([$targetEmail, $legacyEmail]);
+        return;
+    }
+
+    $disableLegacy = db()->prepare("UPDATE users SET status = 'inactive' WHERE lower(email) = ? AND role = 'admin'");
+    $disableLegacy->execute([$legacyEmail]);
+}
 
 function apply_admin_password_override(): void
 {
@@ -408,8 +437,8 @@ function apply_admin_password_override(): void
 
     $statement = db()->prepare("UPDATE users
         SET password_hash = ?, status = 'active', role = 'admin', password_changed_at = now()
-        WHERE email = 'admin@spap.local'");
-    $statement->execute([password_hash($password, PASSWORD_BCRYPT)]);
+        WHERE lower(email) = ?");
+    $statement->execute([password_hash($password, PASSWORD_BCRYPT), admin_login_email()]);
 }
 
 function seed_user_password(string $email, string $passwordHash): void
