@@ -77,9 +77,9 @@ function nav_icon(string $name): string
           <p>Kolom bertanda bintang wajib diisi.</p>
         </div>
 
-        <div class="form-section full required-section" data-step="01">
-          <span>Jenis layanan <b class="required-mark" aria-hidden="true">*</b></span>
-          <small>Pilih layanan yang paling sesuai dengan informasi yang ingin Anda sampaikan.</small>
+        <div class="form-section full required-section">
+          <span class="public-section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v5H4zM4 14h7v5H4zM15 14h5v5h-5z"/></svg></span>
+          <div class="public-section-copy"><span>Jenis layanan <b class="required-mark" aria-hidden="true">*</b></span><small>Pilih layanan yang paling sesuai dengan informasi yang ingin Anda sampaikan.</small></div>
         </div>
         <div class="public-type-toggle full" role="radiogroup" aria-label="Jenis layanan">
           <label>
@@ -92,9 +92,9 @@ function nav_icon(string $name): string
           </label>
         </div>
 
-        <div class="form-section full public-form-field hidden-field" data-step="02">
-          <span>Data pelapor</span>
-          <small>Informasi kontak diperlukan untuk verifikasi dan pembaruan perkembangan laporan.</small>
+        <div class="form-section full public-form-field hidden-field">
+          <span class="public-section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg></span>
+          <div class="public-section-copy"><span>Data pelapor</span><small>Informasi kontak diperlukan untuk verifikasi dan pembaruan perkembangan laporan.</small></div>
         </div>
         <label class="public-form-field hidden-field">
           <span class="public-field-label">Nama lengkap <b class="required-mark" aria-hidden="true">*</b></span>
@@ -154,9 +154,9 @@ function nav_icon(string $name): string
           </div>
         </details>
 
-        <div class="form-section full public-form-field hidden-field" data-step="03">
-          <span id="publicContentSectionTitle">Isi pengaduan</span>
-          <small id="publicContentSectionHint">Sampaikan informasi secara lengkap, faktual, dan mudah dipahami.</small>
+        <div class="form-section full public-form-field hidden-field">
+          <span class="public-section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg></span>
+          <div class="public-section-copy"><span id="publicContentSectionTitle">Isi pengaduan</span><small id="publicContentSectionHint">Sampaikan informasi secara lengkap, faktual, dan mudah dipahami.</small></div>
         </div>
         <label class="full public-form-field hidden-field">
           <span class="public-field-label"><span id="publicSubjectLabel">Judul pengaduan</span> <b class="required-mark" aria-hidden="true">*</b></span>
