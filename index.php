@@ -67,7 +67,7 @@ function nav_icon(string $name): string
         <?= pks_logo() ?>
         <div>
           <p class="eyebrow public-service-eyebrow">Layanan Publik SPAP</p>
-          <h1 id="publicFormTitle">Layanan Pengaduan dan Aspirasi</h1>
+          <h1 id="publicFormTitle">SPAP | Layanan Pengaduan Dan Aspirasi</h1>
           <p id="publicFormIntro">Sampaikan laporan atau aspirasi Anda secara jelas. Setiap data akan tercatat dan diteruskan kepada petugas yang berwenang.</p>
         </div>
       </div>

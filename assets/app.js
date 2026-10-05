@@ -558,14 +558,14 @@ function publicCaptchaToken() {
 function updatePublicComplaintTypeUi() {
   const type = getPublicComplaintType();
   if (!type) {
-    document.getElementById("publicFormTitle").textContent = "Layanan Pengaduan dan Aspirasi";
+    document.getElementById("publicFormTitle").textContent = "SPAP | Layanan Pengaduan Dan Aspirasi";
     document.getElementById("publicFormIntro").textContent = "Pilih jenis layanan, kemudian lengkapi informasi agar dapat diverifikasi dan diteruskan kepada petugas yang berwenang.";
     return;
   }
 
   const isAspirasi = type === "aspirasi";
   const labels = {
-    title: isAspirasi ? "Sampaikan Aspirasi" : "Sampaikan Pengaduan",
+    title: "SPAP | Layanan Pengaduan Dan Aspirasi",
     intro: isAspirasi
       ? "Sampaikan gagasan atau usulan secara jelas agar dapat diteruskan kepada struktur yang berwenang."
       : "Laporkan permasalahan secara lengkap agar dapat diverifikasi dan ditindaklanjuti oleh petugas.",
