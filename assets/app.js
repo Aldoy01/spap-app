@@ -172,6 +172,7 @@ let otpExpiresAt = 0;
 let otpTimerId = null;
 const API_BASE = window.SPAP_CONFIG?.apiBaseUrl || (window.location.port === "3000" ? "" : "http://localhost:3000");
 const manageableMenus = ["dashboard", "aspirasi", "pengaduan", "osint", "analytics", "laporan", "settings"];
+const permanentlyHiddenMenus = new Set(["workflow", "infra"]);
 const manageableRoles = ["admin", "operator", "verifikator", "koordinator"];
 const roleLabels = { admin: "Admin", operator: "Operator", verifikator: "Verifikator", koordinator: "Koordinator" };
 const menuLabels = { dashboard: "Dashboard", aspirasi: "Aspirasi", pengaduan: "Pengaduan", osint: "OSINT", analytics: "Analytics", laporan: "Laporan", settings: "Pengaturan" };
@@ -652,7 +653,9 @@ function applyAuthState() {
     const page = item.dataset.page;
     const permission = currentUser?.permissions?.[page];
     const hiddenByPermission = currentUser && currentUser.role !== "admin" && permission && permission.view === false;
-    item.classList.toggle("nav-hidden", page === "settings" ? currentUser?.role !== "admin" : Boolean(hiddenByPermission));
+    const hiddenByConfiguration = permanentlyHiddenMenus.has(page);
+    const adminOnlyHidden = page === "settings" && currentUser?.role !== "admin";
+    item.classList.toggle("nav-hidden", hiddenByConfiguration || adminOnlyHidden || Boolean(hiddenByPermission));
   });
 
   if (loggedIn && currentPage === "settings" && currentUser.role !== "admin") {
