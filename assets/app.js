@@ -1607,17 +1607,42 @@ function renderReport() {
     acc[item.kategori] = (acc[item.kategori] || 0) + 1;
     return acc;
   }, {})).sort((a, b) => b[1] - a[1])[0]?.[0] || "-";
+  const reportType = document.getElementById("reportType").value;
+  const reportPeriod = document.getElementById("reportPeriod").value;
+  const reportRegion = document.getElementById("reportRegion").value;
+  const reportFormat = document.getElementById("reportFormat").value;
+  const completed = Math.max(0, tickets.length - unresolved);
+  const completionRate = tickets.length ? Math.round((completed / tickets.length) * 100) : 0;
+  const osintTopic = state.osint.topics[0];
+  const generatedAt = new Intl.DateTimeFormat("id-ID", {
+    dateStyle: "long",
+    timeStyle: "short"
+  }).format(new Date());
   document.getElementById("reportPreview").innerHTML = `
-    <h3>${document.getElementById("reportType").value}</h3>
-    <p>Periode: ${document.getElementById("reportPeriod").value} - Wilayah: ${document.getElementById("reportRegion").value}</p>
-    <hr>
-    <p><strong>Total tiket:</strong> ${tickets.length}</p>
-    <p><strong>Belum selesai:</strong> ${unresolved}</p>
-    <p><strong>SLA terlewati:</strong> ${overdue}</p>
-    <p><strong>Tiket kritis aktif:</strong> ${critical}</p>
-    <p><strong>Kategori dominan:</strong> ${topCategory}</p>
-    <p><strong>Isu OSINT utama:</strong> ${(state.osint.topics[0]?.tag || "-")} dengan ${(state.osint.topics[0]?.mentions || 0).toLocaleString("id-ID")} mentions.</p>
-    <p><strong>Rekomendasi:</strong> Perkuat triage tiket prioritas, siapkan respon isu publik, dan kirim ringkasan ke struktur wilayah terkait.</p>
+    <div class="report-document-head">
+      <div><span class="report-document-label">${escapeHtml(reportType)}</span><h4>Laporan Pelayanan dan Advokasi Publik</h4></div>
+      <span class="report-format-badge">${escapeHtml(reportFormat)}</span>
+    </div>
+    <div class="report-meta">
+      <span><small>Periode</small><strong>${escapeHtml(reportPeriod)}</strong></span>
+      <span><small>Wilayah</small><strong>${escapeHtml(reportRegion)}</strong></span>
+      <span><small>Diperbarui</small><strong>${escapeHtml(generatedAt)}</strong></span>
+    </div>
+    <div class="report-kpi-grid">
+      <article><span>Total laporan</span><strong>${tickets.length}</strong><small>Data tercatat</small></article>
+      <article><span>Dalam penanganan</span><strong>${unresolved}</strong><small>Belum selesai</small></article>
+      <article class="${overdue ? "is-alert" : ""}"><span>SLA terlewati</span><strong>${overdue}</strong><small>Perlu perhatian</small></article>
+      <article class="${critical ? "is-warning" : ""}"><span>Prioritas kritis</span><strong>${critical}</strong><small>Masih aktif</small></article>
+    </div>
+    <div class="report-insight-grid">
+      <section><span class="report-insight-label">Tingkat penyelesaian</span><div class="report-progress"><i style="width:${completionRate}%"></i></div><strong>${completionRate}%</strong></section>
+      <section><span class="report-insight-label">Kategori dominan</span><strong>${escapeHtml(topCategory)}</strong><small>Berdasarkan volume laporan</small></section>
+      <section><span class="report-insight-label">Isu publik utama</span><strong>${escapeHtml(osintTopic?.tag || "-")}</strong><small>${(osintTopic?.mentions || 0).toLocaleString("id-ID")} percakapan terpantau</small></section>
+    </div>
+    <div class="report-recommendation">
+      <span class="report-recommendation-icon" aria-hidden="true">!</span>
+      <div><strong>Rekomendasi tindak lanjut</strong><p>Prioritaskan triase laporan kritis dan yang melewati SLA, siapkan respons atas isu publik dominan, lalu distribusikan ringkasan kepada struktur wilayah terkait.</p></div>
+    </div>
   `;
 }
 

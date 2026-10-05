@@ -649,15 +649,24 @@ function nav_icon(string $name): string
       </section>
 
       <section class="page" id="laporan">
+        <header class="report-page-head">
+          <div>
+            <p class="report-kicker">Pusat pelaporan</p>
+            <h3>Ringkasan Kinerja Pelayanan</h3>
+            <p>Susun laporan operasional berdasarkan periode dan wilayah untuk mendukung evaluasi serta pengambilan keputusan.</p>
+          </div>
+          <span class="report-head-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6V3Z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg></span>
+        </header>
         <div class="report-layout">
-          <section class="panel">
-            <div class="panel-head">
+          <section class="panel report-builder-panel">
+            <div class="panel-head report-panel-head">
+              <span class="report-panel-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></svg></span>
               <div>
-                <h3>Buat Laporan</h3>
-                <p>Template laporan berbasis data mockup</p>
+                <h3>Pengaturan Laporan</h3>
+                <p>Tentukan cakupan data yang akan dirangkum.</p>
               </div>
             </div>
-            <form id="reportForm" class="form-grid">
+            <form id="reportForm" class="form-grid report-form">
               <label>Jenis Laporan
                 <select id="reportType">
                   <option>Ringkasan Eksekutif</option>
@@ -686,14 +695,15 @@ function nav_icon(string $name): string
                   <option>PowerPoint</option>
                 </select>
               </label>
-              <button class="btn primary" type="submit">Generate Preview</button>
+              <button class="btn primary report-generate-btn" type="submit"><span aria-hidden="true">&#8635;</span> Perbarui Ringkasan</button>
             </form>
           </section>
-          <section class="panel span-2">
-            <div class="panel-head">
+          <section class="panel span-2 report-output-panel">
+            <div class="panel-head report-panel-head">
+              <span class="report-panel-icon preview" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6Z"/><circle cx="12" cy="12" r="2.5"/></svg></span>
               <div>
-                <h3>Preview Laporan</h3>
-                <p>Ringkasan otomatis dari kondisi terkini</p>
+                <h3>Ringkasan Eksekutif</h3>
+                <p>Ikhtisar data terkini sesuai filter laporan.</p>
               </div>
             </div>
             <div id="reportPreview" class="report-preview"></div>
