@@ -713,7 +713,9 @@ function nav_icon(string $name): string
             </div>
             <form id="userForm" class="form-grid user-form">
               <div class="user-form-section full">
-                <span class="user-form-step">01</span>
+                <span class="user-form-step identity" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z"/></svg>
+                </span>
                 <div><strong>Identitas akun</strong><small>Informasi dasar untuk mengenali pengguna.</small></div>
               </div>
               <label>Nama lengkap
@@ -724,7 +726,9 @@ function nav_icon(string $name): string
               </label>
 
               <div class="user-form-section full">
-                <span class="user-form-step">02</span>
+                <span class="user-form-step access" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>
+                </span>
                 <div><strong>Cakupan akses</strong><small>Batasi data berdasarkan peran, wilayah, atau nama tujuan.</small></div>
               </div>
               <label>Role
@@ -751,7 +755,9 @@ function nav_icon(string $name): string
               </label>
 
               <div class="user-form-section full">
-                <span class="user-form-step">03</span>
+                <span class="user-form-step security" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg>
+                </span>
                 <div><strong>Keamanan akun</strong><small>Tetapkan password awal dan status pengguna.</small></div>
               </div>
               <label>Password awal
